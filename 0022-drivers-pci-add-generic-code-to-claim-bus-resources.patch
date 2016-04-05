@@ -1,0 +1,122 @@
+From 3d1984afddf07c58fd9d63bd97b7e72929e12b4e Mon Sep 17 00:00:00 2001
+From: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Date: Wed, 3 Feb 2016 18:11:01 +0000
+Subject: [PATCH 22/26] drivers: pci: add generic code to claim bus resources
+
+PCI core code contains a set of functions, eg:
+
+pci_assign_unassigned_bus_resources()
+
+that allow to assign the PCI resources for a given bus after
+enumeration.
+
+On systems where the PCI BARs are immutable (ie they must not and can
+not be assigned), PCI resources must be claimed in order to be
+validated and inserted in the PCI resources tree, but there is no generic
+PCI kernel function for that purpose and the resource claiming is
+implemented in an arch specific fashion which resulted in arches
+implementations that contain duplicated code.
+
+This patch, based on the ia64 resource claiming arch implementation,
+implements a set of functions in core PCI code that provides a PCI core
+interface for resources claiming for a given PCI bus hierarchy, paving
+the way for further resource claiming consolidation across architectures.
+
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+---
+ drivers/pci/setup-bus.c | 63 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pci.h     |  1 +
+ 2 files changed, 64 insertions(+)
+
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 7796d0a..c959398 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1424,6 +1424,69 @@ void pci_bus_assign_resources(const struct pci_bus *bus)
+ }
+ EXPORT_SYMBOL(pci_bus_assign_resources);
+ 
++static void pci_claim_device_resources(struct pci_dev *dev)
++{
++	int i;
++
++	for (i = 0; i < PCI_BRIDGE_RESOURCES; i++) {
++		struct resource *r = &dev->resource[i];
++
++		if (!r->flags || r->parent)
++			continue;
++
++		pci_claim_resource(dev, i);
++	}
++}
++
++static void pci_claim_bridge_resources(struct pci_dev *dev)
++{
++	int i;
++
++	for (i = PCI_BRIDGE_RESOURCES; i < PCI_NUM_RESOURCES; i++) {
++		struct resource *r = &dev->resource[i];
++
++		if (!r->flags || r->parent)
++			continue;
++
++		pci_claim_bridge_resource(dev, i);
++	}
++}
++
++static void pci_bus_allocate_dev_resources(struct pci_bus *b)
++{
++	struct pci_dev *dev;
++	struct pci_bus *child;
++
++	list_for_each_entry(dev, &b->devices, bus_list) {
++		pci_claim_device_resources(dev);
++
++		child = dev->subordinate;
++		if (child)
++			pci_bus_allocate_dev_resources(child);
++	}
++}
++
++static void pci_bus_allocate_resources(struct pci_bus *b)
++{
++	struct pci_bus *child;
++
++	/* Depth-First Search on bus tree */
++	if (b->self) {
++		pci_read_bridge_bases(b);
++		pci_claim_bridge_resources(b->self);
++	}
++
++	list_for_each_entry(child, &b->children, node)
++		pci_bus_allocate_resources(child);
++}
++
++void pci_bus_claim_resources(struct pci_bus *b)
++{
++	pci_bus_allocate_resources(b);
++	pci_bus_allocate_dev_resources(b);
++}
++EXPORT_SYMBOL(pci_bus_claim_resources);
++
+ static void __pci_bridge_assign_resources(const struct pci_dev *bridge,
+ 					  struct list_head *add_head,
+ 					  struct list_head *fail_head)
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index dac677c..6faf994 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1119,6 +1119,7 @@ ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void
+ /* Helper functions for low-level code (drivers/pci/setup-[bus,res].c) */
+ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx);
+ void pci_bus_assign_resources(const struct pci_bus *bus);
++void pci_bus_claim_resources(struct pci_bus *bus);
+ void pci_bus_size_bridges(struct pci_bus *bus);
+ int pci_claim_resource(struct pci_dev *, int);
+ int pci_claim_bridge_resource(struct pci_dev *bridge, int i);
+-- 
+2.7.2
+

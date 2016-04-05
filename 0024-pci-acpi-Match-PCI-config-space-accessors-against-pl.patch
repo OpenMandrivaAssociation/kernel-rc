@@ -1,0 +1,185 @@
+From 6c90388b0f73076a8310dc605ee83c331077eee7 Mon Sep 17 00:00:00 2001
+From: Tomasz Nowicki <tn@semihalf.com>
+Date: Wed, 20 Jan 2016 12:59:31 +0100
+Subject: [PATCH 24/26] pci, acpi: Match PCI config space accessors against
+ platfrom specific quirks.
+
+Some platforms may not be fully compliant with generic set of PCI config
+accessors. For these cases we implement the way to overwrite accessors
+set prior to PCI buses enumeration. Algorithm traverses available quirk
+list, matches against <platform ID (DMI), domain, bus number> tuple and
+returns corresponding accessors. All quirks can be defined using:
+DECLARE_ACPI_MCFG_FIXUP() and kept self contained. Example,
+
+static const struct dmi_system_id foo_dmi[] = {
+        {
+                .ident = "<Platform ident string>",
+                .callback = <handler>,
+                .matches = {
+                        DMI_MATCH(DMI_SYS_VENDOR, "<system vendor>"),
+                        DMI_MATCH(DMI_PRODUCT_NAME, "<product name>"),
+                        DMI_MATCH(DMI_PRODUCT_VERSION, "product version"),
+                },
+        },
+        { }
+};
+
+static struct pci_ops foo_ecam_pci_ops = {
+        .map_bus = pci_mcfg_dev_base,
+        .read = foo_ecam_config_read,
+        .write = foo_ecam_config_write,
+};
+DECLARE_ACPI_MCFG_FIXUP(foo_dmi, NULL, &foo_ecam_pci_ops, <domain_nr>, <bus_nr>);
+
+More custom (non-DMI) matching can be done via an extra call.
+Note that there is possibility to assign quirk related private data to
+root->sysdata which will be available along read/wriate accessor, example:
+
+static int boo_match(struct pci_mcfg_fixup *fixup, struct acpi_pci_root *root)
+{
+        return [condition] ? 1 : 0;
+}
+
+int boo_ecam_config_read(struct pci_bus *bus, unsigned int devfn,
+                          int where, int size, u32 *val)
+{
+        struct acpi_pci_root *root = bus->sysdata;
+        struct boo_priv_data *boo_data = root->sysdata;
+
+        [..]
+}
+
+static struct pci_ops boo_ecam_pci_ops = {
+	.map_bus = pci_mcfg_dev_base,
+	.read = boo_ecam_config_read,
+	.write = boo_ecam_config_write,
+};
+DECLARE_ACPI_MCFG_FIXUP(NULL, boo_match, &boo_ecam_pci_ops, <domain_nr>, <bus_nr>);
+
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Tested-by: Duc Dang <dhdang@apm.com>
+Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/pci_mcfg.c           | 32 ++++++++++++++++++++++++++++++--
+ include/acpi/acpi_bus.h           |  1 +
+ include/asm-generic/vmlinux.lds.h |  7 +++++++
+ include/linux/pci-acpi.h          | 18 ++++++++++++++++++
+ 4 files changed, 56 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index 0062257..b343547 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -41,6 +41,29 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 	return PCIBIOS_DEVICE_NOT_FOUND;
+ }
+ 
++extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
++extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
++
++static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_root *root)
++{
++	struct pci_mcfg_fixup *f;
++	int bus_num = root->secondary.start;
++	int domain = root->segment;
++
++	/*
++	 * First match against PCI topology <domain:bus> then use DMI or
++	 * custom match handler.
++	 */
++	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
++		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
++		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
++		    (f->system ? dmi_check_system(f->system) : 1 &&
++		     f->match ? f->match(f, root) : 1))
++			return f->ops;
++	}
++	return NULL;
++}
++
+ void __iomem *
+ pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
+ {
+@@ -63,10 +86,15 @@ static struct pci_ops default_pci_mcfg_ops = {
+ 
+ struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+ {
++	struct pci_ops *pci_mcfg_ops_quirk;
++
+ 	/*
+-	 * TODO: Match against platform specific quirks and return
+-	 * corresponding PCI config space accessor set.
++	 * Match against platform specific quirks and return corresponding
++	 * PCI config space accessor set.
+ 	 */
++	pci_mcfg_ops_quirk = pci_mcfg_check_quirks(root);
++	if (pci_mcfg_ops_quirk)
++		return pci_mcfg_ops_quirk;
+ 
+ 	return &default_pci_mcfg_ops;
+ }
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 14362a8..0fc6f13 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -556,6 +556,7 @@ struct acpi_pci_root {
+ 	struct pci_bus *bus;
+ 	u16 segment;
+ 	struct resource secondary;	/* downstream bus range */
++	void *sysdata;
+ 
+ 	u32 osc_support_set;	/* _OSC state of support bits */
+ 	u32 osc_control_set;	/* _OSC state of control bits */
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index c4bd0e2..c93fc97 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -298,6 +298,13 @@
+ 		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
+ 	}								\
+ 									\
++	/* ACPI MCFG quirks */						\
++	.acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {	\
++		VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;		\
++		*(.acpi_fixup_mcfg)					\
++		VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;		\
++	}								\
++									\
+ 	/* Built-in firmware blobs */					\
+ 	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
+ 		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 93feb04..9e1bedd 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -123,6 +123,24 @@ struct pci_mmcfg_region {
+ 	bool hot_added;
+ };
+ 
++struct pci_mcfg_fixup {
++	const struct dmi_system_id *system;
++	int (*match)(struct pci_mcfg_fixup *, struct acpi_pci_root *);
++	struct pci_ops *ops;
++	int domain;
++	int bus_num;
++};
++
++#define PCI_MCFG_DOMAIN_ANY	-1
++#define PCI_MCFG_BUS_ANY	-1
++
++/* Designate a routine to fix up buggy MCFG */
++#define DECLARE_ACPI_MCFG_FIXUP(system, match, ops, dom, bus)		\
++	static const struct pci_mcfg_fixup __mcfg_fixup_##system##dom##bus\
++	 __used	__attribute__((__section__(".acpi_fixup_mcfg"),		\
++				aligned((sizeof(void *))))) =		\
++	{ system, match, ops, dom, bus };
++
+ extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+ extern struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+ 							int end, u64 addr);
+-- 
+2.7.2
+
