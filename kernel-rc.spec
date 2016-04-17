@@ -196,7 +196,6 @@ very current hardware.
 
 %define kprovides1	%{kname} = %{kverrel}
 %define kprovides2	kernel = %{tar_ver}
-%define kprovides3	alsa = 1.0.27
 %define kprovides_server	drbd-api = 88
 
 %define	kobsoletes1	dkms-r8192se <= 0019.1207.2010-2
@@ -279,7 +278,7 @@ Suggests:	microcode_ctl
 %package -n %{kname}-%{1}-%{buildrel}			\
 Version:	%{fakever}				\
 Release:	%{fakerel}				\
-Provides:	%kprovides1 %kprovides2 %kprovides3	\
+Provides:	%kprovides1 %kprovides2			\
 %{expand:%%{?kprovides_%{1}:Provides: %{kprovides_%{1}}}} \
 Provides:   %{kname}-%{1}              			 \
 Requires(pre):	%requires1 %requires2 %requires3 %requires4 \
