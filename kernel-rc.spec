@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	6
 %define sublevel	0
-%define relc		3
+%define relc		4
 
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %define buildrel	%{kversion}-%{buildrpmrel}
@@ -15,7 +15,7 @@
 
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define buildrpmrel	%{rpmrel}%{rpmtag}
 
 # kernel Makefile extraversion is substituted by
