@@ -1,3 +1,3 @@
 sources:
-  linux-4.5.tar.xz: 18d8e415f57a1fe4322faec441e45b6d2383b7d1
-  patch-4.6-rc7.xz: 793124c471e465b4bd7c05582c31b24baa3d71ff
+  linux-4.6.tar.xz: 4192d2873e630d902da050415f82f763e4b744d3
+  patch-4.7-rc1.xz: d38708aae97398dfa900fe91c6e3b27317bce803
