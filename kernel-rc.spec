@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	7
 %define sublevel	0
-%define relc		1
+%define relc		2
 
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %define buildrel	%{kversion}-%{buildrpmrel}
@@ -156,11 +156,8 @@ Patch0:		https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{ver
 # Backported from https://github.com/semihalf-nowicki-tomasz/linux.git
 # pci-acpi-v5 branch
 Patch10:	0001-PCI-ACPI-IA64-fix-IO-port-generic-range-check.patch
-Patch16:	0007-irqchip-GICv3-ITS-Refator-ITS-dt-init-code-to-prepar.patch
 Patch17:	0008-ARM64-ACPI-PCI-I-O-Remapping-Table-IORT-initial-supp.patch
-Patch18:	0009-irqchip-gicv3-its-Probe-ITS-in-the-ACPI-way.patch
 Patch19:	0010-acpi-gicv3-msi-Factor-out-code-that-might-be-reused-.patch
-Patch20:	0011-acpi-gicv3-its-Use-MADT-ITS-subtable-to-do-PCI-MSI-d.patch
 Patch21:	0012-ACPI-MCFG-Move-mmcfg_list-management-to-drivers-acpi.patch
 Patch24:	0015-pci-acpi-ecam-Add-flag-to-indicate-whether-ECAM-regi.patch
 Patch25:	0016-x86-pci-Cleanup-platform-specific-MCFG-data-by-using.patch
