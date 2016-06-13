@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	7
 %define sublevel	0
-%define relc		2
+%define relc		3
 
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %define buildrel	%{kversion}-%{buildrpmrel}
