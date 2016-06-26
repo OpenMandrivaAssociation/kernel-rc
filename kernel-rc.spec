@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	6
+%define patchlevel	7
 %define sublevel	0
-%define relc		5
+%define relc		3
 
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %define buildrel	%{kversion}-%{buildrpmrel}
@@ -150,26 +150,21 @@ Source51:	cpupower.config
 # Numbers 0 to 9 are reserved for upstream patches
 # (-stable patch, -rc, ...)
 %if 0%{relc}
-Patch0:		https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-4.6-rc%{relc}.xz
+Patch0:		https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{version}|cut -d. -f1-2)-rc%{relc}.xz
 %endif
 # aarch64 PCI support (Opteron A1100 and friends)
 # Backported from https://github.com/semihalf-nowicki-tomasz/linux.git
 # pci-acpi-v5 branch
 Patch10:	0001-PCI-ACPI-IA64-fix-IO-port-generic-range-check.patch
-Patch16:	0007-irqchip-GICv3-ITS-Refator-ITS-dt-init-code-to-prepar.patch
 Patch17:	0008-ARM64-ACPI-PCI-I-O-Remapping-Table-IORT-initial-supp.patch
-Patch18:	0009-irqchip-gicv3-its-Probe-ITS-in-the-ACPI-way.patch
 Patch19:	0010-acpi-gicv3-msi-Factor-out-code-that-might-be-reused-.patch
-Patch20:	0011-acpi-gicv3-its-Use-MADT-ITS-subtable-to-do-PCI-MSI-d.patch
 Patch21:	0012-ACPI-MCFG-Move-mmcfg_list-management-to-drivers-acpi.patch
-Patch23:	0014-arm64-acpi-Use-MCFG-library-and-empty-PCI-config-spa.patch
 Patch24:	0015-pci-acpi-ecam-Add-flag-to-indicate-whether-ECAM-regi.patch
 Patch25:	0016-x86-pci-Cleanup-platform-specific-MCFG-data-by-using.patch
 Patch26:	0017-pci-acpi-x86-ia64-Move-ACPI-host-bridge-device-compa.patch
 Patch27:	0018-pci-acpi-Provide-generic-way-to-assign-bus-domain-nu.patch
 Patch28:	0019-x86-ia64-Include-acpi_pci_-add-remove-_bus-to-the-de.patch
 Patch29:	0020-acpi-mcfg-Add-default-PCI-config-accessors-implement.patch
-Patch30:	0021-pci-of-Move-the-PCI-I-O-space-management-to-PCI-core.patch
 Patch31:	0022-drivers-pci-add-generic-code-to-claim-bus-resources.patch
 Patch32:	0023-pci-acpi-Support-for-ACPI-based-generic-PCI-host-con.patch
 Patch33:	0024-pci-acpi-Match-PCI-config-space-accessors-against-pl.patch
@@ -1253,7 +1248,7 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %files -n cpupower -f cpupower.lang
 %{_bindir}/cpupower
 %{_libdir}/libcpupower.so.0
-%{_libdir}/libcpupower.so.0.0.0
+%{_libdir}/libcpupower.so.0.0.1
 %{_unitdir}/cpupower.service
 %{_mandir}/man[1-8]/cpupower*
 %config(noreplace) %{_sysconfdir}/sysconfig/cpupower

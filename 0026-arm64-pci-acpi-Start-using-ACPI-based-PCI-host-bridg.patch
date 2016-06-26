@@ -1,5 +1,5 @@
---- linux-4.5/arch/arm64/Kconfig.0035~	2016-04-03 10:30:59.934786425 +0200
-+++ linux-4.5/arch/arm64/Kconfig	2016-04-03 10:31:01.638070081 +0200
+--- linux-4.6/arch/arm64/Kconfig.0035~	2016-06-02 15:36:43.494016927 +0200
++++ linux-4.6/arch/arm64/Kconfig	2016-06-02 15:36:45.403003582 +0200
 @@ -2,6 +2,7 @@ config ARM64
  	def_bool y
  	select ACPI_CCA_REQUIRED if ACPI
@@ -8,12 +8,12 @@
  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
  	select ARCH_HAS_DEVMEM_IS_ALLOWED
  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
---- linux-4.5/arch/arm64/kernel/pci.c.0035~	2016-04-03 10:31:01.638070081 +0200
-+++ linux-4.5/arch/arm64/kernel/pci.c	2016-04-03 10:31:34.936216826 +0200
-@@ -78,12 +78,3 @@ int raw_pci_write(unsigned int domain, u
- {
- 	return -ENXIO;
- }
+--- linux-4.6/arch/arm64/kernel/pci.c.0035~	2016-06-02 15:36:45.403003582 +0200
++++ linux-4.6/arch/arm64/kernel/pci.c	2016-06-02 15:37:37.719638763 +0200
+@@ -88,12 +88,3 @@ int pcibus_to_node(struct pci_bus *bus)
+ EXPORT_SYMBOL(pcibus_to_node);
+ 
+ #endif
 -
 -#ifdef CONFIG_ACPI
 -/* Root bridge scanning */
