@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	7
 %define sublevel	0
-%define relc		5
+%define relc		6
 
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %define buildrel	%{kversion}-%{buildrpmrel}
@@ -260,8 +260,8 @@ Suggests:	microcode_ctl
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{ix86} x86_64
-BuildRequires:	dkms-virtualbox
-BuildRequires:	dkms-vboxadditions
+BuildRequires:	dkms-virtualbox >= 5.0.24-1
+BuildRequires:	dkms-vboxadditions >= 5.0.24-1
 %endif
 
 %description
