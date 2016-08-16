@@ -1,0 +1,16 @@
+--- linux-4.7/drivers/gpu/drm/i915/intel_hdmi.c.omv~	2016-07-30 11:29:51.738615647 +0200
++++ linux-4.7/drivers/gpu/drm/i915/intel_hdmi.c	2016-07-30 11:32:06.187374332 +0200
+@@ -1261,11 +1261,11 @@ intel_hdmi_mode_valid(struct drm_connect
+ 		clock *= 2;
+ 
+ 	/* check if we can do 8bpc */
+-	status = hdmi_port_clock_valid(hdmi, clock, true);
++	status = hdmi_port_clock_valid(hdmi, clock, false);
+ 
+ 	/* if we can't do 8bpc we may still be able to do 12bpc */
+ 	if (!HAS_GMCH_DISPLAY(dev) && status != MODE_OK)
+-		status = hdmi_port_clock_valid(hdmi, clock * 3 / 2, true);
++		status = hdmi_port_clock_valid(hdmi, clock * 3 / 2, false);
+ 
+ 	return status;
+ }
