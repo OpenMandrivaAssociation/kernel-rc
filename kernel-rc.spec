@@ -28,7 +28,11 @@
 %define kpatch		%{nil}
 
 # kernel base name (also name of srpm)
+%if 0%{relc}
+%define kname		kernel-rc
+%else
 %define kname		kernel-release
+%endif
 
 # fakerel and fakever never change, they are used to fool
 # rpm/urpmi/smart
@@ -112,7 +116,7 @@
 # SRC RPM description
 #
 Summary: 	Linux kernel built for %{distribution}
-Name:		kernel-release
+Name:		%{kname}
 Version:	%{kversion}
 Release:	%{rpmrel}
 License:	GPLv2
@@ -156,10 +160,14 @@ Source51:	cpupower.config
 # (-stable patch, -rc, ...)
 %if 0%{relc}
 Patch0:		https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{version}|cut -d. -f1-2)-rc%{relc}.xz
+%else
+%if 0%{sublevel}
+Patch1:		https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
 %endif
-Patch1:		die-floppy-die.patch
-Patch2:		0001-Add-support-for-Acer-Predator-macro-keys.patch
-Patch3:		linux-4.7-intel-dvi-duallink.patch
+%endif
+Patch2:		die-floppy-die.patch
+Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
+Patch4:		linux-4.7-intel-dvi-duallink.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
