@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	8
 %define sublevel	0
-%define relc		4
+%define relc		5
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
