@@ -1,0 +1,20 @@
+--- linux-4.8/arch/x86/entry/vdso/Makefile.omv~	2016-10-08 01:05:08.399854613 +0200
++++ linux-4.8/arch/x86/entry/vdso/Makefile	2016-10-08 01:07:29.320646038 +0200
+@@ -50,6 +50,7 @@ export CPPFLAGS_vdso.lds += -P -C
+ VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
+ 			-Wl,--no-undefined \
+ 			-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096 \
++			-fuse-ld=bfd \
+ 			$(DISABLE_LTO)
+ 
+ $(obj)/vdso64.so.dbg: $(src)/vdso.lds $(vobjs) FORCE
+@@ -99,7 +100,8 @@ CPPFLAGS_vdsox32.lds = $(CPPFLAGS_vdso.l
+ VDSO_LDFLAGS_vdsox32.lds = -Wl,-m,elf32_x86_64 \
+ 			   -Wl,-soname=linux-vdso.so.1 \
+ 			   -Wl,-z,max-page-size=4096 \
+-			   -Wl,-z,common-page-size=4096
++			   -Wl,-z,common-page-size=4096 \
++			   -fuse-ld=bfd
+ 
+ # 64-bit objects to re-brand as x32
+ vobjs64-for-x32 := $(filter-out $(vobjs-nox32),$(vobjs-y))

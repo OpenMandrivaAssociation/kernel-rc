@@ -11,6 +11,15 @@
  
 --- linux-4.7/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~	2016-08-15 18:12:12.750970301 +0200
 +++ linux-4.7/drivers/gpu/drm/vboxvideo/vbox_drv.c	2016-08-15 18:12:38.109800820 +0200
+@@ -65,7 +65,7 @@ module_param_named(modeset, vbox_modeset
+ 
+ static struct drm_driver driver;
+ 
+-static DEFINE_PCI_DEVICE_TABLE(pciidlist) =
++static const struct pci_device_id pciidlist[] =
+ {
+     {0x80ee, 0xbeef, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+     {0, 0, 0},
 @@ -222,8 +222,11 @@ static int vbox_master_set(struct drm_de
  }
  

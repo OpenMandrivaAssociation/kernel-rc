@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	8
+%define patchlevel	9
 %define sublevel	0
-%define relc		8
+%define relc		1
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -168,6 +168,7 @@ Patch1:		https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
 Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
+Patch5:		linux-4.8.1-buildfix.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
