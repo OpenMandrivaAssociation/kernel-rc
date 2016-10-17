@@ -1222,6 +1222,7 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %dir %{_kerneldir}/include
 %dir %{_kerneldir}/certs
 %{_kerneldir}/.cocciconfig
+%{_kerneldir}/.gitattributes
 %{_kerneldir}/Documentation
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
