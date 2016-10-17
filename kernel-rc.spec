@@ -175,6 +175,7 @@ Patch5:		linux-4.8.1-buildfix.patch
 # being touched aren't in the tree at the time %%apply_patches
 # runs...
 Source100:	vbox-kernel-4.8.patch
+Source101:	vbox-kernel-4.9.patch
 
 # Defines for the things that are needed for all the kernels
 #
@@ -654,6 +655,7 @@ sed -i -e "/uname -m/iKERN_DIR=$(pwd)" drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -b -z .0100~ <%{SOURCE100}
+patch -p1 -b -z .0101~ <%{SOURCE101}
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' | %kxargs rm -f

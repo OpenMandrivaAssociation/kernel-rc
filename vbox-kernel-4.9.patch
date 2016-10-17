@@ -1,0 +1,22 @@
+--- linux-4.8/fs/vboxsf/dirops.c.omv~	2016-10-17 10:05:10.937159229 +0200
++++ linux-4.8/fs/vboxsf/dirops.c	2016-10-17 10:05:54.726891367 +0200
+@@ -745,14 +745,18 @@ static int sf_rmdir(struct inode *parent
+  * @param old_dentry    old directory cache entry
+  * @param new_parent    inode of the new parent directory
+  * @param new_dentry    new directory cache entry
++ * @param flags		flags
+  * @returns 0 on success, Linux error code otherwise
+  */
+ static int sf_rename(struct inode *old_parent, struct dentry *old_dentry,
+-                     struct inode *new_parent, struct dentry *new_dentry)
++                     struct inode *new_parent, struct dentry *new_dentry, unsigned int flags)
+ {
+     int err = 0, rc = VINF_SUCCESS;
+     struct sf_glob_info *sf_g = GET_GLOB_INFO(old_parent->i_sb);
+ 
++    if(flags)
++	    return -EINVAL;
++
+     TRACE();
+ 
+     if (sf_g != GET_GLOB_INFO(new_parent->i_sb))
