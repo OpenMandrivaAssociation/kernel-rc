@@ -215,6 +215,7 @@ BuildRequires:	bc
 BuildRequires:	binutils
 BuildRequires:	gcc
 BuildRequires:	gcc-plugin-devel
+BuildRequires:	gcc-c++
 BuildRequires:	openssl-devel
 BuildRequires:	diffutils
 # For power tools
