@@ -9,31 +9,6 @@
  #endif
  
  
---- linux-4.7/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~	2016-08-15 18:12:12.750970301 +0200
-+++ linux-4.7/drivers/gpu/drm/vboxvideo/vbox_drv.c	2016-08-15 18:12:38.109800820 +0200
-@@ -65,7 +65,7 @@ module_param_named(modeset, vbox_modeset
- 
- static struct drm_driver driver;
- 
--static DEFINE_PCI_DEVICE_TABLE(pciidlist) =
-+static const struct pci_device_id pciidlist[] =
- {
-     {0x80ee, 0xbeef, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-     {0, 0, 0},
-@@ -222,8 +222,11 @@ static int vbox_master_set(struct drm_de
- }
- 
- static void vbox_master_drop(struct drm_device *dev,
--                             struct drm_file *file_priv,
--                             bool from_release)
-+                             struct drm_file *file_priv
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,8,0)
-+                             , bool from_release
-+#endif
-+			     )
- {
-     struct vbox_private *vbox = dev->dev_private;
-     vbox->initial_mode_queried = false;
 --- linux-4.7/drivers/gpu/drm/vboxvideo/vbox_ttm.c.omv~	2016-08-15 18:14:24.653098809 +0200
 +++ linux-4.7/drivers/gpu/drm/vboxvideo/vbox_ttm.c	2016-08-15 18:16:16.682375627 +0200
 @@ -215,6 +215,7 @@ static void vbox_ttm_io_mem_free(struct
