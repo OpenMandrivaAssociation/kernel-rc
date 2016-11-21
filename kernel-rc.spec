@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	9
 %define sublevel	0
-%define relc		5
+%define relc		6
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -158,11 +158,13 @@ Source51:	cpupower.config
 # Patches
 # Numbers 0 to 9 are reserved for upstream patches
 # (-stable patch, -rc, ...)
+# Added as a Source rather that Patch because it needs to be
+# applied with "git apply" -- may contain binary patches.
 %if 0%{relc}
-Patch0:		https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{version}|cut -d. -f1-2)-rc%{relc}.xz
+Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{version}|cut -d. -f1-2)-rc%{relc}.xz
 %else
 %if 0%{sublevel}
-Patch1:		https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
+Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
 %endif
 %endif
 Patch2:		die-floppy-die.patch
@@ -218,6 +220,8 @@ BuildRequires:	gcc-plugin-devel
 BuildRequires:	gcc-c++
 BuildRequires:	openssl-devel
 BuildRequires:	diffutils
+# For git apply
+BuildRequires:	git-core
 # For power tools
 BuildRequires:	pkgconfig(ncurses)
 BuildRequires:	kmod-devel
@@ -601,6 +605,11 @@ following platforms:
 #
 %prep
 %setup -q -n linux-%{tar_ver}
+%if 0%{relc} || 0%{sublevel}
+[ -e .git ] || git init
+xzcat %{SOURCE90} | git apply -
+rm -rf .git
+%endif
 %apply_patches
 # patch doesn't seem to have proper permissions...
 chmod +x scripts/gcc-plugin.sh
