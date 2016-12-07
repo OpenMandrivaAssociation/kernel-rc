@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	9
 %define sublevel	0
-%define relc		7
+%define relc		8
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -664,8 +664,8 @@ sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefi
 sed -i -e "/uname -m/iKERN_DIR=$(pwd)" drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
-patch -p1 -b -z .0100~ <%{SOURCE100}
-patch -p1 -b -z .0101~ <%{SOURCE101}
+###patch -p1 -b -z .0100~ <%{SOURCE100}
+###patch -p1 -b -z .0101~ <%{SOURCE101}
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' | %kxargs rm -f
