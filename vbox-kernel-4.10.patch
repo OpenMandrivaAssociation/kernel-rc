@@ -1,0 +1,390 @@
+--- linux-4.9/fs/vboxsf/lnkops.c.omv~	2016-12-29 02:49:48.144199819 +0100
++++ linux-4.9/fs/vboxsf/lnkops.c	2016-12-29 02:50:12.606351825 +0100
+@@ -90,7 +90,9 @@ static const char *sf_get_link(struct de
+ 
+ struct inode_operations sf_lnk_iops =
+ {
++# if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+     .readlink       = generic_readlink,
++# endif
+ # if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
+     .get_link       = sf_get_link
+ # elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+--- linux-4.9/drivers/bus/vboxguest/r0drv/linux/memobj-r0drv-linux.c.omv~	2016-12-29 03:20:57.722713355 +0100
++++ linux-4.9/drivers/bus/vboxguest/r0drv/linux/memobj-r0drv-linux.c	2016-12-29 03:22:13.039128552 +0100
+@@ -1078,7 +1078,11 @@ DECLHIDDEN(int) rtR0MemObjNativeLockUser
+                                 fWrite,                 /* force write access. */
+ # endif
+                                 &pMemLnx->apPages[0],   /* Page array. */
+-                                papVMAs);               /* vmas */
++                                papVMAs                 /* vmas */
++# if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
++				, NULL			/* locked */
++# endif
++			    );
+ #else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0) */
+             rc = get_user_pages(pTask,                  /* Task for fault accounting. */
+                                 pTask->mm,              /* Whose pages. */
+--- linux-4.9/drivers/bus/vboxguest/r0drv/linux/mpnotification-r0drv-linux.c.omv~	2016-12-29 04:37:27.664105359 +0100
++++ linux-4.9/drivers/bus/vboxguest/r0drv/linux/mpnotification-r0drv-linux.c	2016-12-29 04:54:26.587774833 +0100
+@@ -67,110 +67,34 @@ static struct notifier_block g_NotifierB
+ static RTCPUSET g_MpPendingOfflineSet;
+ # endif
+ 
++static inline int r0_cpuup_prepare(unsigned int cpu)
++{
++	rtMpNotificationDoCallbacks(RTMPEVENT_ONLINE, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-/**
+- * The native callback.
+- *
+- * @returns NOTIFY_DONE.
+- * @param   pNotifierBlock  Pointer to g_NotifierBlock.
+- * @param   ulNativeEvent   The native event.
+- * @param   pvCpu           The cpu id cast into a pointer value.
+- *
+- * @remarks This can fire with preemption enabled and on any CPU.
+- */
+-static int rtMpNotificationLinuxCallback(struct notifier_block *pNotifierBlock, unsigned long ulNativeEvent, void *pvCpu)
+-{
+-    bool fProcessEvent = FALSE;
+-    RTCPUID idCpu      = (uintptr_t)pvCpu;
+-    NOREF(pNotifierBlock);
+-
+-    /*
+-     * Note that redhat/CentOS ported _some_ of the FROZEN macros
+-     * back to their 2.6.18-92.1.10.el5 kernel but actually don't
+-     * use them. Thus we have to test for both CPU_TASKS_FROZEN and
+-     * the individual event variants.
+-     */
+-    switch (ulNativeEvent)
+-    {
+-        /*
+-         * Pick up online events or failures to go offline.
+-         * Ignore failure events for CPUs we didn't see go offline.
+-         */
+-# ifdef CPU_DOWN_FAILED
+-        case CPU_DOWN_FAILED:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_FAILED_FROZEN)
+-        case CPU_DOWN_FAILED_FROZEN:
+-#  endif
+-            if (!RTCpuSetIsMember(&g_MpPendingOfflineSet, idCpu))
+-                break;      /* fProcessEvents = FALSE */
+-        /* fall thru */
+-# endif
+-        case CPU_ONLINE:
+-# if defined(CPU_TASKS_FROZEN) && defined(CPU_ONLINE_FROZEN)
+-        case CPU_ONLINE_FROZEN:
+-# endif
+-# ifdef CPU_DOWN_FAILED
+-            RTCpuSetDel(&g_MpPendingOfflineSet, idCpu);
+-# endif
+-            fProcessEvent = TRUE;
+-            break;
+-
+-        /*
+-         * Pick the earliest possible offline event.
+-         * The only important thing here is that we get the event and that
+-         * it's exactly one.
+-         */
+-# ifdef CPU_DOWN_PREPARE
+-        case CPU_DOWN_PREPARE:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_PREPARE_FROZEN)
+-        case CPU_DOWN_PREPARE_FROZEN:
+-#  endif
+-            fProcessEvent = TRUE;
+-# else
+-        case CPU_DEAD:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DEAD_FROZEN)
+-        case CPU_DEAD_FROZEN:
+-#  endif
+-            /* Don't process CPU_DEAD notifications. */
+-# endif
+-# ifdef CPU_DOWN_FAILED
+-            RTCpuSetAdd(&g_MpPendingOfflineSet, idCpu);
+-# endif
+-            break;
+-    }
+-
+-    if (!fProcessEvent)
+-        return NOTIFY_DONE;
++static inline int r0_cpudown_prepare(unsigned int cpu)
++{
++	rtMpNotificationDoCallbacks(RTMPEVENT_OFFLINE, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-    switch (ulNativeEvent)
+-    {
+-# ifdef CPU_DOWN_FAILED
+-        case CPU_DOWN_FAILED:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_FAILED_FROZEN)
+-        case CPU_DOWN_FAILED_FROZEN:
+-#  endif
+-# endif
+-        case CPU_ONLINE:
+-# if defined(CPU_TASKS_FROZEN) && defined(CPU_ONLINE_FROZEN)
+-        case CPU_ONLINE_FROZEN:
+-# endif
+-            rtMpNotificationDoCallbacks(RTMPEVENT_ONLINE, idCpu);
+-            break;
++#ifdef CPU_DOWN_FAILED
++static inline int r0_cpu_online(unsigned int cpu)
++{
++	RTCpuSetDel(&g_MpPendingOfflineSet, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-# ifdef CPU_DOWN_PREPARE
+-        case CPU_DOWN_PREPARE:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_PREPARE_FROZEN)
+-        case CPU_DOWN_PREPARE_FROZEN:
+-#  endif
+-            rtMpNotificationDoCallbacks(RTMPEVENT_OFFLINE, idCpu);
+-            break;
+-# endif
+-    }
++static inline int r0_cpu_offline(unsigned int cpu)
++{
++	if(RTCpuSetIsMember(&g_MpPendingOfflineSet, cpu))
++		RTCpuSetAdd(&g_MpPendingOfflineSet, cpu);
+ 
+-    return NOTIFY_DONE;
++	return NOTIFY_DONE;
+ }
++#endif
+ 
+-
+ DECLHIDDEN(int) rtR0MpNotificationNativeInit(void)
+ {
+     int rc;
+@@ -180,7 +102,16 @@ DECLHIDDEN(int) rtR0MpNotificationNative
+     RTCpuSetEmpty(&g_MpPendingOfflineSet);
+ # endif
+ 
+-    rc = register_cpu_notifier(&g_NotifierBlock);
++    cpuhp_setup_state_nocalls(CPUHP_VBOX_R0_PREPARE,
++		    "vbox/r0:prepare",
++		    r0_cpuup_prepare,
++		    r0_cpudown_prepare);
++#ifdef CPU_DOWN_FAILED
++    cpuhp_setup_state_nocalls(CPUHP_VBOX_R0_ONLINE,
++		    "vbox/r0:online",
++		    r0_cpu_online,
++		    r0_cpu_offline);
++#endif
+     IPRT_LINUX_RESTORE_EFL_AC();
+     AssertMsgReturn(!rc, ("%d\n", rc), RTErrConvertFromErrno(rc));
+     return VINF_SUCCESS;
+@@ -190,7 +119,10 @@ DECLHIDDEN(int) rtR0MpNotificationNative
+ DECLHIDDEN(void) rtR0MpNotificationNativeTerm(void)
+ {
+     IPRT_LINUX_SAVE_EFL_AC();
+-    unregister_cpu_notifier(&g_NotifierBlock);
++    cpuhp_remove_state_nocalls(CPUHP_VBOX_R0_PREPARE);
++#ifdef CPU_DOWN_FAILED
++    cpuhp_remove_state_nocalls(CPUHP_VBOX_R0_ONLINE);
++#endif
+     IPRT_LINUX_RESTORE_EFL_AC();
+ }
+ 
+--- linux-4.9/include/linux/cpuhotplug.h.omv~	2016-12-29 04:42:06.287609059 +0100
++++ linux-4.9/include/linux/cpuhotplug.h	2016-12-29 04:49:15.973777323 +0100
+@@ -71,6 +71,7 @@ enum cpuhp_state {
+ 	CPUHP_MM_ZSWP_MEM_PREPARE,
+ 	CPUHP_MM_ZSWP_POOL_PREPARE,
+ 	CPUHP_KVM_PPC_BOOK3S_PREPARE,
++	CPUHP_VBOX_R0_PREPARE,
+ 	CPUHP_ZCOMP_PREPARE,
+ 	CPUHP_TIMERS_DEAD,
+ 	CPUHP_MIPS_SOC_PREPARE,
+@@ -145,6 +146,7 @@ enum cpuhp_state {
+ 	CPUHP_AP_X86_HPET_ONLINE,
+ 	CPUHP_AP_X86_KVM_CLK_ONLINE,
+ 	CPUHP_AP_ACTIVE,
++	CPUHP_VBOX_R0_ONLINE,
+ 	CPUHP_ONLINE,
+ };
+ 
+--- linux-4.9/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~	2016-12-29 14:10:08.490008910 +0100
++++ linux-4.9/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c	2016-12-29 14:11:38.469741534 +0100
+@@ -1078,7 +1078,11 @@ DECLHIDDEN(int) rtR0MemObjNativeLockUser
+                                 fWrite,                 /* force write access. */
+ # endif
+                                 &pMemLnx->apPages[0],   /* Page array. */
+-                                papVMAs);               /* vmas */
++                                papVMAs                 /* vmas */
++# if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
++				, NULL			/* Errors */
++# endif
++				);
+ #else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0) */
+             rc = get_user_pages(pTask,                  /* Task for fault accounting. */
+                                 pTask->mm,              /* Whose pages. */
+--- linux-4.9/drivers/virt/vboxdrv/r0drv/linux/mpnotification-r0drv-linux.c.omv~	2016-12-29 04:37:27.664105359 +0100
++++ linux-4.9/drivers/virt/vboxdrv/r0drv/linux/mpnotification-r0drv-linux.c	2016-12-29 04:54:26.587774833 +0100
+@@ -67,110 +67,34 @@ static struct notifier_block g_NotifierB
+ static RTCPUSET g_MpPendingOfflineSet;
+ # endif
+ 
++static inline int r0_cpuup_prepare(unsigned int cpu)
++{
++	rtMpNotificationDoCallbacks(RTMPEVENT_ONLINE, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-/**
+- * The native callback.
+- *
+- * @returns NOTIFY_DONE.
+- * @param   pNotifierBlock  Pointer to g_NotifierBlock.
+- * @param   ulNativeEvent   The native event.
+- * @param   pvCpu           The cpu id cast into a pointer value.
+- *
+- * @remarks This can fire with preemption enabled and on any CPU.
+- */
+-static int rtMpNotificationLinuxCallback(struct notifier_block *pNotifierBlock, unsigned long ulNativeEvent, void *pvCpu)
+-{
+-    bool fProcessEvent = FALSE;
+-    RTCPUID idCpu      = (uintptr_t)pvCpu;
+-    NOREF(pNotifierBlock);
+-
+-    /*
+-     * Note that redhat/CentOS ported _some_ of the FROZEN macros
+-     * back to their 2.6.18-92.1.10.el5 kernel but actually don't
+-     * use them. Thus we have to test for both CPU_TASKS_FROZEN and
+-     * the individual event variants.
+-     */
+-    switch (ulNativeEvent)
+-    {
+-        /*
+-         * Pick up online events or failures to go offline.
+-         * Ignore failure events for CPUs we didn't see go offline.
+-         */
+-# ifdef CPU_DOWN_FAILED
+-        case CPU_DOWN_FAILED:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_FAILED_FROZEN)
+-        case CPU_DOWN_FAILED_FROZEN:
+-#  endif
+-            if (!RTCpuSetIsMember(&g_MpPendingOfflineSet, idCpu))
+-                break;      /* fProcessEvents = FALSE */
+-        /* fall thru */
+-# endif
+-        case CPU_ONLINE:
+-# if defined(CPU_TASKS_FROZEN) && defined(CPU_ONLINE_FROZEN)
+-        case CPU_ONLINE_FROZEN:
+-# endif
+-# ifdef CPU_DOWN_FAILED
+-            RTCpuSetDel(&g_MpPendingOfflineSet, idCpu);
+-# endif
+-            fProcessEvent = TRUE;
+-            break;
+-
+-        /*
+-         * Pick the earliest possible offline event.
+-         * The only important thing here is that we get the event and that
+-         * it's exactly one.
+-         */
+-# ifdef CPU_DOWN_PREPARE
+-        case CPU_DOWN_PREPARE:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_PREPARE_FROZEN)
+-        case CPU_DOWN_PREPARE_FROZEN:
+-#  endif
+-            fProcessEvent = TRUE;
+-# else
+-        case CPU_DEAD:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DEAD_FROZEN)
+-        case CPU_DEAD_FROZEN:
+-#  endif
+-            /* Don't process CPU_DEAD notifications. */
+-# endif
+-# ifdef CPU_DOWN_FAILED
+-            RTCpuSetAdd(&g_MpPendingOfflineSet, idCpu);
+-# endif
+-            break;
+-    }
+-
+-    if (!fProcessEvent)
+-        return NOTIFY_DONE;
++static inline int r0_cpudown_prepare(unsigned int cpu)
++{
++	rtMpNotificationDoCallbacks(RTMPEVENT_OFFLINE, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-    switch (ulNativeEvent)
+-    {
+-# ifdef CPU_DOWN_FAILED
+-        case CPU_DOWN_FAILED:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_FAILED_FROZEN)
+-        case CPU_DOWN_FAILED_FROZEN:
+-#  endif
+-# endif
+-        case CPU_ONLINE:
+-# if defined(CPU_TASKS_FROZEN) && defined(CPU_ONLINE_FROZEN)
+-        case CPU_ONLINE_FROZEN:
+-# endif
+-            rtMpNotificationDoCallbacks(RTMPEVENT_ONLINE, idCpu);
+-            break;
++#ifdef CPU_DOWN_FAILED
++static inline int r0_cpu_online(unsigned int cpu)
++{
++	RTCpuSetDel(&g_MpPendingOfflineSet, cpu);
++	return NOTIFY_DONE;
++}
+ 
+-# ifdef CPU_DOWN_PREPARE
+-        case CPU_DOWN_PREPARE:
+-#  if defined(CPU_TASKS_FROZEN) && defined(CPU_DOWN_PREPARE_FROZEN)
+-        case CPU_DOWN_PREPARE_FROZEN:
+-#  endif
+-            rtMpNotificationDoCallbacks(RTMPEVENT_OFFLINE, idCpu);
+-            break;
+-# endif
+-    }
++static inline int r0_cpu_offline(unsigned int cpu)
++{
++	if(RTCpuSetIsMember(&g_MpPendingOfflineSet, cpu))
++		RTCpuSetAdd(&g_MpPendingOfflineSet, cpu);
+ 
+-    return NOTIFY_DONE;
++	return NOTIFY_DONE;
+ }
++#endif
+ 
+-
+ DECLHIDDEN(int) rtR0MpNotificationNativeInit(void)
+ {
+     int rc;
+@@ -180,7 +102,16 @@ DECLHIDDEN(int) rtR0MpNotificationNative
+     RTCpuSetEmpty(&g_MpPendingOfflineSet);
+ # endif
+ 
+-    rc = register_cpu_notifier(&g_NotifierBlock);
++    cpuhp_setup_state_nocalls(CPUHP_VBOX_R0_PREPARE,
++		    "vbox/r0:prepare",
++		    r0_cpuup_prepare,
++		    r0_cpudown_prepare);
++#ifdef CPU_DOWN_FAILED
++    cpuhp_setup_state_nocalls(CPUHP_VBOX_R0_ONLINE,
++		    "vbox/r0:online",
++		    r0_cpu_online,
++		    r0_cpu_offline);
++#endif
+     IPRT_LINUX_RESTORE_EFL_AC();
+     AssertMsgReturn(!rc, ("%d\n", rc), RTErrConvertFromErrno(rc));
+     return VINF_SUCCESS;
+@@ -190,7 +119,10 @@ DECLHIDDEN(int) rtR0MpNotificationNative
+ DECLHIDDEN(void) rtR0MpNotificationNativeTerm(void)
+ {
+     IPRT_LINUX_SAVE_EFL_AC();
+-    unregister_cpu_notifier(&g_NotifierBlock);
++    cpuhp_remove_state_nocalls(CPUHP_VBOX_R0_PREPARE);
++#ifdef CPU_DOWN_FAILED
++    cpuhp_remove_state_nocalls(CPUHP_VBOX_R0_ONLINE);
++#endif
+     IPRT_LINUX_RESTORE_EFL_AC();
+ }
+ 

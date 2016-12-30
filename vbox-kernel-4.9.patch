@@ -64,3 +64,18 @@
                                  &pMemLnx->apPages[0],   /* Page array. */
                                  papVMAs);               /* vmas */
  #else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0) */
+--- linux-4.9/drivers/bus/vboxguest/r0drv/linux/memobj-r0drv-linux.c.omv~	2016-12-29 03:20:57.722713355 +0100
++++ linux-4.9/drivers/bus/vboxguest/r0drv/linux/memobj-r0drv-linux.c	2016-12-29 03:22:13.039128552 +0100
+@@ -1078,7 +1078,11 @@ DECLHIDDEN(int) rtR0MemObjNativeLockUser
+                                 fWrite,                 /* force write access. */
+ # endif
+                                 &pMemLnx->apPages[0],   /* Page array. */
+-                                papVMAs);               /* vmas */
++                                papVMAs                 /* vmas */
++# if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
++				, NULL			/* locked */
++# endif
++			    );
+ #else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0) */
+             rc = get_user_pages(pTask,                  /* Task for fault accounting. */
+                                 pTask->mm,              /* Whose pages. */

@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	9
+%define patchlevel	10
 %define sublevel	0
-%define relc		8
+%define relc		1
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -18,7 +18,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
-%define rpmrel		1
+%define rpmrel		3
 %define tar_ver   	%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -78,6 +78,8 @@
 # build perf and cpupower tools
 %bcond_with build_perf
 %bcond_without build_cpupower
+%bcond_without build_x86_energy_perf_policy
+%bcond_without build_turbostat
 
 # compress modules with xz
 %bcond_without build_modxz
@@ -115,7 +117,7 @@
 #
 # SRC RPM description
 #
-Summary: 	Linux kernel built for %{distribution}
+Summary:	Linux kernel built for %{distribution}
 Name:		%{kname}
 Version:	%{kversion}
 Release:	%{rpmrel}
@@ -172,12 +174,20 @@ Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
 
+# Pulled in as Source: rather than Patch: because it's arch specific
+# and can't be applied by %%apply_patches
+Source100:	vbox-kernel-4.10.patch
+
+# BFQ IO scheduler, http://algogroup.unimore.it/people/paolo/disk_sched/
+#Patch100:	0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r11-4.5.0.patch
+#Patch101:	0002-block-introduce-the-BFQ-v7r11-I-O-sched-for-4.5.0.patch
+#Patch102:	0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r11-for.patch
+#Patch103:	0004-Turn-into-BFQ-v8r6-for-4.9.0.patch
+
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
 # being touched aren't in the tree at the time %%apply_patches
 # runs...
-Source100:	vbox-kernel-4.8.patch
-Source101:	vbox-kernel-4.9.patch
 
 # Defines for the things that are needed for all the kernels
 #
@@ -270,9 +280,11 @@ Suggests:	microcode_ctl
 # Let's pull in some of the most commonly used DKMS modules
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
+%if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
 BuildRequires:	dkms-virtualbox >= 5.0.24-1
 BuildRequires:	dkms-vboxadditions >= 5.0.24-1
+%endif
 %endif
 
 %description
@@ -451,18 +463,18 @@ CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
 #
 %if %{with build_source}
 %package -n %{kname}-source-%{buildrel}
-Version: 	%{fakever}
-Release: 	%{fakerel}
-Requires: 	glibc-devel
-Requires: 	ncurses-devel
-Requires: 	make
-Requires: 	gcc
-Requires: 	perl
-Requires: 	diffutils
-Summary: 	The Linux source code for %{kname}-%{buildrel}
-Group: 		Development/Kernel
-Autoreqprov: 	no
-Provides: 	kernel-source = %{kverrel}
+Version:	%{fakever}
+Release:	%{fakerel}
+Requires:	glibc-devel
+Requires:	ncurses-devel
+Requires:	make
+Requires:	gcc
+Requires:	perl
+Requires:	diffutils
+Summary:	The Linux source code for %{kname}-%{buildrel}
+Group:		Development/Kernel
+Autoreqprov:	no
+Provides:	kernel-source = %{kverrel}
 Buildarch:	noarch
 
 %description -n %{kname}-source-%{buildrel}
@@ -549,6 +561,28 @@ Conflicts:	%{_lib}cpufreq-devel
 This package contains the development files for cpupower.
 %endif
 
+%if %{with build_x86_energy_perf_policy}
+%package -n x86_energy_perf_policy
+Version:	%{kversion}
+Release:	%{rpmrel}
+Summary:	Tool to control energy vs. performance on recent X86 processors
+Group:		System/Kernel and hardware
+
+%description -n x86_energy_perf_policy
+Tool to control energy vs. performance on recent X86 processors
+%endif
+
+%if %{with build_turbostat}
+%package -n turbostat
+Version:	%{kversion}
+Release:	%{rpmrel}
+Summary:	Tool to report processor frequency and idle statistics
+Group:		System/Kernel and hardware
+
+%description -n turbostat
+Tool to report processor frequency and idle statistics
+%endif
+
 %package headers
 Version:	%{kversion}
 Release:	%{rpmrel}
@@ -593,8 +627,11 @@ This package is only of interest if you're cross-compiling for one of the
 following platforms:
 %{cross_header_archs}
 
+%if 0
+# FIXME restore this option at some point
 %files -n cross-%{name}-headers
 %{_prefix}/*-%{_target_os}/include/*
+%endif
 
 # %endif (???)
 # from 1486-1505 >https://abf.io/openmandriva/kernel/commit/b967a6b9458236d594dac87de97193f0e172c55c
@@ -624,6 +661,7 @@ chmod +x scripts/gcc-plugin.sh
 LC_ALL=C perl -p -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
+%if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
 # === VirtualBox guest additions ===
 # VirtualBox video driver
@@ -663,9 +701,12 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "/uname -m/iKERN_DIR=$(pwd)" drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
+
+# Make it compatible with 4.10+ kernels
+find drivers/gpu/drm/vboxvideo fs/vboxsf drivers/bus/vboxguest drivers/virt/vboxdrv drivers/net/vboxnetadp drivers/net/vboxnetflt drivers/pci/vboxpci -name "*.c" -o -name "*.h" |xargs sed -i -e 's,true,TRUE,g;s,false,FALSE,g'
+patch -p1 <%{SOURCE100}
 %endif
-###patch -p1 -b -z .0100~ <%{SOURCE100}
-###patch -p1 -b -z .0101~ <%{SOURCE101}
+%endif
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' | %kxargs rm -f
@@ -723,7 +764,11 @@ BuildKernel() {
     install -d %{temp_boot}
     install -m 644 System.map %{temp_boot}/System.map-$KernelVer
     install -m 644 .config %{temp_boot}/config-$KernelVer
-    xz -7 -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.xz
+%if %{with build_modxz}
+    xz -6e -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.xz
+%else
+    gzip -9 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.gz
+%endif
 
 %ifarch %{arm}
     if [ -f arch/arm/boot/uImage ]; then
@@ -744,16 +789,18 @@ BuildKernel() {
     %{smake} INSTALL_MOD_PATH=%{temp_root} KERNELRELEASE=$KernelVer INSTALL_MOD_STRIP=1 modules_install
 
 # headers
-    %{make} INSTALL_HDR_PATH=%{temp_root}%_prefix KERNELRELEASE=$KernelVer headers_install
+    %{make} INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer headers_install
 
-# kernel headers for cross toolchains
 %ifarch %{armx}
     %{smake} ARCH=%{target_arch} V=1 dtbs INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
 %endif
 
-    for arch in %{cross_header_archs}; do
-	%{make} SRCARCH=$arch INSTALL_HDR_PATH=%{temp_root}%{_prefix}/$arch-%{_target_os} KERNELRELEASE=$KernelVer headers_install
-    done
+# kernel headers for cross toolchains
+# FIXME need to generate UAPI files for this to work (and those won't be
+# generated without configuring the kernel for this arch...
+#    for arch in %{cross_header_archs}; do
+#	%{make} SRCARCH=$arch INSTALL_HDR_PATH=%{temp_root}%{_prefix}/$arch-%{_target_os} KERNELRELEASE=$KernelVer headers_install
+#    done
 
 # remove /lib/firmware, we use a separate kernel-firmware
     rm -rf %{temp_root}/lib/firmware
@@ -812,19 +859,22 @@ SaveDevel() {
 
     for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nios2 openrisc parisc powerpc s390 score sh sparc tile unicore32 xtensa; do
-		rm -rf $TempDevelRoot/arch/$i
+	rm -rf $TempDevelRoot/arch/$i
     done
 
-%ifnarch %{arm}
-    rm -rf $TempDevelRoot/arch/arm*
-    rm -rf $TempDevelRoot/include/kvm/arm*
-    rm -rf $TempDevelRoot/include/soc
+%ifnarch %{armx}
+   rm -rf $TempDevelRoot/arch/arm*
+   rm -rf $TempDevelRoot/include/kvm/arm*
+   rm -rf $TempDevelRoot/include/soc
 %endif
 
 # Clean the scripts tree, and make sure everything is ok (sanity check)
 # running prepare+scripts (tree was already "prepared" in build)
     pushd $TempDevelRoot >/dev/null
+%ifnarch aarch64
+    # weird things here with arm64
     %{smake} ARCH=%{target_arch} prepare scripts
+%endif
     %{smake} ARCH=%{target_arch} clean
     popd >/dev/null
 
@@ -876,7 +926,7 @@ $DevelRoot/include/ras
 $DevelRoot/include/rdma
 $DevelRoot/include/rxrpc
 $DevelRoot/include/scsi
-%ifarch %{arm}
+%ifarch %{armx}
 $DevelRoot/include/soc
 %endif
 $DevelRoot/include/sound
@@ -1113,6 +1163,17 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 chmod +x tools/power/cpupower/utils/version-gen.sh
 %kmake -C tools/power/cpupower CPUFREQ_BENCH=false LDFLAGS="%{optflags}"
 %endif
+
+%ifarch %{ix86} x86_64
+%if %{with build_x86_energy_perf_policy}
+%kmake -C tools/power/x86/x86_energy_perf_policy CC=gcc LDFLAGS="-Wl,--hash-style=sysv -Wl,--build-id=none"
+%endif
+
+%if %{with build_turbostat}
+%kmake -C tools/power/x86/turbostat CC=gcc
+%endif
+%endif
+
 ############################################################
 ###  Linker end3 > Check point to build for omv or rosa  ###
 ############################################################
@@ -1158,7 +1219,7 @@ done
 %endif
 
 # other misc files
-rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap}
+rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes}
 rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore}
 rm -rf %{target_source}/.tmp_depmod/
 
@@ -1220,6 +1281,17 @@ install -m644 %{SOURCE50} %{buildroot}%{_unitdir}/cpupower.service
 install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %endif
 
+%ifarch %{ix86} x86_64
+%if %{with build_x86_energy_perf_policy}
+mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
+%kmake -C tools/power/x86/x86_energy_perf_policy install DESTDIR="%{buildroot}"
+%endif
+%if %{with build_turbostat}
+mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
+%kmake -C tools/power/x86/turbostat install DESTDIR="%{buildroot}"
+%endif
+%endif
+
 ############################################################
 ### Linker start4 > Check point to build for omv or rosa ###
 ############################################################
@@ -1232,7 +1304,6 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %dir %{_kerneldir}/include
 %dir %{_kerneldir}/certs
 %{_kerneldir}/.cocciconfig
-%{_kerneldir}/.gitattributes
 %{_kerneldir}/Documentation
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
@@ -1292,7 +1363,6 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %{_kerneldir}/MAINTAINERS
 %{_kerneldir}/Makefile
 %{_kerneldir}/README
-%{_kerneldir}/REPORTING-BUGS
 
 %files -n %{kname}-source-latest
 %endif
@@ -1331,4 +1401,18 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %files -n cpupower-devel
 %{_libdir}/libcpupower.so
 %{_includedir}/cpufreq.h
+%endif
+
+%ifarch %{ix86} x86_64
+%if %{with build_x86_energy_perf_policy}
+%files -n x86_energy_perf_policy
+%{_bindir}/x86_energy_perf_policy
+%{_mandir}/man8/x86_energy_perf_policy.8*
+%endif
+
+%if %{with build_turbostat}
+%files -n turbostat
+%{_bindir}/turbostat
+%{_mandir}/man8/turbostat.8*
+%endif
 %endif
