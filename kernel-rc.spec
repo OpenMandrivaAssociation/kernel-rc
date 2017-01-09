@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	10
 %define sublevel	0
-%define relc		2
+%define relc		3
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -141,17 +141,17 @@ NoSource:	0
 
 Source4:	README.kernel-sources
 Source5:	%{name}.rpmlintrc
-# configs
+# Global configs
 Source6:	common.config
-# x86_64
+Source8:	common-desktop.config
+Source9:	common-server.config
+# Architecture specific configs
 Source7:	x86_64-common.config
-Source8:	x86_64-desktop.config
-Source9:	x86_64-server.config
-# for i586 only desktop flavour
-Source10:	i386-desktop.config
-# Server flavour for ARMx, todo: add desktop
-Source11:	arm64-server.config
-Source12:	arm-server.config
+Source10:	i386-common.config
+Source11:	arm64-common.config
+Source12:	arm-common.config
+# Files called $ARCH-$FLAVOR.config are merged as well,
+# currently there's no need to have specific overloads there.
 
 # config and systemd service file from fedora
 Source50:	cpupower.service
@@ -738,13 +738,19 @@ export PYTHON=%{__python2}
 %define temp_boot %{temp_root}%{_bootdir}
 %define temp_modules %{temp_root}%{_modulesdir}
 
+CreateConfig() {
+	arch="$1"
+	type="$2"
+	cat %{_sourcedir}/common.config %{_sourcedir}/common-${type}.config %{_sourcedir}/${arch}-common.config %{_sourcedir}/${arch}-${type}.config >.config 2>/dev/null || :
+}
+
 PrepareKernel() {
     name=$1
     extension=$2
     config_dir=%{_sourcedir}
     echo "Make config for kernel $extension"
     %{smake} -s mrproper
-    cat ${config_dir}/common.config ${config_dir}/common-$flavour.config ${config_dir}/%{target_arch}-common.config ${config_dir}/%{target_arch}-$flavour.config >.config 2>/dev/null || :
+    CreateConfig %{target_arch} ${flavour}
     # make sure EXTRAVERSION says what we want it to say
     sed -ri "s|^(EXTRAVERSION =).*|\1 -$extension|" Makefile
     %{smake} oldconfig
@@ -1127,7 +1133,15 @@ CreateKernel() {
 ###
 # DO it...
 ###
-
+# First of all, build the configs for every arch we care about
+# that way, we can be sure all *.config files have the right additions
+for a in arm arm64 i386 x86_64; do
+	for t in desktop server; do
+		CreateConfig $a $t
+		make ARCH=$a oldconfig
+	done
+done
+make mrproper
 
 # Create a simulacro of buildroot
 rm -rf %{temp_root}
