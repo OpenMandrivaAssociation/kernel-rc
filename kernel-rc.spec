@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	10
 %define sublevel	0
-%define relc		4
+%define relc		5
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -704,7 +704,7 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 
 # Make it compatible with 4.10+ kernels
 find drivers/gpu/drm/vboxvideo fs/vboxsf drivers/bus/vboxguest drivers/virt/vboxdrv drivers/net/vboxnetadp drivers/net/vboxnetflt drivers/pci/vboxpci -name "*.c" -o -name "*.h" |xargs sed -i -e 's,true,TRUE,g;s,false,FALSE,g'
-patch -p1 <%{SOURCE100}
+patch -p1 -z .vbox410~ -b <%{SOURCE100}
 %endif
 %endif
 

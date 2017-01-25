@@ -1,3 +1,4 @@
 sources:
   linux-4.9.tar.xz: fa46da077c077467776cdc45a7b50d327a081ab4
   patch-4.10-rc4.xz: 9f239f31342f29022de7c0c2d8ea838faa5ad07e
+  patch-4.10-rc5.xz: 3f7468d8636544dbabdf58b908764a26d4e7af98
