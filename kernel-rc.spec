@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	10
 %define sublevel	0
-%define relc		5
+%define relc		6
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -18,7 +18,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
-%define rpmrel		3
+%define rpmrel		1
 %define tar_ver   	%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
