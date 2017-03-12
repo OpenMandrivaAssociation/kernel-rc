@@ -1,23 +1,5 @@
-From 254e7f35d5f4233653566f8ed89eeae818e49c88 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Bernhard=20Rosenkr=C3=A4nzer?= <bero@lindev.ch>
-Date: Sun, 6 Mar 2016 06:57:57 +0100
-Subject: [PATCH] Add support for Acer Predator macro keys
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-This patch adds support for the macro keys found on
-Acer Predator laptops.
-
-Signed-off-by: Bernhard Rosenkränzer <bero@lindev.ch>
----
- drivers/platform/x86/acer-wmi.c | 44 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
-
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 1062fa4..4cf0e2b 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
+--- linux-4.10/drivers/platform/x86/acer-wmi.c.0003~	2017-03-12 12:53:30.833681056 +0100
++++ linux-4.10/drivers/platform/x86/acer-wmi.c	2017-03-12 12:54:38.329101406 +0100
 @@ -7,6 +7,9 @@
   *    Copyright (C) 2005-2007	E.M. Smith
   *    Copyright (C) 2007-2008	Carlos Corbacho <cathectic@gmail.com>
@@ -28,7 +10,7 @@ index 1062fa4..4cf0e2b 100644
   *  This program is free software; you can redistribute it and/or modify
   *  it under the terms of the GNU General Public License as published by
   *  the Free Software Foundation; either version 2 of the License, or
-@@ -94,6 +97,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2CC-1E6D18D14026");
+@@ -94,6 +97,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
  enum acer_wmi_event_ids {
  	WMID_HOTKEY_EVENT = 0x1,
  	WMID_ACCEL_EVENT = 0x5,
@@ -36,10 +18,10 @@ index 1062fa4..4cf0e2b 100644
  };
  
  static const struct key_entry acer_wmi_keymap[] __initconst = {
-@@ -128,6 +132,26 @@ static const struct key_entry acer_wmi_keymap[] __initconst = {
- 	{KE_KEY, KEY_TOUCHPAD_OFF, {KEY_TOUCHPAD_OFF} },
+@@ -129,6 +133,26 @@ static const struct key_entry acer_wmi_k
  	{KE_IGNORE, 0x83, {KEY_TOUCHPAD_TOGGLE} },
  	{KE_KEY, 0x85, {KEY_TOUCHPAD_TOGGLE} },
+ 	{KE_KEY, 0x86, {KEY_WLAN} },
 +	/* Acer Predator macro keys:
 +	 * 0xdaXY:
 +	 *   da   - magic value (preDAtor)
@@ -63,7 +45,7 @@ index 1062fa4..4cf0e2b 100644
  	{KE_END, 0}
  };
  
-@@ -232,6 +256,7 @@ static bool ec_raw_mode;
+@@ -248,6 +272,7 @@ static bool ec_raw_mode;
  static bool has_type_aa;
  static u16 commun_func_bitmap;
  static u8 commun_fn_key_number;
@@ -71,7 +53,7 @@ index 1062fa4..4cf0e2b 100644
  
  module_param(mailled, int, 0444);
  module_param(brightness, int, 0444);
-@@ -1731,6 +1756,25 @@ static void acer_wmi_notify(u32 value, void *context)
+@@ -1777,6 +1802,25 @@ static void acer_wmi_notify(u32 value, v
  	case WMID_ACCEL_EVENT:
  		acer_gsensor_event();
  		break;
@@ -97,6 +79,3 @@ index 1062fa4..4cf0e2b 100644
  	default:
  		pr_warn("Unknown function number - %d - %d\n",
  			return_value.function, return_value.key_num);
--- 
-2.7.2
-

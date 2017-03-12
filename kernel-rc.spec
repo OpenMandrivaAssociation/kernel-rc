@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	10
+%define patchlevel	11
 %define sublevel	0
-%define relc		7
+%define relc		1
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -58,6 +58,7 @@
 %bcond_without build_source
 %bcond_without build_devel
 %bcond_with build_debug
+%bcond_with clang
 
 %define	cross_header_archs	arm arm64 mips
 
@@ -173,6 +174,39 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
+
+# Patches to make it build with clang
+Patch1000:	0001-kbuild-LLVMLinux-Set-compiler-flags-for-clang.patch
+Patch1001:	0002-fs-LLVMLinux-Remove-warning-from-COMPATIBLE_IOCTL.patch
+Patch1002:	0003-kbuild-LLVMLinux-Add-support-for-generating-LLVM-bit.patch
+Patch1003:	0004-kbuild-LLVMLinux-Make-asm-offset-generation-work-wit.patch
+Patch1004:	0005-md-sysfs-LLVMLinux-Remove-nested-function-from-bcach.patch
+Patch1005:	0006-apparmor-LLVMLinux-Remove-VLAIS.patch
+Patch1006:	0007-exofs-LLVMLinux-Remove-VLAIS-from-exofs-FIXME-Check-.patch
+Patch1007:	0008-md-raid10-LLVMLinux-Remove-VLAIS-from-raid10-driver.patch
+Patch1008:	0009-fs-nfs-LLVMLinux-Remove-VLAIS-from-nfs.patch
+Patch1009:	0010-net-wimax-i2400-LLVMLinux-Remove-VLAIS-from-wimax-i2.patch
+Patch1010:	0011-Kbuild-LLVMLinux-Use-Oz-instead-of-Os-when-using-cla.patch
+Patch1011:	0012-WORKAROUND-x86-boot-LLVMLinux-Work-around-clang-PR39.patch
+Patch1012:	0013-DO-NOT-UPSTREAM-xen-LLVMLinux-Remove-VLAIS-from-xen-.patch
+Patch1013:	0014-DO-NOT-UPSTREAM-arm-LLVMLinux-Provide-__aeabi_-symbo.patch
+Patch1014:	0015-DO-NOT-UPSTREAM-arm-firmware-LLVMLinux-replace-naked.patch
+Patch1015:	0016-arm-LLVMLinux-Remove-unreachable-from-naked-function.patch
+Patch1016:	0017-MIPS-LLVMLinux-Fix-a-cast-to-type-not-present-in-uni.patch
+Patch1017:	0018-MIPS-LLVMLinux-Fix-an-inline-asm-input-output-type-m.patch
+Patch1018:	0019-MIPS-LLVMLinux-Silence-variable-self-assignment-warn.patch
+Patch1019:	0020-MIPS-LLVMLinux-Silence-unicode-warnings-when-preproc.patch
+Patch1020:	0021-Don-t-use-attributes-error-and-warning-with-clang.patch
+Patch1021:	0022-Fix-undefined-references-to-acpi_idle_driver-on-aarc.patch
+Patch1022:	0023-HACK-firmware-LLVMLinux-fix-EFI-libstub-with-clang.patch
+Patch1023:	0024-aarch64-crypto-LLVMLinux-Fix-inline-assembly-for-cla.patch
+Patch1024:	0025-aarch64-LLVMLinux-Make-spin_lock_prefetch-asm-code-c.patch
+Patch1025:	0026-LLVMLinux-Don-t-use-attribute-externally_visible-whe.patch
+Patch1026:	0027-x86-crypto-LLVMLinux-Fix-building-x86_64-AES-extensi.patch
+Patch1027:	0028-x86-LLVMLinux-Qualify-mul-as-mulq-to-make-clang-happ.patch
+Patch1028:	0029-kbuild-LLVMLinux-Add-Werror-to-cc-option-in-order-to.patch
+Patch1029:	0030-x86-kbuild-LLVMLinux-Check-for-compiler-support-of-f.patch
+#Patch1030:	0031-x86-cmpxchg-break.patch
 
 # Pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%apply_patches
@@ -661,6 +695,7 @@ chmod +x scripts/gcc-plugin.sh
 LC_ALL=C perl -p -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
+%if 0
 %if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
 # === VirtualBox guest additions ===
@@ -707,6 +742,7 @@ find drivers/gpu/drm/vboxvideo fs/vboxsf drivers/bus/vboxguest drivers/virt/vbox
 patch -p1 -z .vbox410~ -b <%{SOURCE100}
 %endif
 %endif
+%endif
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' | %kxargs rm -f
@@ -741,7 +777,26 @@ export PYTHON=%{__python2}
 CreateConfig() {
 	arch="$1"
 	type="$2"
-	cat %{_sourcedir}/common.config %{_sourcedir}/common-${type}.config %{_sourcedir}/${arch}-common.config %{_sourcedir}/${arch}-${type}.config >.config 2>/dev/null || :
+	rm -f .config
+
+%if %{with clang}
+	CLANG_EXTRAS=clang-workarounds
+%else
+	CLANG_EXTRAS=""
+%endif
+
+	for i in common common-${type} ${arch}-common ${arch}-${type} $CLANG_EXTRAS; do
+		[ -e %{_sourcedir}/$i.config ] || continue
+		if [ -e .config ]; then
+			# Make sure the later configs override the former ones.
+			# More specific configs should be able to override generic ones no matter what.
+			NEWCONFIGS=`cat %{_sourcedir}/$i.config |grep -E '^(CONFIG_|# CONFIG_)' |sed -e 's,=.*,,;s,^# ,,;s, is not set,,'`
+			for j in $NEWCONFIGS; do
+				sed -i -e "/^$j=.*/d;/^# $j is not set/d" .config
+			done
+		fi
+		cat %{_sourcedir}/$i.config >>.config
+	done
 }
 
 PrepareKernel() {
@@ -761,9 +816,17 @@ BuildKernel() {
     echo "Building kernel $KernelVer"
 # (tpg) build with gcc, as kernel is not yet ready for LLVM/clang
 %ifarch x86_64
-    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -fwhole-program -flto" LDFLAGS="$LDFLAGS -flto"
+%if %{with clang}
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS -flto" LDFLAGS="$LDFLAGS -flto"
+%else
+    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -flto" LDFLAGS="$LDFLAGS -flto"
+%endif
+%else
+%if %{with clang}
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
 %else
     %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+%endif
 %endif
 
 # Start installing stuff
@@ -1180,11 +1243,11 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 
 %ifarch %{ix86} x86_64
 %if %{with build_x86_energy_perf_policy}
-%kmake -C tools/power/x86/x86_energy_perf_policy CC=gcc LDFLAGS="-Wl,--hash-style=sysv -Wl,--build-id=none"
+%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--hash-style=sysv -Wl,--build-id=none"
 %endif
 
 %if %{with build_turbostat}
-%kmake -C tools/power/x86/turbostat CC=gcc
+%kmake -C tools/power/x86/turbostat CC=clang
 %endif
 %endif
 
