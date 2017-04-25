@@ -1,38 +1,7 @@
-From 695a27351378bce5eba7438dbd3a467bf1d054b9 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Bernhard=20Rosenkr=C3=A4nzer?= <bero@linaro.org>
-Date: Thu, 23 Feb 2017 00:00:13 +0100
-Subject: [PATCH 01/30] kbuild, LLVMLinux: Set compiler flags for clang
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Given clang includes all the crosscompilers in one binary instead of
-having different arch-os-clang binaries, we need to tell clang the
-target platform with -target. We also pass -gcc-toolchain to help clang
-find the right versions of binutils and libgcc.
-
--fno-integrated-as is currently needed because clang's internal as
-doesn't support non-unified ARM syntax and various GNU extensions.
-
--meabi gnu is needed to make mcount function naming gcc compatible.
-
-Partially based on older patches from Behan Webster, Jan-Simon Möller
-and Mark Charlebois.
-
-Signed-off-by: Bernhard Rosenkränzer <bero@linaro.org>
-Cc: Behan Webster <behanw@converseincode.com>
-Cc: Jan-Simon Möller <dl9pf@gmx.de>
-Cc: Mark Charlebois <charlebm@gmail.com>
----
- Makefile | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index b83109b5d217..e3e8522f0322 100644
---- a/Makefile
-+++ b/Makefile
+--- linux-4.10/Makefile.1000~	2017-04-25 20:31:43.347811443 +0200
++++ linux-4.10/Makefile	2017-04-25 20:32:20.593089243 +0200
 @@ -375,6 +375,19 @@ LDFLAGS_vmlinux =
- CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im -Wno-maybe-uninitialized
+ CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage -fno-tree-loop-im $(call cc-disable-warning,maybe-uninitialized,)
  CFLAGS_KCOV	:= $(call cc-option,-fsanitize-coverage=trace-pc,)
  
 +ifeq ($(cc-name),clang)
@@ -67,7 +36,7 @@ index b83109b5d217..e3e8522f0322 100644
  KBUILD_AFLAGS_MODULE  := -DMODULE
  KBUILD_CFLAGS_MODULE  := -DMODULE
  KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
-@@ -694,9 +707,12 @@ KBUILD_CFLAGS += $(stackp-flag)
+@@ -700,9 +713,12 @@ KBUILD_CFLAGS += $(stackp-flag)
  ifeq ($(cc-name),clang)
  KBUILD_CPPFLAGS += $(call cc-option,-Qunused-arguments,)
  KBUILD_CPPFLAGS += $(call cc-option,-Wno-unknown-warning-option,)
@@ -80,7 +49,7 @@ index b83109b5d217..e3e8522f0322 100644
  # Quiet clang warning: comparison of unsigned expression < 0 is always false
  KBUILD_CFLAGS += $(call cc-disable-warning, tautological-compare)
  # CLANG uses a _MergedGlobals as optimization, but this breaks modpost, as the
-@@ -704,6 +720,7 @@ KBUILD_CFLAGS += $(call cc-disable-warning, tautological-compare)
+@@ -710,6 +726,7 @@ KBUILD_CFLAGS += $(call cc-disable-warni
  # See modpost pattern 2
  KBUILD_CFLAGS += $(call cc-option, -mno-global-merge,)
  KBUILD_CFLAGS += $(call cc-option, -fcatch-undefined-behavior)
@@ -88,6 +57,3 @@ index b83109b5d217..e3e8522f0322 100644
  else
  
  # These warnings generated too much noise in a regular build.
--- 
-2.11.0
-
