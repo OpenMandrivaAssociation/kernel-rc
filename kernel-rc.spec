@@ -234,7 +234,6 @@ very current hardware.
 
 
 ### Global Requires/Provides
-%define requires1	microcode_ctl
 #%define requires2	dracut >= 026
 %define requires3	kmod >= 12
 %define requires4	sysfsutils >=  2.1.0-12
@@ -309,7 +308,7 @@ BuildRequires:	uboot-mkimage
 %endif
 
 # might be useful too:
-Suggests:	microcode_ctl
+Suggests:	microcode-intel
 
 # Let's pull in some of the most commonly used DKMS modules
 # so end users don't have to install compilers (and worse,
@@ -340,7 +339,7 @@ Release:	%{fakerel}				\
 Provides:	%kprovides1 %kprovides2			\
 %{expand:%%{?kprovides_%{1}:Provides: %{kprovides_%{1}}}} \
 Provides:   %{kname}-%{1}              			 \
-Requires(pre):	%requires1 %requires2 %requires3 %requires4 \
+Requires(pre):	%requires2 %requires3 %requires4 \
 Requires:	%requires2 %requires5			\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
