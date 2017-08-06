@@ -15,12 +15,16 @@ diff --git a/arch/x86/lib/kaslr.c b/arch/x86/lib/kaslr.c
 index 121f59c6ee54..9915ff924a5e 100644
 --- a/arch/x86/lib/kaslr.c
 +++ b/arch/x86/lib/kaslr.c
-@@ -79,7 +79,7 @@ unsigned long kaslr_get_random_long(const char *purpose)
+@@ -79,7 +79,11 @@ unsigned long kaslr_get_random_long(const char *purpose)
  	}
  
  	/* Circular multiply for better bit diffusion */
 -	asm("mul %3"
++#ifdef CONFIG_X86_64
 +	asm("mulq %3"
++#else
++	asm("mull %3"
++#endif
  	    : "=a" (random), "=d" (raw)
  	    : "a" (random), "rm" (mix_const));
  	random += raw;

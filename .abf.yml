@@ -1,3 +1,4 @@
 sources:
-  linux-4.10.tar.xz: 1375424721130e93dd6f723537a4db9039a02643
-  patch-4.11-rc8.xz: 95274d1ca9d5f2af8c82a4f820e5ba19e98276ba
+  v4.12: bbeada4521ab13bca613020f982dfa8903375d49
+  linux-4.12.tar.xz: f5dda0344401c436aa47685fbf345f4b7975fcf5
+  linux-4.12.tar.sign: ec93e6fe5dd0175255b8da7fd94cf0916863cc56

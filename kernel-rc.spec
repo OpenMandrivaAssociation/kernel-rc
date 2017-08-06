@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	11
+%define patchlevel	13
 %define sublevel	0
-%define relc		8
+%define relc		3
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -60,7 +60,14 @@
 %bcond_with build_debug
 %bcond_with clang
 
-%define	cross_header_archs	arm arm64 mips
+%global	cross_header_archs	aarch64-linux armv7hl-linux i586-linux i686-linux x86_64-linux x32-linux aarch64-linuxmusl armv7hl-linuxmusl i586-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl
+%global long_cross_header_archs %(
+	for i in %{cross_header_archs}; do
+		CPU=$(echo $i |cut -d- -f1)
+		OS=$(echo $i |cut -d- -f2)
+		echo -n "$(rpm --macros %%{_usrlibrpm}/macros:%%{_usrlibrpm}/platform/${CPU}-${OS}/macros --target=${CPU} -E %%{_target_platform}) "
+	done
+)
 
 %ifarch x86_64
 # BEGIN OF FLAVOURS
@@ -78,9 +85,14 @@
 
 # build perf and cpupower tools
 %bcond_with build_perf
-%bcond_without build_cpupower
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
+%ifarch %{ix86} x86_64
+%bcond_without build_cpupower
+%else
+# cpupower is currently x86 only
+%bcond_with build_cpupower
+%endif
 
 # compress modules with xz
 %bcond_without build_modxz
@@ -164,7 +176,7 @@ Source51:	cpupower.config
 # Added as a Source rather that Patch because it needs to be
 # applied with "git apply" -- may contain binary patches.
 %if 0%{relc}
-Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/testing/patch-%(echo %{version}|cut -d. -f1-2)-rc%{relc}.xz
+Source90:	https://git.kernel.org/torvalds/p/v%{kernelversion}.%{patchlevel}-rc%{relc}/v%{tar_ver}
 %else
 %if 0%{sublevel}
 Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
@@ -175,6 +187,7 @@ Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
 
+%if %{with clang}
 # Patches to make it build with clang
 Patch1000:	0001-kbuild-LLVMLinux-Set-compiler-flags-for-clang.patch
 Patch1001:	0002-fs-LLVMLinux-Remove-warning-from-COMPATIBLE_IOCTL.patch
@@ -207,16 +220,35 @@ Patch1027:	0028-x86-LLVMLinux-Qualify-mul-as-mulq-to-make-clang-happ.patch
 Patch1028:	0029-kbuild-LLVMLinux-Add-Werror-to-cc-option-in-order-to.patch
 Patch1029:	0030-x86-kbuild-LLVMLinux-Check-for-compiler-support-of-f.patch
 #Patch1030:	0031-x86-cmpxchg-break.patch
+Patch1031:	0001-Fix-for-compilation-with-clang.patch
+%endif
 
-# Pulled in as Source: rather than Patch: because it's arch specific
+# Patches to VirtualBox and other external modules are
+# pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%apply_patches
-Source100:	vbox-kernel-4.10.patch
 
-# BFQ IO scheduler, http://algogroup.unimore.it/people/paolo/disk_sched/
-#Patch100:	0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r11-4.5.0.patch
-#Patch101:	0002-block-introduce-the-BFQ-v7r11-I-O-sched-for-4.5.0.patch
-#Patch102:	0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r11-for.patch
-#Patch103:	0004-Turn-into-BFQ-v8r6-for-4.9.0.patch
+# (tpg) The Ultra Kernel Same Page Deduplication
+# (tpg) http://kerneldedup.org/en/projects/uksm/download/
+# (tpg) sources can be found here https://github.com/dolohow/uksm
+Patch120:	uksm-4.12.patch
+
+# (tpg) add zstd support
+# https://github.com/facebook/zstd/
+Patch130:	0001-lib-Add-xxhash-module.patch
+Patch131:	0002-lib-Add-zstd-modules.patch
+Patch132:	0003-btrfs-Add-zstd-support.patch
+Patch133:	0004-squashfs-Add-zstd-support.patch
+
+# Add support for Hauppauge HVR-1975 TV tuners, based on
+# https://s3.amazonaws.com/hauppauge/linux/hvr-9x5-19x5-22x5-kernel-3.19-2015-07-10-v2.patch.tar.xz
+# Taken from http://www.hauppauge.com/site/support/linux.html
+Patch140:	hauppauge-hvr-1975.patch
+
+# Anbox (http://anbox.io/) patches to Android IPC, rebased to 4.11
+# NOT YET
+#Patch200:	0001-ipc-namespace-a-generic-per-ipc-pointer-and-peripc_o.patch
+# NOT YET
+#Patch201:	0002-binder-implement-namepsace-support-for-Android-binde.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -315,8 +347,8 @@ Suggests:	microcode-intel
 # get compiler error messages on failures)
 %if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
-BuildRequires:	dkms-virtualbox >= 5.0.24-1
-BuildRequires:	dkms-vboxadditions >= 5.0.24-1
+BuildRequires:	dkms-virtualbox >= 5.1.22-1
+BuildRequires:	dkms-vboxadditions >= 5.1.22-1
 %endif
 %endif
 
@@ -602,7 +634,7 @@ Summary:	Tool to control energy vs. performance on recent X86 processors
 Group:		System/Kernel and hardware
 
 %description -n x86_energy_perf_policy
-Tool to control energy vs. performance on recent X86 processors
+Tool to control energy vs. performance on recent X86 processors.
 %endif
 
 %if %{with build_turbostat}
@@ -613,7 +645,7 @@ Summary:	Tool to report processor frequency and idle statistics
 Group:		System/Kernel and hardware
 
 %description -n turbostat
-Tool to report processor frequency and idle statistics
+Tool to report processor frequency and idle statistics.
 %endif
 
 %package headers
@@ -623,7 +655,10 @@ Summary:	Linux kernel header files mostly used by your C library
 Group:		System/Kernel and hardware
 Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
+Provides:	kernel-headers = 1:%{kverrel}
+Conflicts:	kernel-headers < 1:%{kverrel}
 Provides:	kernel-headers = %{kverrel}
+Conflicts:	kernel-headers < %{kverrel}
 # we don't need the kernel binary in chroot
 #Requires:	%{kname} = %{kverrel}
 %rename linux-userspace-headers
@@ -643,28 +678,33 @@ should use the 'kernel-devel' package instead.
 %exclude %{_includedir}/cpufreq.h
 %endif
 
-%package -n cross-%{name}-headers
+%(
+for i in %{long_cross_header_archs}; do
+	[ "$i" = "%{_target_platform}" ] && continue
+	cat <<EOF
+%package -n cross-${i}-%{name}-headers
 Version:	%{kversion}
 Release:	%{rpmrel}
-Summary:	Linux kernel header files for cross toolchains
+Summary:	Linux kernel header files for ${i} cross toolchains
 Group:		System/Kernel and hardware
-Epoch:		1
 BuildArch:	noarch
+%if "%{name}" != "kernel"
+Provides:	cross-${i}-kernel-headers = %{EVRD}
+%endif
 
-%description -n	cross-%{name}-headers
+%description -n cross-${i}-%{name}-headers
 C header files from the Linux kernel. The header files define
 structures and constants that are needed for building most
 standard programs, notably the C library.
 
-This package is only of interest if you're cross-compiling for one of the
-following platforms:
-%{cross_header_archs}
+This package is only of interest if you're cross-compiling for
+${i} targets.
 
-%if 0
-# FIXME restore this option at some point
-%files -n cross-%{name}-headers
-%{_prefix}/*-%{_target_os}/include/*
-%endif
+%files -n cross-${i}-%{name}-headers
+%{_prefix}/${i}/include/*
+EOF
+done
+)
 
 # %endif (???)
 # from 1486-1505 >https://abf.io/openmandriva/kernel/commit/b967a6b9458236d594dac87de97193f0e172c55c
@@ -677,12 +717,10 @@ following platforms:
 %setup -q -n linux-%{tar_ver}
 %if 0%{relc} || 0%{sublevel}
 [ -e .git ] || git init
-xzcat %{SOURCE90} | git apply -
+xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
 %endif
 %apply_patches
-# patch doesn't seem to have proper permissions...
-chmod +x scripts/gcc-plugin.sh
 
 %if %{with build_debug}
 %define debug --debug
@@ -694,12 +732,14 @@ chmod +x scripts/gcc-plugin.sh
 LC_ALL=C perl -p -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
-%if 0
 %if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
 # === VirtualBox guest additions ===
 # VirtualBox video driver
 cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/gpu/drm/
+# 800x600 is too small to be useful -- even calamares doesn't
+# fit into that anymore
+sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
 sed -i -e "/uname -m/iKERN_DIR=$(pwd)" drivers/gpu/drm/vboxvideo/Makefile*
 echo 'obj-m += vboxvideo/' >>drivers/gpu/drm/Makefile
@@ -735,11 +775,6 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "/uname -m/iKERN_DIR=$(pwd)" drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-
-# Make it compatible with 4.10+ kernels
-find drivers/gpu/drm/vboxvideo fs/vboxsf drivers/bus/vboxguest drivers/virt/vboxdrv drivers/net/vboxnetadp drivers/net/vboxnetflt drivers/pci/vboxpci -name "*.c" -o -name "*.h" |xargs sed -i -e 's,true,TRUE,g;s,false,FALSE,g'
-patch -p1 -z .vbox410~ -b <%{SOURCE100}
-%endif
 %endif
 %endif
 
@@ -863,13 +898,6 @@ BuildKernel() {
     %{smake} ARCH=%{target_arch} V=1 dtbs INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
 %endif
 
-# kernel headers for cross toolchains
-# FIXME need to generate UAPI files for this to work (and those won't be
-# generated without configuring the kernel for this arch...
-#    for arch in %{cross_header_archs}; do
-#	%{make} SRCARCH=$arch INSTALL_HDR_PATH=%{temp_root}%{_prefix}/$arch-%{_target_os} KERNELRELEASE=$KernelVer headers_install
-#    done
-
 # remove /lib/firmware, we use a separate kernel-firmware
     rm -rf %{temp_root}/lib/firmware
 }
@@ -972,7 +1000,6 @@ $DevelRoot/certs
 $DevelRoot/drivers
 $DevelRoot/firmware
 $DevelRoot/fs
-$DevelRoot/include/Kbuild
 $DevelRoot/include/acpi
 $DevelRoot/include/asm-generic
 $DevelRoot/include/clocksource
@@ -1191,23 +1218,91 @@ CreateKernel() {
     CreateFiles $flavour
 }
 
+# Create a simulacro of buildroot
+rm -rf %{temp_root}
+install -d %{temp_root}
 
 ###
 # DO it...
 ###
-# First of all, build the configs for every arch we care about
+# First of all, let's check for new config options...
+for a in arm arm64 i386 x86_64; do
+	CreateConfig $a desktop
+	make ARCH=$a listnewconfig |grep '^CONFIG' >newconfigs.$a || :
+done
+cat newconfigs.* >newconfigs
+cat newconfigs.arm |while read r; do
+	if grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.i386 && grep -qE "^$r\$" newconfigs.x86_64; then
+		echo $r >>newconfigs.common
+	fi
+done
+for i in arm arm64 i386 x86_64; do
+	cat newconfigs.$i |while read r; do
+		grep -qE "^$r\$" newconfigs.common || echo $r >>newconfigs.${i}only
+	done
+done
+if [ -s newconfigs ]; then
+	set +x
+	echo "New config options have been added - please update the *.config files."
+	echo "New config options you need to take care of:"
+	if [ -e newconfigs.common ]; then
+		echo "For common.config:"
+		cat newconfigs.common
+	fi
+	for i in arm arm64 i386 x86_64; do
+		[ -e newconfigs.${i}only ] || continue
+		echo "For $i-common.config:"
+		cat newconfigs.${i}only
+	done
+	exit 1
+fi
+rm -f newconfigs*
+
+# Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
 for a in arm arm64 i386 x86_64; do
 	for t in desktop server; do
 		CreateConfig $a $t
 		make ARCH=$a oldconfig
+		if [ "$t" = "desktop" ]; then
+			# While we have a kernel configured for it, let's package
+			# headers for crosscompilers...
+			# Done in a for loop because we may have to install the same
+			# headers multiple times, e.g.
+			# aarch64-linux-gnu, aarch64-linux-musl, aarch64-linux-android
+			# all share the same kernel headers.
+			# This is a little ugly because the kernel's arch names don't match
+			# triplets...
+			for i in %{long_cross_header_archs}; do
+				[ "$i" = "%{_target_platform}" ] && continue
+				TripletArch=$(echo ${i} |cut -d- -f1)
+				SARCH=${a}
+				case $TripletArch in
+				aarch64)
+					[ "$a" != "arm64" ] && continue
+					;;
+				arm*)
+					[ "$a" != "arm" ] && continue
+					;;
+				i?86|athlon|pentium?)
+					[ "$a" != "i386" ] && continue
+					ARCH=x86
+					SARCH=x86
+					;;
+				x86_64)
+					[ "$a" != "x86_64" ] && continue
+					SARCH=x86
+					;;
+				*)
+					[ "$a" != "$TripletArch" ] && continue
+					;;
+				esac
+				%{smake} ARCH=${a} SRCARCH=${SARCH} INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
+			done
+		fi
 	done
 done
 make mrproper
-
-# Create a simulacro of buildroot
-rm -rf %{temp_root}
-install -d %{temp_root}
 
 %if %{with build_desktop}
 CreateKernel desktop
@@ -1392,7 +1487,6 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %{_kerneldir}/firmware
 %{_kerneldir}/fs
 %{_kerneldir}/certs/*
-%{_kerneldir}/include/Kbuild
 %{_kerneldir}/include/acpi
 %{_kerneldir}/include/asm-generic
 %{_kerneldir}/include/clocksource
