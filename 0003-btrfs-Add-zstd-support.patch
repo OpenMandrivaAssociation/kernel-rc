@@ -547,7 +547,7 @@ index 0000000..838741b
 +	ZSTD_DStream *stream;
 +	int ret = 0;
 +	unsigned long page_in_index = 0;
-+	unsigned long total_cb->compressed_pages = DIV_ROUND_UP(cb->compressed_len, PAGE_SIZE);
++	unsigned long total_pages_in = DIV_ROUND_UP(cb->compressed_len, PAGE_SIZE);
 +	unsigned long buf_start;
 +	unsigned long total_out = 0;
 +	ZSTD_inBuffer in_buf = { NULL, 0, 0 };
@@ -597,7 +597,7 @@ index 0000000..838741b
 +
 +		if (in_buf.pos == in_buf.size) {
 +			kunmap(cb->compressed_pages[page_in_index++]);
-+			if (page_in_index >= total_cb->compressed_pages) {
++			if (page_in_index >= total_pages_in) {
 +				in_buf.src = NULL;
 +				ret = -EIO;
 +				goto done;

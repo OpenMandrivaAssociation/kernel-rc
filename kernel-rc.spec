@@ -7,7 +7,7 @@
 %define kernelversion	4
 %define patchlevel	13
 %define sublevel	0
-%define relc		3
+%define relc		4
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -657,8 +657,6 @@ Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{kverrel}
 Conflicts:	kernel-headers < 1:%{kverrel}
-Provides:	kernel-headers = %{kverrel}
-Conflicts:	kernel-headers < %{kverrel}
 # we don't need the kernel binary in chroot
 #Requires:	%{kname} = %{kverrel}
 %rename linux-userspace-headers
