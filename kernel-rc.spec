@@ -59,6 +59,11 @@
 %bcond_without build_devel
 %bcond_with build_debug
 %bcond_with clang
+%if %mdvver > 3000000
+%bcond_without cross_headers
+%else
+%bcond_with cross_headers
+%endif
 
 %global	cross_header_archs	aarch64-linux armv7hl-linux i586-linux i686-linux x86_64-linux x32-linux aarch64-linuxmusl armv7hl-linuxmusl i586-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl
 %global long_cross_header_archs %(
@@ -656,7 +661,7 @@ Group:		System/Kernel and hardware
 Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{kverrel}
-Conflicts:	kernel-headers < 1:%{kverrel}
+Obsoletes:	kernel-headers < 1:%{kverrel}
 # we don't need the kernel binary in chroot
 #Requires:	%{kname} = %{kverrel}
 %rename linux-userspace-headers
@@ -676,6 +681,7 @@ should use the 'kernel-devel' package instead.
 %exclude %{_includedir}/cpufreq.h
 %endif
 
+%if %{with cross_headers}
 %(
 for i in %{long_cross_header_archs}; do
 	[ "$i" = "%{_target_platform}" ] && continue
@@ -703,10 +709,7 @@ ${i} targets.
 EOF
 done
 )
-
-# %endif (???)
-# from 1486-1505 >https://abf.io/openmandriva/kernel/commit/b967a6b9458236d594dac87de97193f0e172c55c
-# endif should be wrong, that is not an %if before...
+%endif
 
 #
 # End packages - here begins build stage
@@ -1262,6 +1265,7 @@ for a in arm arm64 i386 x86_64; do
 	for t in desktop server; do
 		CreateConfig $a $t
 		make ARCH=$a oldconfig
+%if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
 			# While we have a kernel configured for it, let's package
 			# headers for crosscompilers...
@@ -1298,6 +1302,7 @@ for a in arm arm64 i386 x86_64; do
 				%{smake} ARCH=${a} SRCARCH=${SARCH} INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
 			done
 		fi
+%endif
 	done
 done
 make mrproper
