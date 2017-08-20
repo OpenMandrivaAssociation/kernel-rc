@@ -248,6 +248,18 @@ Patch133:	0004-squashfs-Add-zstd-support.patch
 # https://s3.amazonaws.com/hauppauge/linux/hvr-9x5-19x5-22x5-kernel-3.19-2015-07-10-v2.patch.tar.xz
 # Taken from http://www.hauppauge.com/site/support/linux.html
 Patch140:	hauppauge-hvr-1975.patch
+# SAA716x DVB driver
+# git clone git@github.com:crazycat69/linux_media
+# cd linux_media
+# tar cJf saa716x-driver.tar.xz drivers/media/pci/saa716x drivers/media/dvb-frontends/tas2101* drivers/media/dvb-frontends/isl6422* drivers/media/dvb-frontends/stv0910* drivers/media/tuners/av201x* drivers/media/tuners/stv6120*
+# Patches 141 to 145 are a minimal set of patches to the DVB stack to make
+# the added driver work.
+Source140:	saa716x-driver.tar.xz
+Patch141:	0023-tda18212-Added-2-extra-options.-Based-on-CrazyCat-re.patch
+Patch142:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
+Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
+Patch144:	0124-Extend-FEC-enum.patch
+Patch145:	saa716x-driver-integration.patch
 
 # Anbox (http://anbox.io/) patches to Android IPC, rebased to 4.11
 # NOT YET
@@ -715,13 +727,17 @@ done
 # End packages - here begins build stage
 #
 %prep
-%setup -q -n linux-%{tar_ver}
+%setup -q -n linux-%{tar_ver} -a 140
 %if 0%{relc} || 0%{sublevel}
 [ -e .git ] || git init
 xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
 %endif
 %apply_patches
+
+# merge SAA716x DVB driver from extra tarball
+sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
+sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/Makefile
 
 %if %{with build_debug}
 %define debug --debug

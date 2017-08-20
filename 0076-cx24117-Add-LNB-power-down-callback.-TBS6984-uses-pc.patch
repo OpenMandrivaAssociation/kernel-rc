@@ -1,0 +1,93 @@
+--- linux-4.12/drivers/media/dvb-frontends/cx24117.c.0143~	2017-07-03 01:07:02.000000000 +0200
++++ linux-4.12/drivers/media/dvb-frontends/cx24117.c	2017-08-17 23:37:11.118353365 +0200
+@@ -265,6 +265,12 @@ static struct cx24117_modfec {
+ 	 */
+ };
+ 
++struct i2c_adapter *cx24117_get_i2c_adapter(struct dvb_frontend *fe)
++{
++	struct cx24117_state *state = fe->demodulator_priv;
++	return state->priv->i2c;
++}
++EXPORT_SYMBOL_GPL(cx24117_get_i2c_adapter);
+ 
+ static int cx24117_writereg(struct cx24117_state *state, u8 reg, u8 data)
+ {
+@@ -910,7 +916,7 @@ static int cx24117_set_voltage(struct dv
+ {
+ 	struct cx24117_state *state = fe->demodulator_priv;
+ 	struct cx24117_cmd cmd;
+-	int ret;
++	int ret = 0;
+ 	u8 reg = (state->demod == 0) ? 0x10 : 0x20;
+ 
+ 	dev_dbg(&state->priv->i2c->dev, "%s() demod%d %s\n",
+@@ -919,6 +925,9 @@ static int cx24117_set_voltage(struct dv
+ 		voltage == SEC_VOLTAGE_18 ? "SEC_VOLTAGE_18" :
+ 		"SEC_VOLTAGE_OFF");
+ 
++	if (state->priv->cfg->lnb_power)
++		state->priv->cfg->lnb_power(fe, state->demod, 1);
++
+ 	/* Prepare a set GPIO logic level CMD */
+ 	cmd.args[0] = CMD_SET_GPIOOUT;
+ 	cmd.args[2] = reg; /* mask */
+@@ -950,8 +959,12 @@ static int cx24117_set_voltage(struct dv
+ 		msleep(20);
+ 	} else {
+ 		/* power off LNB */
+-		cmd.args[1] = 0x00;
+-		ret = cx24117_cmd_execute(fe, &cmd);
++		if (state->priv->cfg->lnb_power) {
++			state->priv->cfg->lnb_power(fe, state->demod, 0);
++		} else {
++			cmd.args[1] = 0x00;
++			ret = cx24117_cmd_execute(fe, &cmd);
++		}
+ 	}
+ 
+ 	return ret;
+@@ -1166,7 +1179,7 @@ static void cx24117_release(struct dvb_f
+ 
+ static const struct dvb_frontend_ops cx24117_ops;
+ 
+-struct dvb_frontend *cx24117_attach(const struct cx24117_config *config,
++struct dvb_frontend *cx24117_attach(struct cx24117_config *config,
+ 	struct i2c_adapter *i2c)
+ {
+ 	struct cx24117_state *state = NULL;
+--- linux-4.12/drivers/media/dvb-frontends/cx24117.h.0143~	2017-08-17 23:33:56.961730004 +0200
++++ linux-4.12/drivers/media/dvb-frontends/cx24117.h	2017-08-17 23:35:44.725520314 +0200
+@@ -27,15 +27,20 @@
+ struct cx24117_config {
+ 	/* the demodulator's i2c address */
+ 	u8 demod_address;
++
++	/* lnb power control */
++	void (*lnb_power)(struct dvb_frontend *fe, int demod, int onoff);
+ };
+ 
++struct i2c_adapter *cx24117_get_i2c_adapter(struct dvb_frontend *fe);
++
+ #if IS_REACHABLE(CONFIG_DVB_CX24117)
+ extern struct dvb_frontend *cx24117_attach(
+-	const struct cx24117_config *config,
++	struct cx24117_config *config,
+ 	struct i2c_adapter *i2c);
+ #else
+ static inline struct dvb_frontend *cx24117_attach(
+-	const struct cx24117_config *config,
++	struct cx24117_config *config,
+ 	struct i2c_adapter *i2c)
+ {
+ 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+--- linux-4.12/drivers/media/pci/cx23885/cx23885-dvb.c.0143~	2017-07-03 01:07:02.000000000 +0200
++++ linux-4.12/drivers/media/pci/cx23885/cx23885-dvb.c	2017-08-17 23:33:56.961730004 +0200
+@@ -511,6 +511,7 @@ static struct cx24116_config tbs_cx24116
+ 
+ static struct cx24117_config tbs_cx24117_config = {
+ 	.demod_address = 0x55,
++	.lnb_power = NULL,
+ };
+ 
+ static struct ds3000_config tevii_ds3000_config = {

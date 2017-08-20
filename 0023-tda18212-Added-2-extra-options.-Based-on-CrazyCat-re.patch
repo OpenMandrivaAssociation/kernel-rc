@@ -1,0 +1,65 @@
+--- linux-4.12/drivers/media/tuners/tda18212.c.0142~	2017-07-03 01:07:02.000000000 +0200
++++ linux-4.12/drivers/media/tuners/tda18212.c	2017-08-17 22:58:08.567510124 +0200
+@@ -90,11 +90,13 @@ static int tda18212_set_params(struct dv
+ 		case 8000000:
+ 			if_khz = dev->cfg.if_dvbt_8;
+ 			i = DVBT_8;
++			buf[0] = 0x30;
+ 			break;
+ 		default:
+ 			ret = -EINVAL;
+ 			goto error;
+ 		}
++		buf[0] = 0x30;
+ 		break;
+ 	case SYS_DVBT2:
+ 		switch (c->bandwidth_hz) {
+@@ -119,6 +121,7 @@ static int tda18212_set_params(struct dv
+ 	case SYS_DVBC_ANNEX_C:
+ 		if_khz = dev->cfg.if_dvbc;
+ 		i = DVBC_8;
++		buf[0] = 0x00;
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -129,17 +132,28 @@ static int tda18212_set_params(struct dv
+ 	if (ret)
+ 		goto error;
+ 
++	ret = regmap_write(dev->regmap, 0x5f, 0x00);
++	if (ret)
++		goto error;
++
+ 	ret = regmap_write(dev->regmap, 0x06, 0x00);
+ 	if (ret)
+ 		goto error;
+ 
++	if (dev->cfg.loop_through)
++		buf[0] |= 0x80;
++
++	ret = regmap_write(dev->regmap, 0x0c, buf[0]);
++	if (ret)
++		goto error;
++
+ 	ret = regmap_write(dev->regmap, 0x0f, bw_params[i][0]);
+ 	if (ret)
+ 		goto error;
+ 
+ 	buf[0] = 0x02;
+ 	buf[1] = bw_params[i][1];
+-	buf[2] = 0x03; /* default value */
++	buf[2] = priv->cfg->xtout ? 0x43 : 0x40; /* 0x03; default value */
+ 	buf[3] = DIV_ROUND_CLOSEST(if_khz, 50);
+ 	buf[4] = ((c->frequency / 1000) >> 16) & 0xff;
+ 	buf[5] = ((c->frequency / 1000) >>  8) & 0xff;
+--- linux-4.12/drivers/media/tuners/tda18212.h.0142~	2017-08-17 22:51:32.623162898 +0200
++++ linux-4.12/drivers/media/tuners/tda18212.h	2017-08-17 22:53:52.007932764 +0200
+@@ -34,6 +34,8 @@ struct tda18212_config {
+ 	u16 if_dvbc;
+ 	u16 if_atsc_vsb;
+ 	u16 if_atsc_qam;
++	u8  loop_through:1;
++	u8  xtout:1;
+ 
+ 	/*
+ 	 * pointer to DVB frontend

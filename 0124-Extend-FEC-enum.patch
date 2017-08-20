@@ -1,0 +1,25 @@
+From 549def575aa8bdb4d6b454372e246240087fe126 Mon Sep 17 00:00:00 2001
+From: CrazyCat <crazycat69@narod.ru>
+Date: Mon, 23 May 2016 00:16:12 +0300
+Subject: [PATCH 124/618] Extend FEC enum.
+
+---
+ include/uapi/linux/dvb/frontend.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 00a20cd..ce29f23 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -156,6 +156,8 @@ enum fe_code_rate {
+ 	FEC_3_5,
+ 	FEC_9_10,
+ 	FEC_2_5,
++	FEC_1_3,  
++	FEC_1_4,
+ };
+ 
+ enum fe_modulation {
+-- 
+2.8.3
+

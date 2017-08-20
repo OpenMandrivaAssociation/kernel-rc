@@ -1,0 +1,115 @@
+--- linux-4.12/drivers/media/pci/saa716x/saa716x_pci.c.omv~	2017-08-17 21:26:53.478283067 +0200
++++ linux-4.12/drivers/media/pci/saa716x/saa716x_pci.c	2017-08-17 21:27:06.915275600 +0200
+@@ -1,3 +1,4 @@
++#include <linux/spinlock.h>
+ #include <asm/io.h>
+ #include <asm/pgtable.h>
+ #include <asm/page.h>
+--- linux-4.12/drivers/media/dvb-frontends/Kconfig.omv~	2017-08-18 02:41:52.026404582 +0200
++++ linux-4.12/drivers/media/dvb-frontends/Kconfig	2017-08-18 02:46:38.007922490 +0200
+@@ -789,6 +789,13 @@ config DVB_ISL6421
+ 	help
+ 	  An SEC control chip.
+ 
++config DVB_ISL6422
++	tristate "ISL6422[B] SEC controller"
++	depends on DVB_CORE && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  A Dual SEC controller chip from Intersil
++
+ config DVB_ISL6423
+ 	tristate "ISL6423 SEC controller"
+ 	depends on DVB_CORE && I2C
+@@ -870,6 +877,21 @@ config DVB_AF9033
+ 	select REGMAP_I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 
++config DVB_TAS2101
++	tristate "Tmax TAS2101 based"
++	depends on DVB_CORE && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  A DVB-S demod and tuner module.
++
++config DVB_STV0910
++	tristate "STV0910 based"
++	depends on DVB_CORE && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  DVB-S/S2/DSS Multistandard Professional/Broadcast demodulators.
++	  Say Y when you want to support these frontends.
++
+ config DVB_HORUS3A
+ 	tristate "Sony Horus3A tuner"
+ 	depends on DVB_CORE && I2C
+--- linux-4.12/drivers/media/dvb-frontends/Makefile.omv~	2017-08-18 02:41:29.266442339 +0200
++++ linux-4.12/drivers/media/dvb-frontends/Makefile	2017-08-18 02:45:21.472052705 +0200
+@@ -98,6 +98,7 @@ obj-$(CONFIG_DVB_STV6110x) += stv6110x.o
+ obj-$(CONFIG_DVB_M88DS3103) += m88ds3103.o
+ obj-$(CONFIG_DVB_MN88472) += mn88472.o
+ obj-$(CONFIG_DVB_MN88473) += mn88473.o
++obj-$(CONFIG_DVB_ISL6422) += isl6422.o
+ obj-$(CONFIG_DVB_ISL6423) += isl6423.o
+ obj-$(CONFIG_DVB_EC100) += ec100.o
+ obj-$(CONFIG_DVB_DS3000) += ds3000.o
+@@ -123,6 +124,8 @@ obj-$(CONFIG_DVB_AF9033) += af9033.o
+ obj-$(CONFIG_DVB_AS102_FE) += as102_fe.o
+ obj-$(CONFIG_DVB_GP8PSK_FE) += gp8psk-fe.o
+ obj-$(CONFIG_DVB_TC90522) += tc90522.o
++obj-$(CONFIG_DVB_TAS2101) += tas2101.o
++obj-$(CONFIG_DVB_STV0910) += stv0910.o
+ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
+ obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
+ obj-$(CONFIG_DVB_HELENE) += helene.o
+--- linux-4.12/drivers/media/pci/saa716x/Makefile.omv~	2017-08-18 02:31:50.197351755 +0200
++++ linux-4.12/drivers/media/pci/saa716x/Makefile	2017-08-18 02:32:17.255308528 +0200
+@@ -27,4 +27,4 @@ obj-$(CONFIG_DVB_SAA716X_BUDGET)  += saa
+ obj-$(CONFIG_DVB_SAA716X_HYBRID)  += saa716x_hybrid.o
+ obj-$(CONFIG_DVB_SAA716X_FF)	  += saa716x_ff.o
+ 
+-EXTRA_CFLAGS = -Idrivers/media/dvb-core/ -Idrivers/media/dvb-frontends/ -Idrivers/media/tuners/
++EXTRA_CFLAGS = -Idrivers/media/dvb-core/ -Idrivers/media/dvb-frontends/ -Idrivers/media/tuners/ -Idrivers/media/pci/ttpci
+--- linux-4.12/drivers/media/tuners/Kconfig.omv~	2017-08-18 02:47:44.578808669 +0200
++++ linux-4.12/drivers/media/tuners/Kconfig	2017-08-18 02:49:58.991577524 +0200
+@@ -291,4 +291,18 @@ config MEDIA_TUNER_QM1D1C0042
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Sharp QM1D1C0042 trellis coded 8PSK tuner driver.
++
++config MEDIA_TUNER_AV201X
++	tristate "Airoha Technology AV201x silicon tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Airoha Technology AV201x silicon tuner driver.
++
++config MEDIA_TUNER_STV6120
++	tristate "ST Microelectronics STV6120 dual silicon tuner"
++	depends on MEDIA_SUPPORT && I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  ST Microelectronics STV6120 dual silicon tuner driver.
+ endmenu
+--- linux-4.12/drivers/media/tuners/Makefile.omv~	2017-08-18 02:46:50.034901964 +0200
++++ linux-4.12/drivers/media/tuners/Makefile	2017-08-18 02:47:41.783813458 +0200
+@@ -41,6 +41,8 @@ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t
+ obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+ obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
+ obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
++obj-$(CONFIG_MEDIA_TUNER_AV201X) += av201x.o
++obj-$(CONFIG_MEDIA_TUNER_STV6120) += stv6120.o
+ obj-$(CONFIG_MEDIA_TUNER_SILABS_TERCAB) += silabs_tercab.o
+ 
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+--- linux-4.12/drivers/media/tuners/tda18212.c.omv~	2017-08-18 02:34:52.651077211 +0200
++++ linux-4.12/drivers/media/tuners/tda18212.c	2017-08-18 02:35:01.360063881 +0200
+@@ -153,7 +153,7 @@ static int tda18212_set_params(struct dv
+ 
+ 	buf[0] = 0x02;
+ 	buf[1] = bw_params[i][1];
+-	buf[2] = priv->cfg->xtout ? 0x43 : 0x40; /* 0x03; default value */
++	buf[2] = dev->cfg.xtout ? 0x43 : 0x40; /* 0x03; default value */
+ 	buf[3] = DIV_ROUND_CLOSEST(if_khz, 50);
+ 	buf[4] = ((c->frequency / 1000) >> 16) & 0xff;
+ 	buf[5] = ((c->frequency / 1000) >>  8) & 0xff;
