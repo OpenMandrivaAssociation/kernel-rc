@@ -2,4 +2,4 @@ sources:
   linux-4.12.tar.xz: f5dda0344401c436aa47685fbf345f4b7975fcf5
   linux-4.12.tar.sign: ec93e6fe5dd0175255b8da7fd94cf0916863cc56
   saa716x-driver.tar.xz: 749b8fda1add18abc81c7bb369414c7fec8b6dbe
-  v4.12: 596bdf4b82abd639710046e6c006e1d71aebf007
+  v4.12: 10a348d8f0fcf54c01bebd825295d017e423d38e
