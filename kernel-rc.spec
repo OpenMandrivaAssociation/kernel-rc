@@ -191,6 +191,7 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
+Patch6:		kernel-4.14-K70LUX.patch
 
 %if %{with clang}
 # Patches to make it build with clang
