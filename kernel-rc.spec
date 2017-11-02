@@ -330,6 +330,9 @@ BuildRequires:	pciutils-devel
 BuildRequires:	xmlto
 %endif
 
+# for ORC unwinder and perf
+BuildRequires:	pkgconfig(libelf)
+
 # for perf
 %if %{with build_perf}
 BuildRequires:	asciidoc
@@ -337,7 +340,6 @@ BuildRequires:	audit-devel
 BuildRequires:	binutils-devel
 BuildRequires:	bison
 # BuildRequires:	docbook-style-xsl
-BuildRequires:	elfutils-devel
 BuildRequires:	flex
 # BuildRequires:	gettext
 # BuildRequires:	gtk2-devel
