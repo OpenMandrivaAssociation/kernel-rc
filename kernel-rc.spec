@@ -958,9 +958,6 @@ SaveDevel() {
 # Needed for truecrypt build (Danny)
     cp -fR drivers/md/dm.h $TempDevelRoot/drivers/md/
 
-# Needed for lguest
-    cp -fR drivers/lguest/lg.h $TempDevelRoot/drivers/lguest/
-
 # Needed for lirc_gpio (#39004)
     cp -fR drivers/media/pci/bt8xx/bttv{,p}.h $TempDevelRoot/drivers/media/pci/bt8xx/
     cp -fR drivers/media/pci/bt8xx/bt848.h $TempDevelRoot/drivers/media/pci/bt8xx/
