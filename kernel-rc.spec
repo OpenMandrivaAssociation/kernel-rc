@@ -7,7 +7,9 @@
 %define kernelversion	4
 %define patchlevel	14
 %define sublevel	0
-%define relc		7
+%define relc		8
+# Only ever wrong on x.0 releases...
+%define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -181,7 +183,10 @@ Source51:	cpupower.config
 # Added as a Source rather that Patch because it needs to be
 # applied with "git apply" -- may contain binary patches.
 %if 0%{relc}
-Source90:	https://git.kernel.org/torvalds/p/v%{kernelversion}.%{patchlevel}-rc%{relc}/v%{tar_ver}
+#Source90:	https://git.kernel.org/torvalds/p/v%{kernelversion}.%{patchlevel}-rc%{relc}/v%{tar_ver}
+# Preferrable because it's already compressed (and therefore
+# much less of a pain for filestore) when it's available...
+Source90:	https://fossies.org/linux/kernel/v%{kernelversion}.%{patchlevel}/patch_v%{previous}_%{kernelversion}.%{patchlevel}-rc%{relc}.xz
 %else
 %if 0%{sublevel}
 Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
@@ -263,7 +268,7 @@ Patch145:	saa716x-driver-integration.patch
 #Patch200:	0001-ipc-namespace-a-generic-per-ipc-pointer-and-peripc_o.patch
 # NOT YET
 #Patch201:	0002-binder-implement-namepsace-support-for-Android-binde.patch
-Patch250:	4.12.10-C11.patch
+Patch250:	4.14-C11.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
