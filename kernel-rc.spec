@@ -1032,7 +1032,6 @@ $DevelRoot/include/net
 $DevelRoot/include/pcmcia
 $DevelRoot/include/ras
 $DevelRoot/include/rdma
-$DevelRoot/include/rxrpc
 $DevelRoot/include/scsi
 %ifarch %{armx}
 $DevelRoot/include/soc
@@ -1519,7 +1518,6 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %{_kerneldir}/include/pcmcia
 %{_kerneldir}/include/ras
 %{_kerneldir}/include/rdma
-%{_kerneldir}/include/rxrpc
 %{_kerneldir}/include/scsi
 %{_kerneldir}/include/soc
 %{_kerneldir}/include/sound
