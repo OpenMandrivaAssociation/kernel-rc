@@ -1,5 +1,5 @@
---- linux-4.13/arch/x86/entry/common.c.0250~	2017-11-05 23:20:35.559482619 +0100
-+++ linux-4.13/arch/x86/entry/common.c	2017-11-05 23:20:35.745483965 +0100
+--- linux-4.14/arch/x86/entry/common.c.0250~	2017-12-25 17:45:17.581633751 +0100
++++ linux-4.14/arch/x86/entry/common.c	2017-12-25 17:45:17.803635299 +0100
 @@ -179,7 +179,7 @@ static void exit_to_usermode_loop(struct
  }
  
@@ -9,7 +9,7 @@
  {
  	struct thread_info *ti = current_thread_info();
  	u32 cached_flags;
-@@ -244,7 +244,7 @@ static void syscall_slow_exit_work(struc
+@@ -242,7 +242,7 @@ static void syscall_slow_exit_work(struc
   * Called with IRQs on and fully valid regs.  Returns with IRQs off in a
   * state such that we can immediately switch to user mode.
   */
@@ -18,8 +18,8 @@
  {
  	struct thread_info *ti = current_thread_info();
  	u32 cached_flags = READ_ONCE(ti->flags);
---- linux-4.13/drivers/staging/rtl8192u/Makefile.0250~	2017-11-05 23:20:35.745483965 +0100
-+++ linux-4.13/drivers/staging/rtl8192u/Makefile	2017-11-05 23:21:35.413909848 +0100
+--- linux-4.14/drivers/staging/rtl8192u/Makefile.0250~	2017-11-12 19:46:13.000000000 +0100
++++ linux-4.14/drivers/staging/rtl8192u/Makefile	2017-12-25 17:45:17.803635299 +0100
 @@ -1,7 +1,7 @@
  # SPDX-License-Identifier: GPL-2.0
  NIC_SELECT = RTL8192U
@@ -29,8 +29,8 @@
  ccflags-y += -O2
  
  ccflags-y += -DCONFIG_FORCE_HARD_FLOAT=y
---- linux-4.13/drivers/staging/rtl8723bs/include/ieee80211.h.0250~	2017-09-03 22:56:17.000000000 +0200
-+++ linux-4.13/drivers/staging/rtl8723bs/include/ieee80211.h	2017-11-05 23:20:35.746483973 +0100
+--- linux-4.14/drivers/staging/rtl8723bs/include/ieee80211.h.0250~	2017-11-12 19:46:13.000000000 +0100
++++ linux-4.14/drivers/staging/rtl8723bs/include/ieee80211.h	2017-12-25 17:45:17.803635299 +0100
 @@ -1008,18 +1008,18 @@ enum ieee80211_state {
  #define IP_FMT "%pI4"
  #define IP_ARG(x) (x)
@@ -53,8 +53,8 @@
  {
  	return ((addr[0] == 0x00) && (addr[1] == 0x00) && (addr[2] == 0x00) &&   \
  		(addr[3] == 0x00) && (addr[4] == 0x00) && (addr[5] == 0x00));
---- linux-4.13/drivers/video/fbdev/i810/i810_dvt.c.0250~	2017-09-03 22:56:17.000000000 +0200
-+++ linux-4.13/drivers/video/fbdev/i810/i810_dvt.c	2017-11-05 23:20:35.746483973 +0100
+--- linux-4.14/drivers/video/fbdev/i810/i810_dvt.c.0250~	2017-11-12 19:46:13.000000000 +0100
++++ linux-4.14/drivers/video/fbdev/i810/i810_dvt.c	2017-12-25 17:45:17.803635299 +0100
 @@ -207,7 +207,7 @@ void round_off_xres(u32 *xres)
  		*xres = 1600;
  }
@@ -64,8 +64,8 @@
  {
  	*yres = (*xres * 3) >> 2;
  }
---- linux-4.13/lib/decompress_unlzo.c.0250~	2017-09-03 22:56:17.000000000 +0200
-+++ linux-4.13/lib/decompress_unlzo.c	2017-11-05 23:20:35.746483973 +0100
+--- linux-4.14/lib/decompress_unlzo.c.0250~	2017-11-12 19:46:13.000000000 +0100
++++ linux-4.14/lib/decompress_unlzo.c	2017-12-25 17:45:17.803635299 +0100
 @@ -52,7 +52,7 @@ static const unsigned char lzop_magic[]
  #define HEADER_SIZE_MIN       (9 + 7     + 4 + 8     + 1       + 4)
  #define HEADER_SIZE_MAX       (9 + 7 + 1 + 8 + 8 + 4 + 1 + 255 + 4)
@@ -75,9 +75,9 @@
  {
  	int l;
  	u8 *parse = input;
---- linux-4.13/Makefile.0250~	2017-11-05 23:20:35.523482358 +0100
-+++ linux-4.13/Makefile	2017-11-05 23:20:35.746483973 +0100
-@@ -302,7 +302,7 @@ HOST_LFS_LIBS := $(shell getconf LFS_LIB
+--- linux-4.14/Makefile.0250~	2017-12-25 17:45:17.567633653 +0100
++++ linux-4.14/Makefile	2017-12-25 17:47:27.841791582 +0100
+@@ -362,7 +362,7 @@ HOST_LFS_LIBS := $(shell getconf LFS_LIB
  HOSTCC       = gcc
  HOSTCXX      = g++
  HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
@@ -86,17 +86,17 @@
  HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
  HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS)
  HOST_LOADLIBES := $(HOST_LFS_LIBS)
-@@ -400,7 +400,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstric
+@@ -417,7 +417,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstric
  		   -fno-strict-aliasing -fno-common -fshort-wchar \
  		   -Werror-implicit-function-declaration \
  		   -Wno-format-security \
--		   -std=gnu89 $(call cc-option,-fno-PIE)
-+		   -std=gnu11 $(call cc-option,-fno-PIE)
- 
- 
+-		   -std=gnu89
++		   -std=gnu11
+ KBUILD_CPPFLAGS := -D__KERNEL__
  KBUILD_AFLAGS_KERNEL :=
---- linux-4.13/tools/testing/selftests/sync/Makefile.0250~	2017-11-05 23:20:35.746483973 +0100
-+++ linux-4.13/tools/testing/selftests/sync/Makefile	2017-11-05 23:21:16.925779125 +0100
+ KBUILD_CFLAGS_KERNEL :=
+--- linux-4.14/tools/testing/selftests/sync/Makefile.0250~	2017-11-12 19:46:13.000000000 +0100
++++ linux-4.14/tools/testing/selftests/sync/Makefile	2017-12-25 17:45:17.803635299 +0100
 @@ -1,5 +1,5 @@
  # SPDX-License-Identifier: GPL-2.0
 -CFLAGS += -O2 -g -std=gnu89 -pthread -Wall -Wextra

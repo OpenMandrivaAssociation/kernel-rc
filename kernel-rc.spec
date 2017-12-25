@@ -5,9 +5,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	14
+%define patchlevel	15
 %define sublevel	0
-%define relc		8
+%define relc		5
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -61,6 +61,8 @@
 %bcond_without build_devel
 %bcond_with build_debug
 %bcond_with clang
+# (tpg) enable patches from ClearLinux
+%bcond_without clr
 %if %mdvver > 3000000
 %bcond_without cross_headers
 %else
@@ -196,7 +198,6 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
-Patch6:		kernel-4.14-K70LUX.patch
 
 %if %{with clang}
 # Patches to make it build with clang
@@ -234,6 +235,37 @@ Patch1029:	0030-x86-kbuild-LLVMLinux-Check-for-compiler-support-of-f.patch
 Patch1031:	0001-Fix-for-compilation-with-clang.patch
 %endif
 
+# Bootsplash system
+# https://lkml.org/lkml/2017/10/25/346
+# https://patchwork.kernel.org/patch/10026659/
+Patch100:      RFC-01-14-bootsplash-Initial-implementation-showing-black-screen.patch
+# https://patchwork.kernel.org/patch/10026661/
+Patch101:      RFC-02-14-bootsplash-Add-platform-device.patch
+# https://patchwork.kernel.org/patch/10026617/
+Patch102:      RFC-03-14-bootsplash-Flush-framebuffer-after-drawing.patch
+# https://patchwork.kernel.org/patch/10026615/
+Patch103:      RFC-04-14-bootsplash-Redraw-on-suspend-hibernate.patch
+# https://patchwork.kernel.org/patch/10026635/
+Patch104:      RFC-05-14-bootsplash-Disable-splash-on-oops.patch
+# https://patchwork.kernel.org/patch/10026643/
+Patch105:      RFC-06-14-bootsplash-Disable-on-SysRq-SAK.patch
+# https://patchwork.kernel.org/patch/10026641/
+Patch106:      RFC-07-14-bootsplash-Add-VT-keyboard-hook.patch
+# https://patchwork.kernel.org/patch/10026647/
+Patch107:      RFC-08-14-bootsplash-Add-file-reading-and-picture-rendering.patch
+# https://patchwork.kernel.org/patch/10026627/
+Patch108:      RFC-09-14-bootsplash-Add-corner-positioning.patch
+# https://patchwork.kernel.org/patch/10026639/
+Patch109:      RFC-10-14-bootsplash-Add-animation-support.patch
+# https://patchwork.kernel.org/patch/10026629/
+Patch110:      RFC-11-14-bootsplash-Redraw-fully-on-console_unblank.patch
+# https://patchwork.kernel.org/patch/10026637/
+Patch111:      RFC-12-14-bootsplash-Add-sysfs-ABI-documentation.patch
+# https://patchwork.kernel.org/patch/10026619/
+Patch112:      RFC-13-14-bootsplash-Add-main-documentation.patch
+# https://patchwork.kernel.org/patch/10026623/
+Patch113:      RFC-14-14-bootsplash-Update-MAINTAINERS.patch
+
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%apply_patches
@@ -242,7 +274,9 @@ Patch1031:	0001-Fix-for-compilation-with-clang.patch
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
 # Temporarily disabled for -rc releases until ported upstream
-#Patch120:	uksm-4.13.patch
+Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/uksm-4.14.patch
+
+Patch125:	0005-crypto-Add-zstd-support.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -262,6 +296,7 @@ Patch142:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
 Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
 Patch144:	0124-Extend-FEC-enum.patch
 Patch145:	saa716x-driver-integration.patch
+Patch146:	saa716x-4.15.patch
 
 # Anbox (http://anbox.io/) patches to Android IPC, rebased to 4.11
 # NOT YET
@@ -274,7 +309,34 @@ Patch250:	4.14-C11.patch
 # Marked SourceXXX instead of PatchXXX because the modules
 # being touched aren't in the tree at the time %%apply_patches
 # runs...
-Source300:	vbox-4.14.patch
+Source301:	vbox-4.14-drm-next.patch
+Source302:	vbox-4.15.patch
+
+%if %{with clr}
+# (tpg) some patches from ClearLinux
+Patch400:	0101-i8042-decrease-debug-message-level-to-info.patch
+Patch401:	0103-Increase-the-ext4-default-commit-age.patch
+Patch402:	0105-pci-pme-wakeups.patch
+Patch403:	0106-ksm-wakeups.patch
+Patch404:	0107-intel_idle-tweak-cpuidle-cstates.patch
+Patch405:	0109-init_task-faster-timerslack.patch
+Patch406:	0110-fs-ext4-fsync-optimize-double-fsync-a-bunch.patch
+Patch407:	0111-overload-on-wakeup.patch
+# needs a rediff
+#Patch408:	0113-fix-initcall-timestamps.patch
+Patch409:	0114-smpboot-reuse-timer-calibration.patch
+Patch410:	0116-Initialize-ata-before-graphics.patch
+Patch411:	0117-reduce-e1000e-boot-time-by-tightening-sleep-ranges.patch
+Patch412:	0119-e1000e-change-default-policy.patch
+Patch413:	0121-igb-no-runtime-pm-to-fix-reboot-oops.patch
+Patch414:	0122-tweak-perfbias.patch
+Patch415:	0123-e1000e-increase-pause-and-refresh-time.patch
+Patch417:	0125-init-wait-for-partition-and-retry-scan.patch
+Patch419:	0151-mm-Export-do_madvise.patch
+Patch420:	0152-x86-kvm-Notify-host-to-release-pages.patch
+Patch421:	0153-x86-Return-memory-from-guest-to-host-kernel.patch
+Patch422:	0154-sysctl-vm-Fine-grained-cache-shrinking.patch
+%endif
 
 # Defines for the things that are needed for all the kernels
 #
@@ -370,8 +432,8 @@ Suggests:	microcode-intel
 # get compiler error messages on failures)
 %if %mdvver >= 3000000
 %ifarch %{ix86} x86_64
-BuildRequires:	dkms-virtualbox >= 5.2.0-1
-BuildRequires:	dkms-vboxadditions >= 5.2.0-1
+BuildRequires:	dkms-virtualbox >= 5.2.2-1
+BuildRequires:	dkms-vboxadditions >= 5.2.2-1
 %endif
 %endif
 
@@ -799,7 +861,8 @@ sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefi
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 
-patch -p1 -b -z .0300~ <%{SOURCE300}
+patch -p1 -b -z .0301~ <%{SOURCE301}
+patch -p1 -b -z .0302~ <%{SOURCE302}
 %endif
 %endif
 

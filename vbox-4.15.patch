@@ -1,0 +1,159 @@
+--- linux-4.14/drivers/bus/vboxguest/r0drv/linux/timer-r0drv-linux.c.omv~	2017-12-25 19:03:12.414849992 +0100
++++ linux-4.14/drivers/bus/vboxguest/r0drv/linux/timer-r0drv-linux.c	2017-12-26 01:49:14.566041088 +0100
+@@ -720,9 +720,17 @@ static enum hrtimer_restart rtTimerLinux
+  *
+  * @param   ulUser      Address of the sub-timer structure.
+  */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++static void rtTimerLinuxStdCallback(struct timer_list *timers)
++#else
+ static void rtTimerLinuxStdCallback(unsigned long ulUser)
++#endif
+ {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++    PRTTIMERLNXSUBTIMER pSubTimer = from_timer(pSubTimer, timers, u.Std.LnxTimer);
++#else
+     PRTTIMERLNXSUBTIMER pSubTimer = (PRTTIMERLNXSUBTIMER)ulUser;
++#endif
+     PRTTIMER            pTimer    = pSubTimer->pParent;
+ 
+     RTTIMERLNX_LOG(("stdcallback %p\n", pTimer));
+@@ -1584,6 +1592,9 @@ RTDECL(int) RTTimerCreateEx(PRTTIMER *pp
+         else
+ #endif
+         {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++            timer_setup(&pTimer->aSubTimers[iCpu].u.Std.LnxTimer, rtTimerLinuxStdCallback, TIMER_PINNED);
++#else
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 8, 0)
+             init_timer_pinned(&pTimer->aSubTimers[iCpu].u.Std.LnxTimer);
+ #else
+@@ -1591,6 +1602,7 @@ RTDECL(int) RTTimerCreateEx(PRTTIMER *pp
+ #endif
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.data        = (unsigned long)&pTimer->aSubTimers[iCpu];
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.function    = rtTimerLinuxStdCallback;
++#endif
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.expires     = jiffies;
+             pTimer->aSubTimers[iCpu].u.Std.u64NextTS            = 0;
+         }
+--- linux-4.14/drivers/bus/vboxguest/VBoxGuest-linux.c.omv~	2017-12-25 19:01:24.878135443 +0100
++++ linux-4.14/drivers/bus/vboxguest/VBoxGuest-linux.c	2017-12-25 19:02:18.299894577 +0100
+@@ -1054,11 +1054,16 @@ void VGDrvNativeISRMousePollEvent(PVBOXG
+     Log3(("VGDrvNativeISRMousePollEvent: done\n"));
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++#define KP_CONST const
++#else
++#define KP_CONST
++#endif
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)
+ 
+ /** log and dbg_log parameter setter. */
+-static int vgdrvLinuxParamLogGrpSet(const char *pszValue, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogGrpSet(const char *pszValue, KP_CONST struct kernel_param *pParam)
+ {
+     if (g_fLoggerCreated)
+     {
+@@ -1073,7 +1078,7 @@ static int vgdrvLinuxParamLogGrpSet(cons
+ }
+ 
+ /** log and dbg_log parameter getter. */
+-static int vgdrvLinuxParamLogGrpGet(char *pszBuf, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogGrpGet(char *pszBuf, KP_CONST struct kernel_param *pParam)
+ {
+     PRTLOGGER pLogger = pParam->name[0] == 'd' ? RTLogDefaultInstance() : RTLogRelGetDefaultInstance();
+     *pszBuf = '\0';
+@@ -1084,7 +1089,7 @@ static int vgdrvLinuxParamLogGrpGet(char
+ 
+ 
+ /** log and dbg_log_flags parameter setter. */
+-static int vgdrvLinuxParamLogFlagsSet(const char *pszValue, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogFlagsSet(const char *pszValue, KP_CONST struct kernel_param *pParam)
+ {
+     if (g_fLoggerCreated)
+     {
+@@ -1098,7 +1103,7 @@ static int vgdrvLinuxParamLogFlagsSet(co
+ }
+ 
+ /** log and dbg_log_flags parameter getter. */
+-static int vgdrvLinuxParamLogFlagsGet(char *pszBuf, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogFlagsGet(char *pszBuf, KP_CONST struct kernel_param *pParam)
+ {
+     PRTLOGGER pLogger = pParam->name[0] == 'd' ? RTLogDefaultInstance() : RTLogRelGetDefaultInstance();
+     *pszBuf = '\0';
+@@ -1109,7 +1114,7 @@ static int vgdrvLinuxParamLogFlagsGet(ch
+ 
+ 
+ /** log and dbg_log_dest parameter setter. */
+-static int vgdrvLinuxParamLogDstSet(const char *pszValue, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogDstSet(const char *pszValue, KP_CONST struct kernel_param *pParam)
+ {
+     if (g_fLoggerCreated)
+     {
+@@ -1123,7 +1128,7 @@ static int vgdrvLinuxParamLogDstSet(cons
+ }
+ 
+ /** log and dbg_log_dest parameter getter. */
+-static int vgdrvLinuxParamLogDstGet(char *pszBuf, struct kernel_param *pParam)
++static int vgdrvLinuxParamLogDstGet(char *pszBuf, KP_CONST struct kernel_param *pParam)
+ {
+     PRTLOGGER pLogger = pParam->name[0] == 'd' ? RTLogDefaultInstance() : RTLogRelGetDefaultInstance();
+     *pszBuf = '\0';
+@@ -1134,7 +1139,7 @@ static int vgdrvLinuxParamLogDstGet(char
+ 
+ 
+ /** r3_log_to_host parameter setter. */
+-static int vgdrvLinuxParamR3LogToHostSet(const char *pszValue, struct kernel_param *pParam)
++static int vgdrvLinuxParamR3LogToHostSet(const char *pszValue, KP_CONST struct kernel_param *pParam)
+ {
+     if (    pszValue == NULL
+         || *pszValue == '\0'
+@@ -1152,7 +1157,7 @@ static int vgdrvLinuxParamR3LogToHostSet
+ }
+ 
+ /** r3_log_to_host parameter getter. */
+-static int vgdrvLinuxParamR3LogToHostGet(char *pszBuf, struct kernel_param *pParam)
++static int vgdrvLinuxParamR3LogToHostGet(char *pszBuf, KP_CONST struct kernel_param *pParam)
+ {
+     strcpy(pszBuf, g_DevExt.fLoggingEnabled ? "enabled" : "disabled");
+     return strlen(pszBuf);
+--- linux-4.14/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c.omv~	2017-12-26 14:45:33.012936493 +0100
++++ linux-4.14/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c	2017-12-26 14:47:44.307342827 +0100
+@@ -720,9 +720,17 @@ static enum hrtimer_restart rtTimerLinux
+  *
+  * @param   ulUser      Address of the sub-timer structure.
+  */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++static void rtTimerLinuxStdCallback(struct timer_list *timer)
++#else
+ static void rtTimerLinuxStdCallback(unsigned long ulUser)
++#endif
+ {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++    PRTTIMERLNXSUBTIMER pSubTimer = from_timer(pSubTimer, timer, u.Std.LnxTimer);
++#else
+     PRTTIMERLNXSUBTIMER pSubTimer = (PRTTIMERLNXSUBTIMER)ulUser;
++#endif
+     PRTTIMER            pTimer    = pSubTimer->pParent;
+ 
+     RTTIMERLNX_LOG(("stdcallback %p\n", pTimer));
+@@ -1584,6 +1592,9 @@ RTDECL(int) RTTimerCreateEx(PRTTIMER *pp
+         else
+ #endif
+         {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
++            timer_setup(&pTimer->aSubTimers[iCpu].u.Std.LnxTimer, rtTimerLinuxStdCallback, TIMER_PINNED);
++#else
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 8, 0)
+             init_timer_pinned(&pTimer->aSubTimers[iCpu].u.Std.LnxTimer);
+ #else
+@@ -1591,6 +1602,7 @@ RTDECL(int) RTTimerCreateEx(PRTTIMER *pp
+ #endif
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.data        = (unsigned long)&pTimer->aSubTimers[iCpu];
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.function    = rtTimerLinuxStdCallback;
++#endif
+             pTimer->aSubTimers[iCpu].u.Std.LnxTimer.expires     = jiffies;
+             pTimer->aSubTimers[iCpu].u.Std.u64NextTS            = 0;
+         }

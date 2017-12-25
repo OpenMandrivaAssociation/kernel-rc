@@ -1,0 +1,47 @@
+--- linux-4.14/drivers/media/pci/saa716x/saa716x_ff_ir.c.omv~	2017-12-26 14:21:18.447858603 +0100
++++ linux-4.14/drivers/media/pci/saa716x/saa716x_ff_ir.c	2017-12-26 14:37:40.223872558 +0100
+@@ -48,9 +48,9 @@ struct infrared {
+ 
+ 
+ /* key-up timer */
+-static void ir_emit_keyup(unsigned long parm)
++static void ir_emit_keyup(struct timer_list *timer)
+ {
+-	struct infrared *ir = (struct infrared *) parm;
++	struct infrared *ir = from_timer(ir, timer, keyup_timer);
+ 
+ 	if (!ir || !test_bit(ir->last_key, ir->input_dev->key))
+ 		return;
+@@ -168,9 +168,9 @@ static void ir_register_keys(struct infr
+ 
+ 
+ /* called by the input driver after rep[REP_DELAY] ms */
+-static void ir_repeat_key(unsigned long parm)
++static void ir_repeat_key(struct timer_list *timer)
+ {
+-	struct infrared *ir = (struct infrared *) parm;
++	struct infrared *ir = from_timer(ir, timer, keyup_timer);
+ 
+ 	ir->delay_timer_finished = true;
+ }
+@@ -203,9 +203,7 @@ int saa716x_ir_init(struct saa716x_dev *
+ 	if (!ir)
+ 		return -ENOMEM;
+ 
+-	init_timer(&ir->keyup_timer);
+-	ir->keyup_timer.function = ir_emit_keyup;
+-	ir->keyup_timer.data = (unsigned long) ir;
++	timer_setup(&ir->keyup_timer, ir_emit_keyup, 0);
+ 
+ 	input_dev = input_allocate_device();
+ 	if (!input_dev)
+@@ -237,8 +235,7 @@ int saa716x_ir_init(struct saa716x_dev *
+ 	ir_register_keys(ir);
+ 
+ 	/* override repeat timer */
+-	input_dev->timer.function = ir_repeat_key;
+-	input_dev->timer.data = (unsigned long) ir;
++	timer_setup(&input_dev->timer, ir_repeat_key, 0);
+ 
+ 	tasklet_init(&ir->tasklet, ir_emit_key, (unsigned long) saa716x);
+ 	saa716x->ir_priv = ir;
