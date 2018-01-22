@@ -1,12 +1,13 @@
 diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
-index 4ac1a33be418..cbe8a4480037 100644
+index 9a39a6fcfe98..8a9c67e1c5d8 100644
 --- a/drivers/video/fbdev/core/fbcon.c
 +++ b/drivers/video/fbdev/core/fbcon.c
-@@ -1333,6 +1333,15 @@ static void fbcon_cursor(struct vc_data *vc, int mode)
+@@ -1343,6 +1343,16 @@ static void fbcon_cursor(struct vc_data *vc, int mode)
  	int y;
   	int c = scr_readw((u16 *) vc->vc_pos);
  
-+	/* Disable the splash here so we don't have to hook into
++	/*
++	 * Disable the splash here so we don't have to hook into
 +	 * vt_console_print() in drivers/tty/vt/vt.c
 +	 *
 +	 * We'd disable the splash just before the call to

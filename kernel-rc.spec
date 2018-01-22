@@ -237,34 +237,33 @@ Patch1031:	0001-Fix-for-compilation-with-clang.patch
 
 # Bootsplash system
 # https://lkml.org/lkml/2017/10/25/346
-# https://patchwork.kernel.org/patch/10026659/
-Patch100:      RFC-01-14-bootsplash-Initial-implementation-showing-black-screen.patch
-# https://patchwork.kernel.org/patch/10026661/
-Patch101:      RFC-02-14-bootsplash-Add-platform-device.patch
-# https://patchwork.kernel.org/patch/10026617/
-Patch102:      RFC-03-14-bootsplash-Flush-framebuffer-after-drawing.patch
-# https://patchwork.kernel.org/patch/10026615/
-Patch103:      RFC-04-14-bootsplash-Redraw-on-suspend-hibernate.patch
-# https://patchwork.kernel.org/patch/10026635/
-Patch104:      RFC-05-14-bootsplash-Disable-splash-on-oops.patch
-# https://patchwork.kernel.org/patch/10026643/
-Patch105:      RFC-06-14-bootsplash-Disable-on-SysRq-SAK.patch
-# https://patchwork.kernel.org/patch/10026641/
-Patch106:      RFC-07-14-bootsplash-Add-VT-keyboard-hook.patch
-# https://patchwork.kernel.org/patch/10026647/
-Patch107:      RFC-08-14-bootsplash-Add-file-reading-and-picture-rendering.patch
-# https://patchwork.kernel.org/patch/10026627/
-Patch108:      RFC-09-14-bootsplash-Add-corner-positioning.patch
-# https://patchwork.kernel.org/patch/10026639/
-Patch109:      RFC-10-14-bootsplash-Add-animation-support.patch
-# https://patchwork.kernel.org/patch/10026629/
-Patch110:      RFC-11-14-bootsplash-Redraw-fully-on-console_unblank.patch
-# https://patchwork.kernel.org/patch/10026637/
-Patch111:      RFC-12-14-bootsplash-Add-sysfs-ABI-documentation.patch
-# https://patchwork.kernel.org/patch/10026619/
-Patch112:      RFC-13-14-bootsplash-Add-main-documentation.patch
-# https://patchwork.kernel.org/patch/10026623/
-Patch113:      RFC-14-14-bootsplash-Update-MAINTAINERS.patch
+# https://patchwork.kernel.org/patch/10172665/
+Patch100:      RFC-v3-01-13-bootsplash-Initial-implementation-showing-black-screen.patch
+# https://patchwork.kernel.org/patch/10172669/
+Patch101:      RFC-v3-02-13-bootsplash-Add-file-reading-and-picture-rendering.patch
+# https://patchwork.kernel.org/patch/10172715/
+Patch102:      RFC-v3-03-13-bootsplash-Flush-framebuffer-after-drawing.patch
+# https://patchwork.kernel.org/patch/10172699/
+Patch103:      RFC-v3-04-13-bootsplash-Add-corner-positioning.patch
+# https://patchwork.kernel.org/patch/10172667/
+Patch104:      RFC-v3-05-13-bootsplash-Add-animation-support.patch
+# https://patchwork.kernel.org/patch/10172605/, rebased
+Patch105:      RFC-v3-06-13-vt-Redraw-bootsplash-fully-on-console_unblank.patch
+# https://patchwork.kernel.org/patch/10172599/
+Patch106:      RFC-v3-07-13-vt-Add-keyboard-hook-to-disable-bootsplash.patch
+# https://patchwork.kernel.org/patch/10172603/
+Patch107:      RFC-v3-08-13-sysrq-Disable-bootsplash-on-SAK.patch
+# https://patchwork.kernel.org/patch/10172601/
+Patch108:      RFC-v3-09-13-fbcon-Disable-bootsplash-on-oops.patch
+# https://patchwork.kernel.org/patch/10172663/
+Patch109:      RFC-v3-10-13-Documentation-Add-bootsplash-main-documentation.patch
+# https://patchwork.kernel.org/patch/10172685/
+Patch110:      RFC-v3-11-13-bootsplash-sysfs-entries-to-load-and-unload-files.patch
+# https://patchwork.kernel.org/patch/10172597/
+Patch111:      RFC-v3-12-13-tools-bootsplash-Add-a-basic-splash-file-creation-tool.patch
+# https://patchwork.kernel.org/patch/10172661/
+# Contains git binary patch -- needs to be applied with git apply instead of apply_patches
+Source112:      RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-file.patch
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
@@ -802,6 +801,7 @@ xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
 %endif
 %apply_patches
+git apply %{SOURCE112}
 
 # merge SAA716x DVB driver from extra tarball
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
