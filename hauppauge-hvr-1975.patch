@@ -1,5 +1,5 @@
---- linux-4.14/drivers/media/common/tveeprom.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/common/tveeprom.c	2017-12-25 17:39:13.302441499 +0100
+--- linux-4.15/drivers/media/common/tveeprom.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/common/tveeprom.c	2018-02-12 11:32:52.760582121 +0100
 @@ -551,7 +551,8 @@ void tveeprom_hauppauge_analog(struct tv
  				(eeprom_data[i+7] << 16)+
  				(eeprom_data[i+8] << 24);
@@ -10,8 +10,8 @@
  				tvee->MAC_address[0] = 0x00;
  				tvee->MAC_address[1] = 0x0D;
  				tvee->MAC_address[2] = 0xFE;
---- linux-4.14/drivers/media/dvb-frontends/Kconfig.0140~	2017-12-25 17:39:13.136441489 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/Kconfig	2017-12-25 17:39:13.302441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/Kconfig.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/dvb-frontends/Kconfig	2018-02-12 11:32:52.760582121 +0100
 @@ -529,6 +529,13 @@ config DVB_SI2168
  	help
  	  Say Y when you want to support this frontend.
@@ -41,9 +41,9 @@
  config DVB_LGS8GL5
  	tristate "Silicon Legend LGS-8GL5 demodulator (OFDM)"
  	depends on DVB_CORE && I2C
---- linux-4.14/drivers/media/dvb-frontends/Makefile.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/Makefile	2017-12-25 17:39:13.302441499 +0100
-@@ -88,6 +88,7 @@ obj-$(CONFIG_DVB_CX24117) += cx24117.o
+--- linux-4.15/drivers/media/dvb-frontends/Makefile.0140~	2018-02-12 11:32:52.007576605 +0100
++++ linux-4.15/drivers/media/dvb-frontends/Makefile	2018-02-12 11:32:52.760582121 +0100
+@@ -87,6 +87,7 @@ obj-$(CONFIG_DVB_CX24117) += cx24117.o
  obj-$(CONFIG_DVB_CX24120) += cx24120.o
  obj-$(CONFIG_DVB_SI21XX) += si21xx.o
  obj-$(CONFIG_DVB_SI2168) += si2168.o
@@ -51,13 +51,13 @@
  obj-$(CONFIG_DVB_STV0288) += stv0288.o
  obj-$(CONFIG_DVB_STB6000) += stb6000.o
  obj-$(CONFIG_DVB_S921) += s921.o
-@@ -130,3 +131,4 @@ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
+@@ -129,3 +130,4 @@ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
  obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
  obj-$(CONFIG_DVB_HELENE) += helene.o
  obj-$(CONFIG_DVB_ZD1301_DEMOD) += zd1301_demod.o
 +obj-$(CONFIG_DVB_SILG) += silg.o
---- linux-4.14/drivers/media/dvb-frontends/si2168b.c.0140~	2017-12-25 17:39:13.304441499 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/si2168b.c	2017-12-25 17:39:13.304441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/si2168b.c.0140~	2018-02-12 11:32:52.764582151 +0100
++++ linux-4.15/drivers/media/dvb-frontends/si2168b.c	2018-02-12 11:32:52.764582151 +0100
 @@ -0,0 +1,6900 @@
 +/* DVB compliant Linux driver for the DVB-T/T2/C Si2168B demodulator
 +*
@@ -6959,8 +6959,8 @@
 +MODULE_AUTHOR("Henning Garbers <hgarbers@pctvsystems.com>");
 +MODULE_LICENSE("PROPRIETARY AND CONFIDENTIAL");
 +MODULE_VERSION("2015-03-09");
---- linux-4.14/drivers/media/dvb-frontends/si2168b.h.0140~	2017-12-25 17:39:13.304441499 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/si2168b.h	2017-12-25 17:39:13.304441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/si2168b.h.0140~	2018-02-12 11:32:52.764582151 +0100
++++ linux-4.15/drivers/media/dvb-frontends/si2168b.h	2018-02-12 11:32:52.764582151 +0100
 @@ -0,0 +1,70 @@
 +#ifndef SI2168B_H
 +#define SI2168B_H
@@ -7032,8 +7032,8 @@
 +#endif
 +
 +#endif
---- linux-4.14/drivers/media/dvb-frontends/si2168b_priv.h.0140~	2017-12-25 17:39:13.305441499 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/si2168b_priv.h	2017-12-25 17:39:13.305441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/si2168b_priv.h.0140~	2018-02-12 11:32:52.766582165 +0100
++++ linux-4.15/drivers/media/dvb-frontends/si2168b_priv.h	2018-02-12 11:32:52.766582165 +0100
 @@ -0,0 +1,4390 @@
 +#ifndef __SI2168B_PRIV_H__
 +#define __SI2168B_PRIV_H__
@@ -11425,8 +11425,8 @@
 +#define Si2168B_PATCH16_4_0b9_LINES (sizeof(Si2168B_PATCH16_4_0b9)/(sizeof(firmware_struct)))
 +
 +#endif /* __SI2168B_PRIV_H__ */
---- linux-4.14/drivers/media/dvb-frontends/silg.c.0140~	2017-12-25 17:39:13.306441499 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/silg.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/silg.c.0140~	2018-02-12 11:32:52.766582165 +0100
++++ linux-4.15/drivers/media/dvb-frontends/silg.c	2018-02-12 11:32:52.766582165 +0100
 @@ -0,0 +1,709 @@
 +/* DVB compliant Linux driver for dual demodulator system with
 +*  a Silicon Labs Si2168B DVB-T/T2/C demodulator
@@ -12137,8 +12137,8 @@
 +/* license is set to 'Proprietary'. */
 +MODULE_LICENSE("GPL");
 +MODULE_VERSION("1.0");
---- linux-4.14/drivers/media/dvb-frontends/silg.h.0140~	2017-12-25 17:39:13.306441499 +0100
-+++ linux-4.14/drivers/media/dvb-frontends/silg.h	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/dvb-frontends/silg.h.0140~	2018-02-12 11:32:52.767582173 +0100
++++ linux-4.15/drivers/media/dvb-frontends/silg.h	2018-02-12 11:32:52.767582173 +0100
 @@ -0,0 +1,69 @@
 +#ifndef SILG_H
 +#define SILG_H
@@ -12209,8 +12209,8 @@
 +#endif
 +
 +#endif
---- linux-4.14/drivers/media/pci/saa7164/Kconfig.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/Kconfig	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/Kconfig.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/Kconfig	2018-02-12 11:32:52.767582173 +0100
 @@ -7,7 +7,10 @@ config VIDEO_SAA7164
  	select VIDEO_TVEEPROM
  	select DVB_TDA10048 if MEDIA_SUBDRV_AUTOSELECT
@@ -12222,8 +12222,8 @@
  	---help---
  	  This is a video4linux driver for NXP SAA7164 based
  	  TV cards.
---- linux-4.14/drivers/media/pci/saa7164/saa7164-api.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-api.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-api.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-api.c	2018-02-12 11:32:52.767582173 +0100
 @@ -560,12 +560,43 @@ int saa7164_api_set_audio_std(struct saa
  		printk(KERN_ERR "%s() error, ret = 0x%x\n", __func__, ret);
  
@@ -12381,8 +12381,8 @@
  }
  
  /* Ensure the dif is in the correct state for the operating mode
---- linux-4.14/drivers/media/pci/saa7164/saa7164-cards.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-cards.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-cards.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-cards.c	2018-02-12 11:32:52.767582173 +0100
 @@ -634,6 +634,52 @@ struct saa7164_board saa7164_boards[] =
  			.i2c_reg_len	= REGLEN_0bit,
  		} },
@@ -12463,8 +12463,8 @@
  		hauppauge_eeprom(dev, &eeprom[0]);
  		break;
  	}
---- linux-4.14/drivers/media/pci/saa7164/saa7164-core.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-core.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-core.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-core.c	2018-02-12 11:32:52.767582173 +0100
 @@ -34,6 +34,7 @@
  MODULE_DESCRIPTION("Driver for NXP SAA7164 based TV cards");
  MODULE_AUTHOR("Steven Toth <stoth@kernellabs.com>");
@@ -12473,8 +12473,8 @@
  
  /*
   *  1 Basic
---- linux-4.14/drivers/media/pci/saa7164/saa7164-dvb.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-dvb.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-dvb.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-dvb.c	2018-02-12 11:32:52.768582180 +0100
 @@ -23,6 +23,8 @@
  #include "si2157.h"
  #include "si2168.h"
@@ -12600,8 +12600,8 @@
  	default:
  		printk(KERN_ERR "%s: The frontend isn't supported\n",
  		       dev->name);
---- linux-4.14/drivers/media/pci/saa7164/saa7164-encoder.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-encoder.c	2017-12-25 17:39:13.306441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-encoder.c.0140~	2018-02-12 11:32:52.013576649 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-encoder.c	2018-02-12 11:32:52.768582180 +0100
 @@ -40,6 +40,24 @@ static struct saa7164_tvnorm saa7164_tvn
  	}, {
  		.name      = "NTSC-JP",
@@ -12645,8 +12645,8 @@
  	port->width = 720;
  	port->mux_input = 1; /* Composite */
  	port->video_format = EU_VIDEO_FORMAT_MPEG_2;
---- linux-4.14/drivers/media/pci/saa7164/saa7164-fw.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-fw.c	2017-12-25 17:39:13.307441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-fw.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-fw.c	2018-02-12 11:32:52.768582180 +0100
 @@ -26,6 +26,9 @@
  #define SAA7164_REV3_FIRMWARE		"NXP7164-2010-03-10.1.fw"
  #define SAA7164_REV3_FIRMWARE_SIZE	4019072
@@ -12675,8 +12675,8 @@
  	}
  
  	version = saa7164_getcurrentfirmwareversion(dev);
---- linux-4.14/drivers/media/pci/saa7164/saa7164.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164.h	2017-12-25 17:39:13.307441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164.h.0140~	2018-02-12 11:32:52.013576649 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164.h	2018-02-12 11:32:52.768582180 +0100
 @@ -82,6 +82,7 @@
  #define SAA7164_BOARD_HAUPPAUGE_HVR2255proto	11
  #define SAA7164_BOARD_HAUPPAUGE_HVR2255		12
@@ -12695,8 +12695,8 @@
  
  /* TV frequency range copied from tuner-core.c */
  #define SAA7164_TV_MIN_FREQ (44U * 16U)
---- linux-4.14/drivers/media/pci/saa7164/saa7164-reg.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/pci/saa7164/saa7164-reg.h	2017-12-25 17:39:13.307441499 +0100
+--- linux-4.15/drivers/media/pci/saa7164/saa7164-reg.h.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/pci/saa7164/saa7164-reg.h	2018-02-12 11:32:52.768582180 +0100
 @@ -177,7 +177,24 @@
  #define TU_STANDARD_AUTO_CONTROL	0x01
  #define TU_STANDARD_NONE		0x00
@@ -12722,9 +12722,9 @@
  #define TU_STANDARD_MANUAL		0x00
  #define TU_STANDARD_AUTO		0x01
  
---- linux-4.14/drivers/media/tuners/Kconfig.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/tuners/Kconfig	2017-12-25 17:39:13.307441499 +0100
-@@ -248,6 +248,20 @@ config MEDIA_TUNER_SI2157
+--- linux-4.15/drivers/media/tuners/Kconfig.0140~	2018-02-12 11:32:52.016576671 +0100
++++ linux-4.15/drivers/media/tuners/Kconfig	2018-02-12 11:32:52.768582180 +0100
+@@ -255,6 +255,20 @@ config MEDIA_TUNER_SI2157
  	help
  	  Silicon Labs Si2157 silicon tuner driver.
  
@@ -12745,18 +12745,17 @@
  config MEDIA_TUNER_IT913X
  	tristate "ITE Tech IT913x silicon tuner"
  	depends on MEDIA_SUPPORT && I2C
---- linux-4.14/drivers/media/tuners/Makefile.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/tuners/Makefile	2017-12-25 17:39:13.307441499 +0100
-@@ -42,6 +42,7 @@ obj-$(CONFIG_MEDIA_TUNER_R820T) += r820t
- obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mxl301rf.o
+--- linux-4.15/drivers/media/tuners/Makefile.0140~	2018-02-12 11:32:52.768582180 +0100
++++ linux-4.15/drivers/media/tuners/Makefile	2018-02-12 11:35:11.303551576 +0100
+@@ -43,5 +43,6 @@ obj-$(CONFIG_MEDIA_TUNER_MXL301RF) += mx
  obj-$(CONFIG_MEDIA_TUNER_QM1D1C0042) += qm1d1c0042.o
  obj-$(CONFIG_MEDIA_TUNER_M88RS6000T) += m88rs6000t.o
+ obj-$(CONFIG_MEDIA_TUNER_TDA18250) += tda18250.o
 +obj-$(CONFIG_MEDIA_TUNER_SILABS_TERCAB) += silabs_tercab.o
  
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
  ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
---- linux-4.14/drivers/media/tuners/silabs_tercab.c.0140~	2017-12-25 17:39:13.308441499 +0100
-+++ linux-4.14/drivers/media/tuners/silabs_tercab.c	2017-12-25 17:39:13.308441499 +0100
+--- linux-4.15/drivers/media/tuners/silabs_tercab.c.0140~	2018-02-12 11:32:52.770582195 +0100
++++ linux-4.15/drivers/media/tuners/silabs_tercab.c	2018-02-12 11:32:52.770582195 +0100
 @@ -0,0 +1,3452 @@
 +/*
 + * silabs_tercab.c - Silicon Labs terrestrial/cable hybrid tuner driver
@@ -16210,8 +16209,8 @@
 + * c-basic-offset: 8
 + * End:
 + */
---- linux-4.14/drivers/media/tuners/silabs_tercab.h.0140~	2017-12-25 17:39:13.308441499 +0100
-+++ linux-4.14/drivers/media/tuners/silabs_tercab.h	2017-12-25 17:39:13.308441499 +0100
+--- linux-4.15/drivers/media/tuners/silabs_tercab.h.0140~	2018-02-12 11:32:52.770582195 +0100
++++ linux-4.15/drivers/media/tuners/silabs_tercab.h	2018-02-12 11:32:52.770582195 +0100
 @@ -0,0 +1,102 @@
 +/*
 + * silabs_tercab.h - header for the Silicon Laboratories terrestrial/cable
@@ -16315,8 +16314,8 @@
 +#endif
 +
 +#endif /* __SILABS_TERCAB_H__ */
---- linux-4.14/drivers/media/tuners/silabs_tercab_priv.h.0140~	2017-12-25 17:39:13.310441499 +0100
-+++ linux-4.14/drivers/media/tuners/silabs_tercab_priv.h	2017-12-25 17:39:13.310441499 +0100
+--- linux-4.15/drivers/media/tuners/silabs_tercab_priv.h.0140~	2018-02-12 11:32:52.773582217 +0100
++++ linux-4.15/drivers/media/tuners/silabs_tercab_priv.h	2018-02-12 11:32:52.773582217 +0100
 @@ -0,0 +1,5651 @@
 +/*************************************************************************************
 +                  Silicon Laboratories Broadcast Si2158 Layer 1 API
@@ -21969,8 +21968,8 @@
 +#define FIRMWARE_LINES_3_0bx (sizeof(Si2177_FW_3_0bx)/(sizeof(firmware_struct)))
 +
 +#endif /* __SILABS_TERCAB_PRIV_H__ */
---- linux-4.14/drivers/media/tuners/tuner-types.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/tuners/tuner-types.c	2017-12-25 17:39:13.310441499 +0100
+--- linux-4.15/drivers/media/tuners/tuner-types.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/tuners/tuner-types.c	2018-02-12 11:32:52.773582217 +0100
 @@ -1433,6 +1433,16 @@ static struct tuner_params tuner_sony_bt
  	},
  };
@@ -22000,8 +21999,8 @@
  };
  EXPORT_SYMBOL(tuners);
  
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx-avcore.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx-avcore.c	2017-12-25 17:39:13.310441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx-avcore.c.0140~	2018-02-12 11:32:52.017576679 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx-avcore.c	2018-02-12 11:32:52.774582224 +0100
 @@ -355,6 +355,9 @@ int cx231xx_afe_update_power_control(str
  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
@@ -22041,10 +22040,10 @@
  	case CX231XX_BOARD_OTG102:
  		func_mode = 0x03;
  		break;
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx-cards.c.0140~	2017-12-25 17:39:13.139441490 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx-cards.c	2017-12-25 17:39:13.310441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx-cards.c.0140~	2018-02-12 11:32:52.017576679 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx-cards.c	2018-02-12 11:34:46.081381342 +0100
 @@ -34,6 +34,7 @@
- #include "dvb-usb-ids.h"
+ #include <media/dvb-usb-ids.h>
  #include "xc5000.h"
  #include "tda18271.h"
 +#include "si2157.h"
@@ -22175,7 +22174,7 @@
  	[CX231XX_BOARD_HAUPPAUGE_USBLIVE2] = {
  		.name = "Hauppauge USB Live 2",
  		.tuner_type = TUNER_ABSENT,
-@@ -939,6 +1057,12 @@ struct usb_device_id cx231xx_id_table[]
+@@ -965,6 +1083,12 @@ struct usb_device_id cx231xx_id_table[]
  	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx},
  	{USB_DEVICE(0x2040, 0xb140),
  	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
@@ -22188,7 +22187,7 @@
  	{USB_DEVICE(0x2040, 0xc200),
  	 .driver_info = CX231XX_BOARD_HAUPPAUGE_USBLIVE2},
  	/* PCTV QuatroStick 521e */
-@@ -996,7 +1120,7 @@ int cx231xx_tuner_callback(void *ptr, in
+@@ -1024,7 +1148,7 @@ int cx231xx_tuner_callback(void *ptr, in
  					       1);
  			msleep(10);
  		}
@@ -22197,7 +22196,7 @@
  		switch (command) {
  		case TDA18271_CALLBACK_CMD_AGC_ENABLE:
  			if (dev->model == CX231XX_BOARD_PV_PLAYTV_USB_HYBRID)
-@@ -1145,7 +1269,6 @@ static int read_eeprom(struct cx231xx *d
+@@ -1173,7 +1297,6 @@ static int read_eeprom(struct cx231xx *d
  
  void cx231xx_card_setup(struct cx231xx *dev)
  {
@@ -22205,7 +22204,7 @@
  	cx231xx_set_model(dev);
  
  	dev->tuner_type = cx231xx_boards[dev->model].tuner_type;
-@@ -1183,6 +1306,9 @@ void cx231xx_card_setup(struct cx231xx *
+@@ -1211,6 +1334,9 @@ void cx231xx_card_setup(struct cx231xx *
  	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
  	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
  	case CX231XX_BOARD_HAUPPAUGE_955Q:
@@ -22215,8 +22214,8 @@
  		{
  			struct eeprom {
  				struct tveeprom tvee;
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx-core.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx-core.c	2017-12-25 17:39:13.310441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx-core.c.0140~	2018-02-12 11:32:52.018576686 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx-core.c	2018-02-12 11:32:52.775582231 +0100
 @@ -720,6 +720,9 @@ int cx231xx_set_mode(struct cx231xx *dev
  			break;
  		case CX231XX_BOARD_HAUPPAUGE_EXETER:
@@ -22247,8 +22246,8 @@
  	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx-dvb.c.0140~	2017-12-25 17:39:13.139441490 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx-dvb.c	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx-dvb.c.0140~	2018-02-12 11:32:52.018576686 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx-dvb.c	2018-02-12 11:32:52.775582231 +0100
 @@ -34,8 +34,11 @@
  #include "lgdt3305.h"
  #include "si2165.h"
@@ -22469,20 +22468,20 @@
  		unregister_dvb(dev->dvb);
  		dev->dvb = NULL;
  	}
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx.h	2017-12-25 17:39:13.311441499 +0100
-@@ -80,6 +80,9 @@
- #define CX231XX_BOARD_TERRATEC_GRABBY 22
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx.h.0140~	2018-02-12 11:32:52.775582231 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx.h	2018-02-12 11:34:17.881187893 +0100
+@@ -81,6 +81,9 @@
  #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
  #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
-+#define CX231XX_BOARD_HAUPPAUGE_EXETER_955Q 25
-+#define CX231XX_BOARD_HAUPPAUGE_935C 26
-+#define CX231XX_BOARD_HAUPPAUGE_975 27
+ #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
++#define CX231XX_BOARD_HAUPPAUGE_EXETER_955Q 26
++#define CX231XX_BOARD_HAUPPAUGE_935C 27
++#define CX231XX_BOARD_HAUPPAUGE_975 28
  
  /* Limits minimum and default number of buffers */
  #define CX231XX_MIN_BUF                 4
---- linux-4.14/drivers/media/usb/cx231xx/cx231xx-video.c.0140~	2017-12-25 17:39:13.139441490 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/cx231xx-video.c	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/cx231xx-video.c.0140~	2018-02-12 11:32:52.018576686 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/cx231xx-video.c	2018-02-12 11:32:52.776582239 +0100
 @@ -1094,6 +1094,18 @@ static int vidioc_s_std(struct file *fil
  	/* do mode control overrides */
  	cx231xx_do_mode_ctrl_overrides(dev);
@@ -22511,8 +22510,8 @@
  		if (dev->norm & (V4L2_STD_MN | V4L2_STD_NTSC_443))
  			if_frequency = 5400000;  /*5.4MHz	*/
  		else if (dev->norm & V4L2_STD_B)
---- linux-4.14/drivers/media/usb/cx231xx/Kconfig.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/cx231xx/Kconfig	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/cx231xx/Kconfig.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/cx231xx/Kconfig	2018-02-12 11:32:52.776582239 +0100
 @@ -45,12 +45,15 @@ config VIDEO_CX231XX_DVB
  	select VIDEOBUF_DVB
  	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
@@ -22529,8 +22528,8 @@
  	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
  	select DVB_MN88473 if MEDIA_SUBDRV_AUTOSELECT
  	select MEDIA_TUNER_R820T if MEDIA_SUBDRV_AUTOSELECT
---- linux-4.14/drivers/media/usb/pvrusb2/Kconfig.0140~	2017-12-25 17:39:13.311441499 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/Kconfig	2017-12-25 17:43:31.130666399 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/Kconfig.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/Kconfig	2018-02-12 11:32:52.776582239 +0100
 @@ -39,10 +39,13 @@ config VIDEO_PVRUSB2_DVB
  	select DVB_LGDT330X if MEDIA_SUBDRV_AUTOSELECT
  	select DVB_S5H1409 if MEDIA_SUBDRV_AUTOSELECT
@@ -22545,8 +22544,8 @@
  	---help---
  	  This option enables a DVB interface for the pvrusb2 driver.
  	  If your device does not support digital television, this
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c	2018-02-12 11:32:52.776582239 +0100
 @@ -112,10 +112,35 @@ static const struct routing_scheme routi
  	.cnt = ARRAY_SIZE(routing_schemeav400),
  };
@@ -22583,8 +22582,8 @@
  };
  
  void pvr2_cx25840_subdev_update(struct pvr2_hdw *hdw, struct v4l2_subdev *sd)
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-devattr.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-devattr.c	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-devattr.c.0140~	2018-02-12 11:32:52.020576701 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-devattr.c	2018-02-12 11:32:52.776582239 +0100
 @@ -31,15 +31,18 @@ pvr2_device_desc structures.
  #ifdef CONFIG_VIDEO_PVRUSB2_DVB
  #include "pvrusb2-hdw-internal.h"
@@ -22824,8 +22823,8 @@
  MODULE_FIRMWARE(PVR2_FIRMWARE_73xxx);
  MODULE_FIRMWARE(PVR2_FIRMWARE_75xxx);
 +MODULE_FIRMWARE(PVR2_FIRMWARE_160xxx);
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-devattr.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-devattr.h	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-devattr.h.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-devattr.h	2018-02-12 11:32:52.776582239 +0100
 @@ -66,6 +66,7 @@ struct pvr2_string_table {
  #define PVR2_ROUTING_SCHEME_GOTVIEW 1
  #define PVR2_ROUTING_SCHEME_ONAIR 2
@@ -22834,8 +22833,8 @@
  
  #define PVR2_DIGITAL_SCHEME_NONE 0
  #define PVR2_DIGITAL_SCHEME_HAUPPAUGE 1
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-dvb.c.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-dvb.c	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-dvb.c.0140~	2018-02-12 11:32:52.020576701 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-dvb.c	2018-02-12 11:32:52.776582239 +0100
 @@ -244,6 +244,13 @@ static int pvr2_dvb_stop_feed(struct dvb
  static int pvr2_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
  {
@@ -22862,8 +22861,8 @@
  	} else {
  		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
  			   "no frontend was attached!");
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h	2017-12-25 17:39:13.311441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-fx2-cmd.h	2018-02-12 11:32:52.776582239 +0100
 @@ -38,6 +38,10 @@
  
  #define FX2CMD_FWPOST1          0x52u
@@ -22875,8 +22874,8 @@
  #define FX2CMD_POWER_OFF        0xdcu
  #define FX2CMD_POWER_ON         0xdeu
  
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-hdw.c.0140~	2017-12-25 17:39:13.139441490 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-hdw.c	2017-12-25 17:39:13.312441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-hdw.c.0140~	2018-02-12 11:32:52.020576701 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-hdw.c	2018-02-12 11:32:52.777582246 +0100
 @@ -316,6 +316,8 @@ static const struct pvr2_fx2cmd_descdef
  	{FX2CMD_ONAIR_DTV_STREAMING_OFF, "onair dtv stream off"},
  	{FX2CMD_ONAIR_DTV_POWER_ON, "onair dtv power on"},
@@ -22926,7 +22925,7 @@
  	if (!pvr2_hdw_dev_ok(hdw)) return;
  
  	if (hdw->hdw_desc->signal_routing_scheme ==
-@@ -3998,6 +4017,17 @@ int pvr2_hdw_cmd_decoder_reset(struct pv
+@@ -4011,6 +4030,17 @@ int pvr2_hdw_cmd_decoder_reset(struct pv
  static int pvr2_hdw_cmd_hcw_demod_reset(struct pvr2_hdw *hdw, int onoff)
  {
  	hdw->flag_ok = !0;
@@ -22944,8 +22943,8 @@
  	return pvr2_issue_simple_cmd(hdw,
  				     FX2CMD_HCW_DEMOD_RESETIN |
  				     (1 << 8) |
---- linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-hdw-internal.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/drivers/media/usb/pvrusb2/pvrusb2-hdw-internal.h	2017-12-25 17:39:13.312441499 +0100
+--- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-hdw-internal.h.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-hdw-internal.h	2018-02-12 11:32:52.777582246 +0100
 @@ -381,6 +381,9 @@ struct pvr2_hdw {
  
  	struct pvr2_ctrl *controls;
@@ -22956,8 +22955,8 @@
  };
  
  /* This function gets the current frequency */
---- linux-4.14/drivers/media/v4l2-core/tuner-core.c.0140~	2017-12-25 17:39:13.140441490 +0100
-+++ linux-4.14/drivers/media/v4l2-core/tuner-core.c	2017-12-25 17:39:13.312441499 +0100
+--- linux-4.15/drivers/media/v4l2-core/tuner-core.c.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/drivers/media/v4l2-core/tuner-core.c	2018-02-12 11:32:52.778582253 +0100
 @@ -40,6 +40,7 @@
  #include "xc5000.h"
  #include "tda18271.h"
@@ -23034,8 +23033,8 @@
  			}
  			break;
  		}
---- linux-4.14/include/media/tuner.h.0140~	2017-11-12 19:46:13.000000000 +0100
-+++ linux-4.14/include/media/tuner.h	2017-12-25 17:39:13.312441499 +0100
+--- linux-4.15/include/media/tuner.h.0140~	2018-01-28 22:20:33.000000000 +0100
++++ linux-4.15/include/media/tuner.h	2018-02-12 11:32:52.778582253 +0100
 @@ -142,6 +142,8 @@
  #define TUNER_SONY_BTF_PK467Z		90	/* NTSC_JP */
  #define TUNER_SONY_BTF_PB463Z		91	/* NTSC */

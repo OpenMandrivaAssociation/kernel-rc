@@ -16,18 +16,14 @@ for where the patch goes work out better here
  include/linux/init_task.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/init_task.h b/include/linux/init_task.h
-index 8062e6cc607c..2903519e2462 100644
---- a/include/linux/init_task.h
-+++ b/include/linux/init_task.h
-@@ -275,7 +275,7 @@ extern struct cred init_cred;
- 	.journal_info	= NULL,						\
- 	INIT_CPU_TIMERS(tsk)						\
- 	.pi_lock	= __RAW_SPIN_LOCK_UNLOCKED(tsk.pi_lock),	\
--	.timer_slack_ns = 50000, /* 50 usec default slack */		\
-+	.timer_slack_ns = 1000, /* 1 usec default slack */		\
- 	.pids = {							\
- 		[PIDTYPE_PID]  = INIT_PID_LINK(PIDTYPE_PID),		\
- 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
--- 
-2.15.0
+--- linux-4.15/init/init_task.c.0405~	2018-02-12 12:32:24.237374059 +0100
++++ linux-4.15/init/init_task.c	2018-02-12 12:32:42.764417715 +0100
+@@ -109,7 +109,7 @@ struct task_struct init_task
+ 	.journal_info	= NULL,
+ 	INIT_CPU_TIMERS(init_task)
+ 	.pi_lock	= __RAW_SPIN_LOCK_UNLOCKED(init_task.pi_lock),
+-	.timer_slack_ns = 50000, /* 50 usec default slack */
++	.timer_slack_ns = 1000, /* 1 usec default slack */
+ 	.pids = {
+ 		[PIDTYPE_PID]  = INIT_PID_LINK(PIDTYPE_PID),
+ 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),
