@@ -296,6 +296,7 @@ Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
 Patch144:	0124-Extend-FEC-enum.patch
 Patch145:	saa716x-driver-integration.patch
 Patch146:	saa716x-4.15.patch
+Patch147:	extra-dvb-drivers-4.16.patch
 
 # Anbox (http://anbox.io/) patches to Android IPC, rebased to 4.11
 # NOT YET
@@ -303,13 +304,6 @@ Patch146:	saa716x-4.15.patch
 # NOT YET
 #Patch201:	0002-binder-implement-namepsace-support-for-Android-binde.patch
 Patch250:	4.14-C11.patch
-
-# Patches to external modules
-# Marked SourceXXX instead of PatchXXX because the modules
-# being touched aren't in the tree at the time %%apply_patches
-# runs...
-Source301:	vbox-4.14-drm-next.patch
-Source302:	vbox-4.15.patch
 
 %if %{with clr}
 # (tpg) some patches from ClearLinux
@@ -427,16 +421,6 @@ BuildRequires:	uboot-mkimage
 
 # might be useful too:
 Suggests:	microcode-intel
-
-# Let's pull in some of the most commonly used DKMS modules
-# so end users don't have to install compilers (and worse,
-# get compiler error messages on failures)
-%if %mdvver >= 3000000
-%ifarch %{ix86} x86_64
-BuildRequires:	dkms-virtualbox >= 5.2.2-1
-BuildRequires:	dkms-vboxadditions >= 5.2.2-1
-%endif
-%endif
 
 %description
 %common_desc_kernel
@@ -821,56 +805,6 @@ sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/M
 # make sure the kernel has the sublevel we know it has...
 LC_ALL=C perl -p -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
-# Pull in some externally maintained modules
-%if %mdvver >= 3000000
-%ifarch %{ix86} x86_64
-# === VirtualBox guest additions ===
-# VirtualBox video driver
-cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/gpu/drm/
-# 800x600 is too small to be useful -- even calamares doesn't
-# fit into that anymore
-sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile*
-echo 'obj-m += vboxvideo/' >>drivers/gpu/drm/Makefile
-# VirtualBox shared folders
-cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxsf fs/
-sed -i -e 's,\$(KBUILD_EXTMOD),fs/vboxsf,g' fs/vboxsf/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," fs/vboxsf/Makefile*
-echo 'obj-m += vboxsf/' >>fs/Makefile
-# VirtualBox Guest-side communication
-cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxguest drivers/bus/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/bus/vboxguest,g' drivers/bus/vboxguest/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/bus/vboxguest/Makefile*
-echo 'obj-m += vboxguest/' >>drivers/bus/Makefile
-
-# === VirtualBox host modules ===
-# VirtualBox
-cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/virt/vboxdrv,g' drivers/virt/vboxdrv/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/virt/vboxdrv/Makefile*
-echo 'obj-m += vboxdrv/' >>drivers/virt/Makefile
-# VirtualBox network adapter
-cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetadp drivers/net/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/net/vboxnetadp,g' drivers/net/vboxnetadp/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetadp/Makefile*
-echo 'obj-m += vboxnetadp/' >>drivers/net/Makefile
-# VirtualBox network filter
-cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/net/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/net/vboxnetflt,g' drivers/net/vboxnetflt/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
-echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
-# VirtualBox PCI
-cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
-echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-
-patch -p1 -b -z .0301~ <%{SOURCE301}
-patch -p1 -b -z .0302~ <%{SOURCE302}
-%endif
-%endif
-
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' | %kxargs rm -f
 # wipe all .gitignore/.get_maintainer.ignore files
@@ -1040,7 +974,6 @@ SaveDevel() {
     cp -fR drivers/media/common/btcx-risc.h $TempDevelRoot/drivers/media/common/
 
 # Needed for external dvb tree (#41418)
-    cp -fR drivers/media/dvb-core/*.h $TempDevelRoot/drivers/media/dvb-core/
     cp -fR drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
 
 # add acpica header files, needed for fglrx build
@@ -1585,6 +1518,7 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %dir %{_kerneldir}/certs
 %{_kerneldir}/.cocciconfig
 %{_kerneldir}/Documentation
+%{_kerneldir}/LICENSES
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
 %{_kerneldir}/arch/arm64
