@@ -1,13 +1,16 @@
 # utils/cpuidle-info.c:193: error: undefined reference to 'cpufreq_cpu_exists'
 %define _disable_ld_no_undefined 1
 
-# IMPORTNAT
+# While perf comes with python2 scripts
+%define _python_bytecompile_build 0
+
+# IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
 %define patchlevel	16
 %define sublevel	0
-%define relc		4
+%define relc		7
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -344,7 +347,7 @@ very current hardware.
 
 
 ### Global Requires/Provides
-#%define requires2	dracut >= 026
+%define requires2	dracut >= 026
 %define requires3	kmod >= 12
 %define requires4	sysfsutils >=  2.1.0-12
 %define requires5	kernel-firmware
@@ -997,7 +1000,7 @@ SaveDevel() {
     cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
 
     for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
-		 mips mn10300 nios2 openrisc parisc powerpc riscv s390 score sh sparc tile unicore32 xtensa; do
+		 mips mn10300 nios2 openrisc parisc powerpc s390 score sh sparc tile unicore32 xtensa; do
 	rm -rf $TempDevelRoot/arch/$i
     done
 
@@ -1030,6 +1033,7 @@ $DevelRoot/Documentation
 $DevelRoot/arch/arm
 $DevelRoot/arch/arm64
 %endif
+$DevelRoot/arch/riscv
 $DevelRoot/arch/um
 $DevelRoot/arch/x86
 $DevelRoot/block
@@ -1412,44 +1416,6 @@ install -m 644 %{SOURCE4} .
 rm -rf %{buildroot}
 cp -a %{temp_root} %{buildroot}
 
-# Create directories infastructure
-%if %{with build_source}
-install -d %{target_source}
-tar cf - . | tar xf - -C %{target_source}
-chmod -R a+rX %{target_source}
-
-# File lists aren't needed
-rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
-
-# we remove all the source files that we don't ship
-# first architecture files
-for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
-	 mips nios2 openrisc parisc powerpc riscv s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
-	rm -rf %{target_source}/arch/$i
-done
-%ifnarch %{arm}
-    rm -rf %{target_source}/include/kvm/arm*
-%endif
-
-# other misc files
-rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes}
-rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore}
-rm -rf %{target_source}/.tmp_depmod/
-
-# more cleaning
-pushd %{target_source}
-# lots of gitignore files
-find -iname ".gitignore" -delete
-# clean tools tree
-%smake -C tools clean
-%smake -C tools/build clean
-%smake -C tools/build/feature clean
-rm -f .cache.mk
-popd
-
-#endif %{with build_source}
-%endif
-
 # compressing modules
 %if %{with build_modxz}
 find %{target_modules} -name "*.ko" | %kxargs xz -6e -T0
@@ -1518,6 +1484,55 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %endif
 %endif
 
+# Create directories infastructure
+%if %{with build_source}
+install -d %{target_source}
+
+# Drop script binaries that can be rebuilt
+find tools scripts -executable |while read r; do
+	if file $r |grep -q ELF; then
+		rm -f $r
+	fi
+done
+
+# Package what remains
+tar cf - . | tar xf - -C %{target_source}
+chmod -R a+rX %{target_source}
+
+rm %{target_source}/*.lang
+
+# File lists aren't needed
+rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
+
+# we remove all the source files that we don't ship
+# first architecture files
+for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
+	 mips nios2 openrisc parisc powerpc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
+	rm -rf %{target_source}/arch/$i
+done
+%ifnarch %{arm}
+    rm -rf %{target_source}/include/kvm/arm*
+%endif
+
+# other misc files
+rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes}
+rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore}
+rm -rf %{target_source}/.tmp_depmod/
+
+# more cleaning
+pushd %{target_source}
+# lots of gitignore files
+find -iname ".gitignore" -delete
+# clean tools tree
+%smake -C tools clean
+%smake -C tools/build clean
+%smake -C tools/build/feature clean
+rm -f .cache.mk
+popd
+
+#endif %{with build_source}
+%endif
+
 ############################################################
 ### Linker start4 > Check point to build for omv or rosa ###
 ############################################################
@@ -1535,6 +1550,7 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
 %{_kerneldir}/arch/arm64
+%{_kerneldir}/arch/riscv
 %{_kerneldir}/arch/um
 %{_kerneldir}/arch/x86
 %{_kerneldir}/block
