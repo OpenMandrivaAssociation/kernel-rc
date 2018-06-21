@@ -1,5 +1,6 @@
---- linux-4.10/drivers/platform/x86/acer-wmi.c.0003~	2017-03-12 12:53:30.833681056 +0100
-+++ linux-4.10/drivers/platform/x86/acer-wmi.c	2017-03-12 12:54:38.329101406 +0100
+diff -up linux-4.17/drivers/platform/x86/acer-wmi.c.0003~ linux-4.17/drivers/platform/x86/acer-wmi.c
+--- linux-4.17/drivers/platform/x86/acer-wmi.c.0003~	2018-06-21 14:32:01.421903111 +0200
++++ linux-4.17/drivers/platform/x86/acer-wmi.c	2018-06-21 14:35:31.798891519 +0200
 @@ -7,6 +7,9 @@
   *    Copyright (C) 2005-2007	E.M. Smith
   *    Copyright (C) 2007-2008	Carlos Corbacho <cathectic@gmail.com>
@@ -18,10 +19,10 @@
  };
  
  static const struct key_entry acer_wmi_keymap[] __initconst = {
-@@ -129,6 +133,26 @@ static const struct key_entry acer_wmi_k
- 	{KE_IGNORE, 0x83, {KEY_TOUCHPAD_TOGGLE} },
+@@ -130,6 +134,26 @@ static const struct key_entry acer_wmi_k
  	{KE_KEY, 0x85, {KEY_TOUCHPAD_TOGGLE} },
  	{KE_KEY, 0x86, {KEY_WLAN} },
+ 	{KE_KEY, 0x87, {KEY_POWER} },
 +	/* Acer Predator macro keys:
 +	 * 0xdaXY:
 +	 *   da   - magic value (preDAtor)
@@ -45,7 +46,7 @@
  	{KE_END, 0}
  };
  
-@@ -248,6 +272,7 @@ static bool ec_raw_mode;
+@@ -252,6 +276,7 @@ static bool ec_raw_mode;
  static bool has_type_aa;
  static u16 commun_func_bitmap;
  static u8 commun_fn_key_number;
@@ -53,7 +54,7 @@
  
  module_param(mailled, int, 0444);
  module_param(brightness, int, 0444);
-@@ -1777,6 +1802,25 @@ static void acer_wmi_notify(u32 value, v
+@@ -1785,6 +1810,25 @@ static void acer_wmi_notify(u32 value, v
  	case WMID_ACCEL_EVENT:
  		acer_gsensor_event();
  		break;

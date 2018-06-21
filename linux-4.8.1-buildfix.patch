@@ -1,28 +1,7 @@
---- linux-4.8/arch/x86/entry/vdso/Makefile.omv~	2016-10-08 01:05:08.399854613 +0200
-+++ linux-4.8/arch/x86/entry/vdso/Makefile	2016-10-08 01:07:29.320646038 +0200
-@@ -50,6 +50,7 @@ export CPPFLAGS_vdso.lds += -P -C
- VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
- 			-Wl,--no-undefined \
- 			-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096 \
-+			-fuse-ld=bfd \
- 			$(DISABLE_LTO)
- 
- $(obj)/vdso64.so.dbg: $(src)/vdso.lds $(vobjs) FORCE
-@@ -99,7 +100,8 @@ CPPFLAGS_vdsox32.lds = $(CPPFLAGS_vdso.l
- VDSO_LDFLAGS_vdsox32.lds = -Wl,-m,elf32_x86_64 \
- 			   -Wl,-soname=linux-vdso.so.1 \
- 			   -Wl,-z,max-page-size=4096 \
--			   -Wl,-z,common-page-size=4096
-+			   -Wl,-z,common-page-size=4096 \
-+			   -fuse-ld=bfd
- 
- # 64-bit objects to re-brand as x32
- vobjs64-for-x32 := $(filter-out $(vobjs-nox32),$(vobjs-y))
-diff --git a/arch/arm64/kernel/vdso/Makefile b/arch/arm64/kernel/vdso/Makefile
-index 62c84f7..66d4be1 100644
---- a/arch/arm64/kernel/vdso/Makefile
-+++ b/arch/arm64/kernel/vdso/Makefile
-@@ -13,7 +13,7 @@ obj-vdso := $(addprefix $(obj)/, $(obj-vdso))
+diff -up linux-4.17/arch/arm64/kernel/vdso/Makefile.0005~ linux-4.17/arch/arm64/kernel/vdso/Makefile
+--- linux-4.17/arch/arm64/kernel/vdso/Makefile.0005~	2018-06-03 23:15:21.000000000 +0200
++++ linux-4.17/arch/arm64/kernel/vdso/Makefile	2018-06-21 14:36:07.860889532 +0200
+@@ -14,7 +14,7 @@ obj-vdso := $(addprefix $(obj)/, $(obj-v
  
  ccflags-y := -shared -fno-common -fno-builtin
  ccflags-y += -nostdlib -Wl,-soname=linux-vdso.so.1 \
@@ -31,3 +10,24 @@ index 62c84f7..66d4be1 100644
  
  # Disable gcov profiling for VDSO code
  GCOV_PROFILE := n
+diff -up linux-4.17/arch/x86/entry/vdso/Makefile.0005~ linux-4.17/arch/x86/entry/vdso/Makefile
+--- linux-4.17/arch/x86/entry/vdso/Makefile.0005~	2018-06-21 14:36:07.860889532 +0200
++++ linux-4.17/arch/x86/entry/vdso/Makefile	2018-06-21 14:37:46.237884111 +0200
+@@ -49,6 +49,7 @@ CPPFLAGS_vdso.lds += -P -C
+ VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
+ 			-Wl,--no-undefined \
+ 			-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096 \
++			-fuse-ld=bfd \
+ 			$(DISABLE_LTO)
+ 
+ $(obj)/vdso64.so.dbg: $(obj)/vdso.lds $(vobjs) FORCE
+@@ -98,7 +99,8 @@ CPPFLAGS_vdsox32.lds = $(CPPFLAGS_vdso.l
+ VDSO_LDFLAGS_vdsox32.lds = -Wl,-m,elf32_x86_64 \
+ 			   -Wl,-soname=linux-vdso.so.1 \
+ 			   -Wl,-z,max-page-size=4096 \
+-			   -Wl,-z,common-page-size=4096
++			   -Wl,-z,common-page-size=4096 \
++			   -fuse-ld=bfd
+ 
+ # x32-rebranded versions
+ vobjx32s-y := $(vobjs-y:.o=-x32.o)

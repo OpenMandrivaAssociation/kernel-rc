@@ -1,27 +1,7 @@
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a74227ad082e..b5633b56391e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2705,6 +2705,14 @@ S:	Supported
- F:	drivers/net/bonding/
- F:	include/uapi/linux/if_bonding.h
- 
-+BOOTSPLASH
-+M:	Max Staudt <mstaudt@suse.de>
-+L:	linux-fbdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/video/fbdev/core/bootsplash*.*
-+F:	drivers/video/fbdev/core/dummycon.c
-+F:	include/linux/bootsplash.h
-+
- BPF (Safe dynamic programs and tools)
- M:	Alexei Starovoitov <ast@kernel.org>
- M:	Daniel Borkmann <daniel@iogearbox.net>
-diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
-index 7f1f1fbcef9e..f3ff976266fe 100644
---- a/drivers/video/console/Kconfig
-+++ b/drivers/video/console/Kconfig
-@@ -151,6 +151,30 @@ config FRAMEBUFFER_CONSOLE_ROTATION
+diff -up linux-4.17/drivers/video/console/Kconfig.0100~ linux-4.17/drivers/video/console/Kconfig
+--- linux-4.17/drivers/video/console/Kconfig.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/drivers/video/console/Kconfig	2018-06-05 20:47:02.391455193 +0200
+@@ -150,6 +150,30 @@ config FRAMEBUFFER_CONSOLE_ROTATION
           such that other users of the framebuffer will remain normally
           oriented.
  
@@ -51,23 +31,10 @@ index 7f1f1fbcef9e..f3ff976266fe 100644
 +
  config STI_CONSOLE
          bool "STI text console"
-         depends on PARISC
-diff --git a/drivers/video/fbdev/core/Makefile b/drivers/video/fbdev/core/Makefile
-index 73493bbd7a15..66895321928e 100644
---- a/drivers/video/fbdev/core/Makefile
-+++ b/drivers/video/fbdev/core/Makefile
-@@ -29,3 +29,6 @@ obj-$(CONFIG_FB_SYS_IMAGEBLIT) += sysimgblt.o
- obj-$(CONFIG_FB_SYS_FOPS)      += fb_sys_fops.o
- obj-$(CONFIG_FB_SVGALIB)       += svgalib.o
- obj-$(CONFIG_FB_DDC)           += fb_ddc.o
-+
-+obj-$(CONFIG_BOOTSPLASH)       += bootsplash.o bootsplash_render.o \
-+                                  dummyblit.o
-diff --git a/drivers/video/fbdev/core/bootsplash.c b/drivers/video/fbdev/core/bootsplash.c
-new file mode 100644
-index 000000000000..e449755af268
---- /dev/null
-+++ b/drivers/video/fbdev/core/bootsplash.c
+ 	depends on PARISC && HAS_IOMEM
+diff -up linux-4.17/drivers/video/fbdev/core/bootsplash.c.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash.c
+--- linux-4.17/drivers/video/fbdev/core/bootsplash.c.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/drivers/video/fbdev/core/bootsplash.c	2018-06-05 20:45:52.041451339 +0200
 @@ -0,0 +1,294 @@
 +/*
 + * Kernel based bootsplash.
@@ -363,11 +330,9 @@ index 000000000000..e449755af268
 +err:
 +	pr_err("Failed to initialize.\n");
 +}
-diff --git a/drivers/video/fbdev/core/bootsplash_internal.h b/drivers/video/fbdev/core/bootsplash_internal.h
-new file mode 100644
-index 000000000000..b11da5cb90bf
---- /dev/null
-+++ b/drivers/video/fbdev/core/bootsplash_internal.h
+diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h
+--- linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h	2018-06-05 20:45:52.041451339 +0200
 @@ -0,0 +1,55 @@
 +/*
 + * Kernel based bootsplash.
@@ -424,11 +389,9 @@ index 000000000000..b11da5cb90bf
 +void bootsplash_do_render_background(struct fb_info *info);
 +
 +#endif
-diff --git a/drivers/video/fbdev/core/bootsplash_render.c b/drivers/video/fbdev/core/bootsplash_render.c
-new file mode 100644
-index 000000000000..4d7e0117f653
---- /dev/null
-+++ b/drivers/video/fbdev/core/bootsplash_render.c
+diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_render.c.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash_render.c
+--- linux-4.17/drivers/video/fbdev/core/bootsplash_render.c.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/drivers/video/fbdev/core/bootsplash_render.c	2018-06-05 20:45:52.041451339 +0200
 @@ -0,0 +1,93 @@
 +/*
 + * Kernel based bootsplash.
@@ -523,11 +486,9 @@ index 000000000000..4d7e0117f653
 +		}
 +	}
 +}
-diff --git a/drivers/video/fbdev/core/dummyblit.c b/drivers/video/fbdev/core/dummyblit.c
-new file mode 100644
-index 000000000000..8c22ff92ce24
---- /dev/null
-+++ b/drivers/video/fbdev/core/dummyblit.c
+diff -up linux-4.17/drivers/video/fbdev/core/dummyblit.c.0100~ linux-4.17/drivers/video/fbdev/core/dummyblit.c
+--- linux-4.17/drivers/video/fbdev/core/dummyblit.c.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/drivers/video/fbdev/core/dummyblit.c	2018-06-05 20:45:52.041451339 +0200
 @@ -0,0 +1,89 @@
 +/*
 + *  linux/drivers/video/fbdev/core/dummyblit.c -- Dummy Blitting Operation
@@ -618,10 +579,9 @@ index 000000000000..8c22ff92ce24
 +MODULE_AUTHOR("Max Staudt <mstaudt@suse.de>");
 +MODULE_DESCRIPTION("Dummy Blitting Operation");
 +MODULE_LICENSE("GPL");
-diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
-index 04612f938bab..9a39a6fcfe98 100644
---- a/drivers/video/fbdev/core/fbcon.c
-+++ b/drivers/video/fbdev/core/fbcon.c
+diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/video/fbdev/core/fbcon.c
+--- linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~	2018-06-03 23:15:21.000000000 +0200
++++ linux-4.17/drivers/video/fbdev/core/fbcon.c	2018-06-05 20:45:52.041451339 +0200
 @@ -80,6 +80,7 @@
  #include <asm/irq.h>
  
@@ -630,7 +590,7 @@ index 04612f938bab..9a39a6fcfe98 100644
  
  #ifdef FBCONDEBUG
  #  define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
-@@ -542,6 +543,8 @@ static int do_fbcon_takeover(int show_logo)
+@@ -541,6 +542,8 @@ static int do_fbcon_takeover(int show_lo
  	for (i = first_fb_vc; i <= last_fb_vc; i++)
  		con2fb_map[i] = info_idx;
  
@@ -639,7 +599,7 @@ index 04612f938bab..9a39a6fcfe98 100644
  	err = do_take_over_console(&fb_con, first_fb_vc, last_fb_vc,
  				fbcon_is_default);
  
-@@ -661,6 +664,9 @@ static void set_blitting_type(struct vc_data *vc, struct fb_info *info)
+@@ -660,6 +663,9 @@ static void set_blitting_type(struct vc_
  	else {
  		fbcon_set_rotation(info);
  		fbcon_set_bitops(ops);
@@ -649,7 +609,7 @@ index 04612f938bab..9a39a6fcfe98 100644
  	}
  }
  
-@@ -683,6 +689,19 @@ static void set_blitting_type(struct vc_data *vc, struct fb_info *info)
+@@ -682,6 +688,19 @@ static void set_blitting_type(struct vc_
  	ops->p = &fb_display[vc->vc_num];
  	fbcon_set_rotation(info);
  	fbcon_set_bitops(ops);
@@ -669,7 +629,7 @@ index 04612f938bab..9a39a6fcfe98 100644
  }
  
  static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
-@@ -2184,6 +2203,9 @@ static int fbcon_switch(struct vc_data *vc)
+@@ -2191,6 +2210,9 @@ static int fbcon_switch(struct vc_data *
  	info = registered_fb[con2fb_map[vc->vc_num]];
  	ops = info->fbcon_par;
  
@@ -679,11 +639,10 @@ index 04612f938bab..9a39a6fcfe98 100644
  	if (softback_top) {
  		if (softback_lines)
  			fbcon_set_origin(vc);
-diff --git a/drivers/video/fbdev/core/fbcon.h b/drivers/video/fbdev/core/fbcon.h
-index 18f3ac144237..45f94347fe5e 100644
---- a/drivers/video/fbdev/core/fbcon.h
-+++ b/drivers/video/fbdev/core/fbcon.h
-@@ -214,6 +214,11 @@ static inline int attr_col_ec(int shift, struct vc_data *vc,
+diff -up linux-4.17/drivers/video/fbdev/core/fbcon.h.0100~ linux-4.17/drivers/video/fbdev/core/fbcon.h
+--- linux-4.17/drivers/video/fbdev/core/fbcon.h.0100~	2018-06-03 23:15:21.000000000 +0200
++++ linux-4.17/drivers/video/fbdev/core/fbcon.h	2018-06-05 20:45:52.041451339 +0200
+@@ -215,6 +215,11 @@ static inline int attr_col_ec(int shift,
  #define SCROLL_REDRAW	   0x004
  #define SCROLL_PAN_REDRAW  0x005
  
@@ -695,11 +654,19 @@ index 18f3ac144237..45f94347fe5e 100644
  #ifdef CONFIG_FB_TILEBLITTING
  extern void fbcon_set_tileops(struct vc_data *vc, struct fb_info *info);
  #endif
-diff --git a/include/linux/bootsplash.h b/include/linux/bootsplash.h
-new file mode 100644
-index 000000000000..c6dd0b43180d
---- /dev/null
-+++ b/include/linux/bootsplash.h
+diff -up linux-4.17/drivers/video/fbdev/core/Makefile.0100~ linux-4.17/drivers/video/fbdev/core/Makefile
+--- linux-4.17/drivers/video/fbdev/core/Makefile.0100~	2018-06-03 23:15:21.000000000 +0200
++++ linux-4.17/drivers/video/fbdev/core/Makefile	2018-06-05 20:45:52.041451339 +0200
+@@ -27,3 +27,6 @@ obj-$(CONFIG_FB_SYS_IMAGEBLIT) += sysimg
+ obj-$(CONFIG_FB_SYS_FOPS)      += fb_sys_fops.o
+ obj-$(CONFIG_FB_SVGALIB)       += svgalib.o
+ obj-$(CONFIG_FB_DDC)           += fb_ddc.o
++
++obj-$(CONFIG_BOOTSPLASH)       += bootsplash.o bootsplash_render.o \
++                                  dummyblit.o
+diff -up linux-4.17/include/linux/bootsplash.h.0100~ linux-4.17/include/linux/bootsplash.h
+--- linux-4.17/include/linux/bootsplash.h.0100~	2018-06-05 20:45:52.041451339 +0200
++++ linux-4.17/include/linux/bootsplash.h	2018-06-05 20:45:52.041451339 +0200
 @@ -0,0 +1,43 @@
 +/*
 + * Kernel based bootsplash.
@@ -744,3 +711,21 @@ index 000000000000..c6dd0b43180d
 +
 +
 +#endif
+diff -up linux-4.17/MAINTAINERS.0100~ linux-4.17/MAINTAINERS
+--- linux-4.17/MAINTAINERS.0100~	2018-06-03 23:15:21.000000000 +0200
++++ linux-4.17/MAINTAINERS	2018-06-05 20:45:52.041451339 +0200
+@@ -2715,6 +2715,14 @@ S:	Supported
+ F:	drivers/net/bonding/
+ F:	include/uapi/linux/if_bonding.h
+ 
++BOOTSPLASH
++M:	Max Staudt <mstaudt@suse.de>
++L:	linux-fbdev@vger.kernel.org
++S:	Maintained
++F:	drivers/video/fbdev/core/bootsplash*.*
++F:	drivers/video/fbdev/core/dummycon.c
++F:	include/linux/bootsplash.h
++
+ BPF (Safe dynamic programs and tools)
+ M:	Alexei Starovoitov <ast@kernel.org>
+ M:	Daniel Borkmann <daniel@iogearbox.net>
