@@ -1,0 +1,428 @@
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index efc7aa7a0670..a88cb4fbe62f 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -2609,9 +2609,6 @@
+ 			emulation library even if a 387 maths coprocessor
+ 			is present.
+ 
+-	no5lvl		[X86-64] Disable 5-level paging mode. Forces
+-			kernel to use 4-level paging instead.
+-
+ 	no_console_suspend
+ 			[HW] Never suspend the console
+ 			Disable suspending of consoles during suspend and
+diff --git a/arch/x86/boot/compressed/cmdline.c b/arch/x86/boot/compressed/cmdline.c
+index af6cda0b7900..0cb325734cfb 100644
+--- a/arch/x86/boot/compressed/cmdline.c
++++ b/arch/x86/boot/compressed/cmdline.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include "misc.h"
+ 
+-#if CONFIG_EARLY_PRINTK || CONFIG_RANDOMIZE_BASE || CONFIG_X86_5LEVEL
++#if CONFIG_EARLY_PRINTK || CONFIG_RANDOMIZE_BASE
+ 
+ static unsigned long fs;
+ static inline void set_fs(unsigned long seg)
+diff --git a/arch/x86/boot/compressed/head_64.S b/arch/x86/boot/compressed/head_64.S
+index 64037895b085..12915511be61 100644
+--- a/arch/x86/boot/compressed/head_64.S
++++ b/arch/x86/boot/compressed/head_64.S
+@@ -305,48 +305,13 @@ ENTRY(startup_64)
+ 	/* Set up the stack */
+ 	leaq	boot_stack_end(%rbx), %rsp
+ 
+-	/*
+-	 * paging_prepare() and cleanup_trampoline() below can have GOT
+-	 * references. Adjust the table with address we are running at.
+-	 *
+-	 * Zero RAX for adjust_got: the GOT was not adjusted before;
+-	 * there's no adjustment to undo.
+-	 */
+-	xorq	%rax, %rax
+-
+-	/*
+-	 * Calculate the address the binary is loaded at and use it as
+-	 * a GOT adjustment.
+-	 */
+-	call	1f
+-1:	popq	%rdi
+-	subq	$1b, %rdi
+-
+-	call	adjust_got
+-
+ 	/*
+ 	 * At this point we are in long mode with 4-level paging enabled,
+-	 * but we might want to enable 5-level paging or vice versa.
+-	 *
+-	 * The problem is that we cannot do it directly. Setting or clearing
+-	 * CR4.LA57 in long mode would trigger #GP. So we need to switch off
+-	 * long mode and paging first.
+-	 *
+-	 * We also need a trampoline in lower memory to switch over from
+-	 * 4- to 5-level paging for cases when the bootloader puts the kernel
+-	 * above 4G, but didn't enable 5-level paging for us.
+-	 *
+-	 * The same trampoline can be used to switch from 5- to 4-level paging
+-	 * mode, like when starting 4-level paging kernel via kexec() when
+-	 * original kernel worked in 5-level paging mode.
+-	 *
+-	 * For the trampoline, we need the top page table to reside in lower
+-	 * memory as we don't have a way to load 64-bit values into CR3 in
+-	 * 32-bit mode.
++	 * but we want to enable 5-level paging.
+ 	 *
+-	 * We go though the trampoline even if we don't have to: if we're
+-	 * already in a desired paging mode. This way the trampoline code gets
+-	 * tested on every boot.
++	 * The problem is that we cannot do it directly. Setting LA57 in
++	 * long mode would trigger #GP. So we need to switch off long mode
++	 * first.
+ 	 */
+ 
+ 	/* Make sure we have GDT with 32-bit code segment */
+@@ -365,39 +330,46 @@ ENTRY(startup_64)
+ 	 * this function call.
+ 	 */
+ 	pushq	%rsi
+-	movq	%rsi, %rdi		/* real mode address */
+ 	call	paging_prepare
+ 	popq	%rsi
+ 
+ 	/* Save the trampoline address in RCX */
+ 	movq	%rax, %rcx
+ 
++	/* Check if we need to enable 5-level paging */
++	cmpq	$0, %rdx
++	jz	lvl5
++
++	/* Clear additional page table */
++	leaq	lvl5_pgtable(%rbx), %rdi
++	xorq	%rax, %rax
++	movq	$(PAGE_SIZE/8), %rcx
++	rep	stosq
++
+ 	/*
+-	 * Load the address of trampoline_return() into RDI.
+-	 * It will be used by the trampoline to return to the main code.
++	 * Setup current CR3 as the first and only entry in a new top level
++	 * page table.
+ 	 */
+-	leaq	trampoline_return(%rip), %rdi
++	movq	%cr3, %rdi
++	leaq	0x7 (%rdi), %rax
++	movq	%rax, lvl5_pgtable(%rbx)
+ 
+ 	/* Switch to compatibility mode (CS.L = 0 CS.D = 1) via far return */
+ 	pushq	$__KERNEL32_CS
+-	leaq	TRAMPOLINE_32BIT_CODE_OFFSET(%rax), %rax
++	leaq	compatible_mode(%rip), %rax
+ 	pushq	%rax
+ 	lretq
+-trampoline_return:
++lvl5:
+ 	/* Restore the stack, the 32-bit trampoline uses its own stack */
+ 	leaq	boot_stack_end(%rbx), %rsp
+ 
+ 	/*
+ 	 * cleanup_trampoline() would restore trampoline memory.
+ 	 *
+-	 * RDI is address of the page table to use instead of page table
+-	 * in trampoline memory (if required).
+-	 *
+ 	 * RSI holds real mode data and needs to be preserved across
+ 	 * this function call.
+ 	 */
+ 	pushq	%rsi
+-	leaq	top_pgtable(%rbx), %rdi
+ 	call	cleanup_trampoline
+ 	popq	%rsi
+ 
+@@ -405,21 +377,6 @@ trampoline_return:
+ 	pushq	$0
+ 	popfq
+ 
+-	/*
+-	 * Previously we've adjusted the GOT with address the binary was
+-	 * loaded at. Now we need to re-adjust for relocation address.
+-	 *
+-	 * Calculate the address the binary is loaded at, so that we can
+-	 * undo the previous GOT adjustment.
+-	 */
+-	call	1f
+-1:	popq	%rax
+-	subq	$1b, %rax
+-
+-	/* The new adjustment is the relocation address */
+-	movq	%rbx, %rdi
+-	call	adjust_got
+-
+ /*
+  * Copy the compressed kernel to the end of our buffer
+  * where decompression in place becomes safe.
+@@ -520,6 +477,19 @@ relocated:
+ 	shrq	$3, %rcx
+ 	rep	stosq
+ 
++/*
++ * Adjust our own GOT
++ */
++	leaq	_got(%rip), %rdx
++	leaq	_egot(%rip), %rcx
++1:
++	cmpq	%rcx, %rdx
++	jae	2f
++	addq	%rbx, (%rdx)
++	addq	$8, %rdx
++	jmp	1b
++2:
++	
+ /*
+  * Do the extraction, and jump to the new kernel..
+  */
+@@ -538,36 +508,9 @@ relocated:
+  */
+ 	jmp	*%rax
+ 
+-/*
+- * Adjust the global offset table
+- *
+- * RAX is the previous adjustment of the table to undo (use 0 if it's the
+- * first time we touch GOT).
+- * RDI is the new adjustment to apply.
+- */
+-adjust_got:
+-	/* Walk through the GOT adding the address to the entries */
+-	leaq	_got(%rip), %rdx
+-	leaq	_egot(%rip), %rcx
+-1:
+-	cmpq	%rcx, %rdx
+-	jae	2f
+-	subq	%rax, (%rdx)	/* Undo previous adjustment */
+-	addq	%rdi, (%rdx)	/* Apply the new adjustment */
+-	addq	$8, %rdx
+-	jmp	1b
+-2:
+-	ret
+-
+ 	.code32
+-/*
+- * This is the 32-bit trampoline that will be copied over to low memory.
+- *
+- * RDI contains the return address (might be above 4G).
+- * ECX contains the base address of the trampoline memory.
+- * Non zero RDX on return means we need to enable 5-level paging.
+- */
+ ENTRY(trampoline_32bit_src)
++compatible_mode:
+ 	/* Set up data and stack segments */
+ 	movl	$__KERNEL_DS, %eax
+ 	movl	%eax, %ds
+@@ -581,61 +524,33 @@ ENTRY(trampoline_32bit_src)
+ 	btrl	$X86_CR0_PG_BIT, %eax
+ 	movl	%eax, %cr0
+ 
+-	/* Check what paging mode we want to be in after the trampoline */
+-	cmpl	$0, %edx
+-	jz	1f
++	/* Point CR3 to 5-level paging */
++	leal	lvl5_pgtable(%ebx), %eax
++	movl	%eax, %cr3
+ 
+-	/* We want 5-level paging: don't touch CR3 if it already points to 5-level page tables */
++	/* Enable PAE and LA57 mode */
+ 	movl	%cr4, %eax
+-	testl	$X86_CR4_LA57, %eax
+-	jnz	3f
+-	jmp	2f
+-1:
+-	/* We want 4-level paging: don't touch CR3 if it already points to 4-level page tables */
+-	movl	%cr4, %eax
+-	testl	$X86_CR4_LA57, %eax
+-	jz	3f
+-2:
+-	/* Point CR3 to the trampoline's new top level page table */
+-	leal	TRAMPOLINE_32BIT_PGTABLE_OFFSET(%ecx), %eax
+-	movl	%eax, %cr3
+-3:
+-	/* Enable PAE and LA57 (if required) paging modes */
+-	movl	$X86_CR4_PAE, %eax
+-	cmpl	$0, %edx
+-	jz	1f
+-	orl	$X86_CR4_LA57, %eax
+-1:
++	orl	$(X86_CR4_PAE | X86_CR4_LA57), %eax
+ 	movl	%eax, %cr4
+ 
+-	/* Calculate address of paging_enabled() once we are executing in the trampoline */
+-	leal	paging_enabled - trampoline_32bit_src + TRAMPOLINE_32BIT_CODE_OFFSET(%ecx), %eax
++	/* Calculate address we are running at */
++	call	1f
++1:	popl	%edi
++	subl	$1b, %edi
+ 
+-	/* Prepare the stack for far return to Long Mode */
++	/* Prepare stack for far return to Long Mode */
+ 	pushl	$__KERNEL_CS
+-	pushl	%eax
++	leal	lvl5(%edi), %eax
++	push	%eax
+ 
+-	/* Enable paging again */
++	/* Enable paging back */
+ 	movl	$(X86_CR0_PG | X86_CR0_PE), %eax
+ 	movl	%eax, %cr0
+ 
+ 	lret
+ 
+-	.code64
+-paging_enabled:
+-	/* Return from the trampoline */
+-	jmp	*%rdi
+-
+-	/*
+-         * The trampoline code has a size limit.
+-         * Make sure we fail to compile if the trampoline code grows
+-         * beyond TRAMPOLINE_32BIT_CODE_SIZE bytes.
+-	 */
+-	.org	trampoline_32bit_src + TRAMPOLINE_32BIT_CODE_SIZE
+-
+-	.code32
+ no_longmode:
+-	/* This isn't an x86-64 CPU, so hang intentionally, we cannot continue */
++	/* This isn't an x86-64 CPU so hang */
+ 1:
+ 	hlt
+ 	jmp     1b
+@@ -696,10 +611,5 @@ boot_stack_end:
+ 	.balign 4096
+ pgtable:
+ 	.fill BOOT_PGT_SIZE, 1, 0
+-
+-/*
+- * The page table is going to be used instead of page table in the trampoline
+- * memory.
+- */
+-top_pgtable:
++lvl5_pgtable:
+ 	.fill PAGE_SIZE, 1, 0
+diff --git a/arch/x86/boot/compressed/pgtable_64.c b/arch/x86/boot/compressed/pgtable_64.c
+index 8c5107545251..3cc7f3a64cba 100644
+--- a/arch/x86/boot/compressed/pgtable_64.c
++++ b/arch/x86/boot/compressed/pgtable_64.c
+@@ -22,6 +22,14 @@ struct paging_config {
+ /* Buffer to preserve trampoline memory */
+ static char trampoline_save[TRAMPOLINE_32BIT_SIZE];
+ 
++/*
++ * The page table is going to be used instead of page table in the trampoline
++ * memory.
++ *
++ * It must not be in BSS as BSS is cleared after cleanup_trampoline().
++ */
++static char top_pgtable[PAGE_SIZE] __aligned(PAGE_SIZE) __section(.data);
++
+ /*
+  * Trampoline address will be printed by extract_kernel() for debugging
+  * purposes.
+@@ -31,23 +39,16 @@ static char trampoline_save[TRAMPOLINE_32BIT_SIZE];
+  */
+ unsigned long *trampoline_32bit __section(.data);
+ 
+-extern struct boot_params *boot_params;
+-int cmdline_find_option_bool(const char *option);
+-
+-struct paging_config paging_prepare(void *rmode)
++struct paging_config paging_prepare(void)
+ {
+ 	struct paging_config paging_config = {};
+ 	unsigned long bios_start, ebda_start;
+ 
+-	/* Initialize boot_params. Required for cmdline_find_option_bool(). */
+-	boot_params = rmode;
+-
+ 	/*
+ 	 * Check if LA57 is desired and supported.
+ 	 *
+-	 * There are several parts to the check:
++	 * There are two parts to the check:
+ 	 *   - if the kernel supports 5-level paging: CONFIG_X86_5LEVEL=y
+-	 *   - if user asked to disable 5-level paging: no5lvl in cmdline
+ 	 *   - if the machine supports 5-level paging:
+ 	 *     + CPUID leaf 7 is supported
+ 	 *     + the leaf has the feature bit set
+@@ -55,7 +56,6 @@ struct paging_config paging_prepare(void *rmode)
+ 	 * That's substitute for boot_cpu_has() in early boot code.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_X86_5LEVEL) &&
+-			!cmdline_find_option_bool("no5lvl") &&
+ 			native_cpuid_eax(0) >= 7 &&
+ 			(native_cpuid_ecx(7) & (1 << (X86_FEATURE_LA57 & 31)))) {
+ 		paging_config.l5_required = 1;
+@@ -134,7 +134,7 @@ struct paging_config paging_prepare(void *rmode)
+ 	return paging_config;
+ }
+ 
+-void cleanup_trampoline(void *pgtable)
++void cleanup_trampoline(void)
+ {
+ 	void *trampoline_pgtable;
+ 
+@@ -145,8 +145,8 @@ void cleanup_trampoline(void *pgtable)
+ 	 * if it's there.
+ 	 */
+ 	if ((void *)__native_read_cr3() == trampoline_pgtable) {
+-		memcpy(pgtable, trampoline_pgtable, PAGE_SIZE);
+-		native_write_cr3((unsigned long)pgtable);
++		memcpy(top_pgtable, trampoline_pgtable, PAGE_SIZE);
++		native_write_cr3((unsigned long)top_pgtable);
+ 	}
+ 
+ 	/* Restore trampoline memory */
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index eb4cb3efd20e..c9fda65feede 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -1074,21 +1074,6 @@ static void __init early_identify_cpu(struct cpuinfo_x86 *c)
+ 	 */
+ 	setup_clear_cpu_cap(X86_FEATURE_PCID);
+ #endif
+-
+-	/*
+-	 * Later in the boot process pgtable_l5_enabled() relies on
+-	 * cpu_feature_enabled(X86_FEATURE_LA57). If 5-level paging is not
+-	 * enabled by this point we need to clear the feature bit to avoid
+-	 * false-positives at the later stage.
+-	 *
+-	 * pgtable_l5_enabled() can be false here for several reasons:
+-	 *  - 5-level paging is disabled compile-time;
+-	 *  - it's 32-bit kernel;
+-	 *  - machine doesn't support 5-level paging;
+-	 *  - user specified 'no5lvl' in kernel command line.
+-	 */
+-	if (!pgtable_l5_enabled())
+-		setup_clear_cpu_cap(X86_FEATURE_LA57);
+ }
+ 
+ void __init early_cpu_init(void)
+diff --git a/arch/x86/kernel/head64.c b/arch/x86/kernel/head64.c
+index 8047379e575a..8d372d1c266d 100644
+--- a/arch/x86/kernel/head64.c
++++ b/arch/x86/kernel/head64.c
+@@ -80,11 +80,10 @@ static unsigned int __head *fixup_int(void *ptr, unsigned long physaddr)
+ 
+ static bool __head check_la57_support(unsigned long physaddr)
+ {
+-	/*
+-	 * 5-level paging is detected and enabled at kernel decomression
+-	 * stage. Only check if it has been enabled there.
+-	 */
+-	if (!(native_read_cr4() & X86_CR4_LA57))
++	if (native_cpuid_eax(0) < 7)
++		return false;
++
++	if (!(native_cpuid_ecx(7) & (1 << (X86_FEATURE_LA57 & 31))))
+ 		return false;
+ 
+ 	*fixup_int(&__pgtable_l5_enabled, physaddr) = 1;
