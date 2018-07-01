@@ -931,7 +931,7 @@ chmod 755 tools/objtool/sync-check.sh
 ############################################################
 # Make sure we don't use gold
 export LD="%{_target_platform}-ld.bfd"
-export LDFLAGS="--hash-style=sysv --build-id=none"
+export LDFLAGS="--build-id=none"
 export PYTHON=%{__python2}
 
 ############################################################
@@ -1480,7 +1480,7 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 ### Linker start3 > Check point to build for omv or rosa ###
 ############################################################
 %if %{with build_perf}
-%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} PYTHON=%{__python2} WERROR=0 LDFLAGS="-Wl,--hash-style=sysv -Wl,--build-id=none" prefix=%{_prefix} all
+%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} PYTHON=%{__python2} WERROR=0 LDFLAGS="-Wl,--build-id=none" prefix=%{_prefix} all
 %{smake} -C tools/perf -s CC=%{__cc} prefix=%{_prefix} PYTHON=%{__python2} man
 %endif
 
@@ -1494,7 +1494,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 
 %ifarch %{ix86} x86_64
 %if %{with build_x86_energy_perf_policy}
-%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--hash-style=sysv -Wl,--build-id=none"
+%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--build-id=none"
 %endif
 
 %if %{with build_turbostat}
