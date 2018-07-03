@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	18
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -23,7 +23,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
 %define rpmrel		1
@@ -324,6 +324,10 @@ Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
 Patch144:	0124-Extend-FEC-enum.patch
 Patch145:	saa716x-driver-integration.patch
 Patch146:	saa716x-4.15.patch
+
+# Add LIMA driver for Mali 400/450
+# From https://gitlab.freedesktop.org/lima/linux.git
+Patch150:	kernel-4.17-rc7-add-lima-driver.patch
 
 # Anbox (http://anbox.io/) patches to Android IPC, rebased to 4.11
 # NOT YET
