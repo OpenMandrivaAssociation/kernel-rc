@@ -2,7 +2,7 @@
 %define _disable_ld_no_undefined 1
 
 # (tpg) try to speed up things
-%global optflags %{optflags} -O3
+%global optflags %{optflags} -Ofast
 
 # While perf comes with python2 scripts
 %define _python_bytecompile_build 0
@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	18
 %define sublevel	0
-%define relc		5
+%define relc		6
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -75,7 +75,7 @@
 %bcond_with cross_headers
 %endif
 
-%global	cross_header_archs	aarch64-linux armv7hl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android
+%global	cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android
 %global long_cross_header_archs %(
 	for i in %{cross_header_archs}; do
 		CPU=$(echo $i |cut -d- -f1)
@@ -84,7 +84,7 @@
 	done
 )
 
-%ifarch x86_64
+%ifarch %{x86_64}
 # BEGIN OF FLAVOURS
 %bcond_without build_desktop
 %bcond_without build_server
@@ -102,7 +102,7 @@
 %bcond_with build_perf
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 %bcond_without build_cpupower
 %else
 # cpupower is currently x86 only
@@ -155,7 +155,7 @@ Version:	%{kversion}
 Release:	%{rpmrel}
 License:	GPLv2
 Group:		System/Kernel and hardware
-ExclusiveArch:	%{ix86} x86_64 %{armx}
+ExclusiveArch:	%{ix86} %{x86_64} %{armx}
 ExclusiveOS:	Linux
 URL:		http://www.kernel.org
 
@@ -432,7 +432,7 @@ BuildRequires:	git-core
 BuildRequires:	pkgconfig(ncurses)
 BuildRequires:	pkgconfig(libkmod)
 
-%ifarch x86_64
+%ifarch %{x86_64}
 BuildRequires:	numa-devel
 %endif
 
@@ -479,7 +479,7 @@ Suggests:	microcode-intel
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %if %mdvver >= 3000000
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 BuildRequires:	dkms-virtualbox >= 5.2.8-1
 BuildRequires:	dkms-vboxadditions >= 5.2.8-1
 %endif
@@ -519,6 +519,7 @@ Suggests:	dracut >= 047				\
 %endif							\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
+Conflicts:	arch(znver1)				\
 %endif							\
 Summary:	%{expand:%{summary_%(echo %{1} | sed -e "s/-/_/")}} \
 Group:		System/Kernel and hardware		\
@@ -534,7 +535,7 @@ Requires:	ncurses-devel				\
 Requires:	make					\
 Requires:	gcc >= 7.2.1_2017.11-3			\
 Requires:	perl					\
-%ifarch x86_64						\
+%ifarch %{x86_64}					\
 Requires:	pkgconfig(libelf)			\
 %endif							\
 Summary:	The kernel-devel files for %{kname}-%{1}-%{buildrel} \
@@ -545,6 +546,7 @@ Provides:	%{kname}-%{1}-devel			\
 Requires:	%{kname}-%{1}-%{buildrel}		\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
+Conflicts:	arch(znver1)				\
 %endif							\
 %description -n %{kname}-%{1}-devel-%{buildrel}		\
 This package contains the kernel files (headers and build tools) \
@@ -566,6 +568,7 @@ Provides:	kernel-debug = %{kverrel} 		\
 Requires:	%{kname}-%{1}-%{buildrel}		\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
+Conflicts:	arch(znver1)				\
 %endif							\
 %description -n %{kname}-%{1}-%{buildrel}-debuginfo	\
 This package contains the files with debuginfo to aid in debug tasks \
@@ -584,6 +587,7 @@ Group:		System/Kernel and hardware		\
 Requires:	%{kname}-%{1}-%{buildrel}		\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
+Conflicts:	arch(znver1)				\
 %endif							\
 %{expand:%%{?latest_obsoletes_%{1}:Obsoletes: %{latest_obsoletes_%{1}}}} \
 %{expand:%%{?latest_provides_%{1}:Provides: %{latest_provides_%{1}}}} \
@@ -600,6 +604,7 @@ Group:		Development/Kernel			\
 Requires:	%{kname}-%{1}-devel-%{buildrel}		\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
+Conflicts:	arch(znver1)				\
 %endif							\
 Provides:	%{kname}-devel-latest			\
 %{expand:%%{?latest_obsoletes_devel_%{1}:Obsoletes: %{latest_obsoletes_devel_%{1}}}} \
@@ -887,7 +892,7 @@ LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
 %if %mdvver >= 3000000
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 # === VirtualBox guest additions ===
 # VBoxVideo is upstreamed -- let's fix it instead of copying the dkms driver
 # 800x600 is too small to be useful -- even calamares doesn't
@@ -1003,7 +1008,7 @@ BuildKernel() {
     KernelVer=$1
     printf '%s\n' "Building kernel $KernelVer"
 # (tpg) build with gcc, as kernel is not yet ready for LLVM/clang
-%ifarch x86_64
+%ifarch %{x86_64}
 %if %{with clang}
     %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS -flto" LDFLAGS="$LDFLAGS -flto"
 %else
@@ -1086,7 +1091,7 @@ SaveDevel() {
     cp -fR arch/%{target_arch}/tools $TempDevelRoot/arch/%{target_arch}/
 %endif
 
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
     cp -fR arch/x86/kernel/asm-offsets.{c,s} $TempDevelRoot/arch/x86/kernel/
     cp -fR arch/x86/kernel/asm-offsets_{32,64}.c $TempDevelRoot/arch/x86/kernel/
     cp -fR arch/x86/purgatory/* $TempDevelRoot/arch/x86/purgatory/
@@ -1381,8 +1386,10 @@ install -d %{temp_root}
 # DO it...
 ###
 # First of all, let's check for new config options...
-for a in arm arm64 i386 x86_64; do
+for a in arm arm64 i386 x86_64 znver1; do
 	CreateConfig $a desktop
+	export ARCH=$a
+	[ "$ARCH" = "znver1" ] && export ARCH=x86
 	make ARCH=$a listnewconfig |grep '^CONFIG' >newconfigs.$a || :
 done
 cat newconfigs.* >newconfigs
@@ -1415,10 +1422,12 @@ rm -f newconfigs*
 
 # Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
-for a in arm arm64 i386 x86_64; do
+for a in arm arm64 i386 x86_64 znver1; do
 	for t in desktop server; do
 		CreateConfig $a $t
-		make ARCH=$a oldconfig
+		export ARCH=$a
+		[ "$ARCH" = "znver1" ] && export ARCH=x86
+		make oldconfig
 %if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
 			# While we have a kernel configured for it, let's package
@@ -1445,7 +1454,7 @@ for a in arm arm64 i386 x86_64; do
 					ARCH=x86
 					SARCH=x86
 					;;
-				x86_64)
+				x86_64|znver1)
 					[ "$a" != "x86_64" ] && continue
 					SARCH=x86
 					;;
@@ -1496,7 +1505,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 
 %kmake -C tools/bootsplash LDFLAGS="%{optflags}"
 
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 %kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--build-id=none"
 %endif
@@ -1600,7 +1609,7 @@ install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 
 install -m755 tools/bootsplash/bootsplash-packer %{buildroot}%{_bindir}/
 
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %kmake -C tools/power/x86/x86_energy_perf_policy install DESTDIR="%{buildroot}"
@@ -1741,7 +1750,7 @@ cd -
 %if %{with build_perf}
 %files -n perf
 %{_bindir}/perf
-%ifarch x86_64
+%ifarch %{x86_64}
 %{_bindir}/perf-read-vdso32
 %endif
 %{_bindir}/trace
@@ -1772,7 +1781,7 @@ cd -
 %files -n bootsplash-packer
 %{_bindir}/bootsplash-packer
 
-%ifarch %{ix86} x86_64
+%ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 %files -n x86_energy_perf_policy
 %{_bindir}/x86_energy_perf_policy
