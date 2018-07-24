@@ -1608,6 +1608,7 @@ install -m644 %{SOURCE50} %{buildroot}%{_unitdir}/cpupower.service
 install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %endif
 
+mkdir -p %{buildroot}%{_bindir}
 install -m755 tools/bootsplash/bootsplash-packer %{buildroot}%{_bindir}/
 
 %ifarch %{ix86} %{x86_64}
