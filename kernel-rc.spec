@@ -182,6 +182,7 @@ Source7:	x86_64-common.config
 Source10:	i386-common.config
 Source11:	arm64-common.config
 Source12:	arm-common.config
+Source13:	znver1-common.config
 # Files called $ARCH-$FLAVOR.config are merged as well,
 # currently there's no need to have specific overloads there.
 
