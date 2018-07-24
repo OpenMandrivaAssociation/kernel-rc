@@ -336,7 +336,8 @@ Patch150:	kernel-4.17-rc7-add-lima-driver.patch
 # NOT YET
 #Patch201:	0002-binder-implement-namepsace-support-for-Android-binde.patch
 
-Patch250:	4.14-C11.patch
+# NOT YET
+#Patch250:	4.14-C11.patch
 
 # VirtualBox shared folders support
 # https://patchwork.kernel.org/patch/10315707/
@@ -1630,7 +1631,7 @@ install -d %{target_source}
 tar cf - . | tar xf - -C %{target_source}
 chmod -R a+rX %{target_source}
 
-rm %{target_source}/*.lang
+rm -f %{target_source}/*.lang
 
 # File lists aren't needed
 rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
