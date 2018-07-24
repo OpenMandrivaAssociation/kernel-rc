@@ -24,7 +24,7 @@ index 000000000000..0ad8e8a84942
 +++ b/tools/bootsplash/Makefile
 @@ -0,0 +1,9 @@
 +CC := $(CROSS_COMPILE)gcc
-+CFLAGS := -I../../usr/include
++CFLAGS := -I../../include/uapi -I../../include -I../../usr/include
 +
 +PROGS := bootsplash-packer
 +
