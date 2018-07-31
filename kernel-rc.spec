@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	18
 %define sublevel	0
-%define relc		6
+%define relc		7
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -130,10 +130,10 @@
 ############################################################
 ### Linker start1 > Check point to build for omv or rosa ###
 ############################################################
-%define kmake ARCH=%{target_arch} %{make} LD="$LD" LDFLAGS="$LDFLAGS"
+%define kmake ARCH=%{target_arch} %{make} LD="$LD"
 # there are places where parallel make don't work
 # usually we use this
-%define smake make LD="$LD" LDFLAGS="$LDFLAGS"
+%define smake make LD="$LD"
 
 ###################################################
 ###  Linker end1 > Check point to build for omv ###
@@ -942,7 +942,6 @@ chmod 755 tools/objtool/sync-check.sh
 ############################################################
 # Make sure we don't use gold
 export LD="%{_target_platform}-ld.bfd"
-export LDFLAGS="--build-id=none"
 export PYTHON=%{__python2}
 
 ############################################################
@@ -1012,15 +1011,15 @@ BuildKernel() {
 # (tpg) build with gcc, as kernel is not yet ready for LLVM/clang
 %ifarch %{x86_64}
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS -flto" LDFLAGS="$LDFLAGS -flto"
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS -flto"
 %else
-    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -flto" LDFLAGS="$LDFLAGS -flto"
+    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -flto"
 %endif
 %else
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS"
 %else
-    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
 %endif
 
@@ -1495,7 +1494,7 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 ### Linker start3 > Check point to build for omv or rosa ###
 ############################################################
 %if %{with build_perf}
-%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} PYTHON=%{__python2} WERROR=0 LDFLAGS="-Wl,--build-id=none" prefix=%{_prefix} all
+%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} PYTHON=%{__python2} WERROR=0 prefix=%{_prefix} all
 %{smake} -C tools/perf -s CC=%{__cc} prefix=%{_prefix} PYTHON=%{__python2} man
 %endif
 
@@ -1509,7 +1508,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 
 %ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
-%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--build-id=none"
+%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="%{optflags} -Wl,--build-id=none"
 %endif
 
 %if %{with build_turbostat}
