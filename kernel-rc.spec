@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	18
 %define sublevel	0
-%define relc		7
+%define relc		8
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -209,20 +209,6 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
-
-# Kernels >= 4.17-rc1 trigger an instant reboot when built with gcc 8.1 and
-# compiler flags set in the kernel package.
-# git bisect shows the problematic commit being
-# 0a1756bd2897951c03c1cb671bdfd40729ac2177
-#
-# This patch reverts a few more commits because they build on top of it,
-# namely:
-# 0a1756bd2897951c03c1cb671bdfd40729ac2177
-# 194a9749c73d650c0b1dfdee04fb0bdf0a888ba8
-# 5c9b0b1c49881c680d4a56b9d9e03dfb3160fd4d
-# 589bb62be316401603453c7d2d3c60ad8b9c3cf3
-# 372fddf709041743a93e381556f4c41aad1e28f8
-Patch6:		revert-patches-causing-instant-reboot.patch
 
 %if %{with clang}
 # Patches to make it build with clang
