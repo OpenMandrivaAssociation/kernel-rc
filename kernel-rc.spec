@@ -11,9 +11,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	18
+%define patchlevel	19
 %define sublevel	0
-%define relc		8
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -26,7 +26,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
-%define rpmrel		1
+%define rpmrel		2
 %define tar_ver		%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -283,8 +283,11 @@ Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-fi
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
-# Temporarily disabled for -rc releases until ported upstream
+# Temporarily disabled until ported upstream
 #Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/uksm-4.17.patch
+# Sometimes other people are ahead of upstream porting to new releases...
+Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-uksm/0001-uksm-4.18-initial-submission.patch
+Patch121:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-uksm/0002-uksm-4.18-rework-exit_mmap-locking.patch
 
 %if %{with build_modzstd}
 # https://patchwork.kernel.org/patch/10003007/
@@ -332,6 +335,20 @@ Patch150:	kernel-4.17-rc7-add-lima-driver.patch
 Patch300:	v7-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.patch
 Patch301:	vbox-4.18.patch
 
+# Better support for newer x86 processors
+# Original patch:
+#Patch310:	https://raw.githubusercontent.com/graysky2/kernel_gcc_patch/master/enable_additional_cpu_optimizations_for_gcc_v8.1%2B_kernel_v4.13%2B.patch
+# More actively maintained for newer kernels
+Patch310:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/gcc-patch-backup-from-pf/0001-gcctunes-4.18-merge-graysky-s-patchset.patch
+
+# BFQ-MQ
+Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/4.18-bfq-sq-mq-v8r12-2K180817.patch
+
+# Assorted fixes
+Patch330:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-miscellaneous-v3/0001-Increase-timeout-in-lspcon_wait_mode.patch
+# Ported from https://marc.info/?l=linux-crypto-vger&m=153436754612783&q=raw
+Patch333:	workaround-udev-on-ryzen.patch
+
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
 # being touched aren't in the tree at the time %%apply_patches
@@ -349,7 +366,10 @@ Patch406:	0110-fs-ext4-fsync-optimize-double-fsync-a-bunch.patch
 Patch407:	0111-overload-on-wakeup.patch
 # needs a rediff
 #Patch408:	0113-fix-initcall-timestamps.patch
-Patch409:	0114-smpboot-reuse-timer-calibration.patch
+# This is actually a bad idea.
+# Especially in the ARM world, not every core is necessarily
+# the same speed.
+#Patch409:	0114-smpboot-reuse-timer-calibration.patch
 Patch410:	0116-Initialize-ata-before-graphics.patch
 Patch411:	0117-reduce-e1000e-boot-time-by-tightening-sleep-ranges.patch
 Patch412:	0119-e1000e-change-default-policy.patch
@@ -985,7 +1005,11 @@ PrepareKernel() {
     config_dir=%{_sourcedir}
     printf '%s\n' "Make config for kernel $extension"
     %{smake} -s mrproper
+%ifarch znver1
+    CreateConfig %{_target_cpu} ${flavour}
+%else
     CreateConfig %{target_arch} ${flavour}
+%endif
     # make sure EXTRAVERSION says what we want it to say
     sed -ri "s|^(EXTRAVERSION =).*|\1 -$extension|" Makefile
     %{smake} oldconfig
@@ -1255,10 +1279,6 @@ cat > $kernel_files <<EOF
 %{_bootdir}/symvers-%{kversion}-$kernel_flavour-%{buildrpmrel}.[gxz]*
 %{_bootdir}/config-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %{_bootdir}/$ker-%{kversion}-$kernel_flavour-%{buildrpmrel}
-# device tree binary
-%ifarch %{armx}
-%{_bootdir}/dtb-%{kversion}-$kernel_flavour-%{buildrpmrel}
-%endif
 %dir %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.*
@@ -1377,15 +1397,15 @@ for a in arm arm64 i386 x86_64 znver1; do
 	CreateConfig $a desktop
 	export ARCH=$a
 	[ "$ARCH" = "znver1" ] && export ARCH=x86
-	make ARCH=$a listnewconfig |grep '^CONFIG' >newconfigs.$a || :
+	make ARCH=$ARCH listnewconfig |grep '^CONFIG' >newconfigs.$a || :
 done
 cat newconfigs.* >newconfigs
 cat newconfigs.arm |while read r; do
-	if grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.i386 && grep -qE "^$r\$" newconfigs.x86_64; then
+	if grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.i386 && grep -qE "^$r\$" newconfigs.x86_64 && grep -qE "^$r\$" newconfigs.znver1; then
 		echo $r >>newconfigs.common
 	fi
 done
-for i in arm arm64 i386 x86_64; do
+for i in arm arm64 i386 x86_64 znver1; do
 	cat newconfigs.$i |while read r; do
 		grep -qE "^$r\$" newconfigs.common || echo $r >>newconfigs.${i}only
 	done
@@ -1398,7 +1418,7 @@ if [ -s newconfigs ]; then
 		printf '%s\n' "For common.config:"
 		sed -e 's/.*=n/# & is not set/;s,=n,,' newconfigs.common
 	fi
-	for i in arm arm64 i386 x86_64; do
+	for i in arm arm64 i386 x86_64 znver1; do
 		[ -e newconfigs.${i}only ] || continue
 		printf '%s\n' "For $i-common.config:"
 		sed -e 's/.*=n/# & is not set/;s,=n,,' newconfigs.${i}only

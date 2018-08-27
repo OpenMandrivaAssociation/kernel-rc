@@ -1,14 +1,15 @@
---- linux-4.14/drivers/tty/vt/vt.c.0105~	2018-01-22 22:13:28.229672901 +0100
-+++ linux-4.14/drivers/tty/vt/vt.c	2018-01-22 22:14:04.867704714 +0100
+diff -up linux-4.18/drivers/tty/vt/vt.c.0105~ linux-4.18/drivers/tty/vt/vt.c
+--- linux-4.18/drivers/tty/vt/vt.c.0105~	2018-08-27 10:29:31.271084528 +0200
++++ linux-4.18/drivers/tty/vt/vt.c	2018-08-27 10:29:55.237173474 +0200
 @@ -104,6 +104,7 @@
  #include <linux/kdb.h>
  #include <linux/ctype.h>
  #include <linux/bsearch.h>
 +#include <linux/bootsplash.h>
+ #include <linux/gcd.h>
  
  #define MAX_NR_CON_DRIVER 16
- 
-@@ -3902,6 +3903,7 @@ void do_unblank_screen(int leaving_gfx)
+@@ -4239,6 +4240,7 @@ void do_unblank_screen(int leaving_gfx)
  	}
  
  	console_blanked = 0;
@@ -16,8 +17,9 @@
  	if (vc->vc_sw->con_blank(vc, 0, leaving_gfx) || vt_force_oops_output(vc))
  		/* Low-level driver cannot restore -> do it ourselves */
  		update_screen(vc);
---- linux-4.14/drivers/video/fbdev/core/bootsplash.c.0105~	2018-01-22 22:13:28.392673044 +0100
-+++ linux-4.14/drivers/video/fbdev/core/bootsplash.c	2018-01-22 22:13:28.395673047 +0100
+diff -up linux-4.18/drivers/video/fbdev/core/bootsplash.c.0105~ linux-4.18/drivers/video/fbdev/core/bootsplash.c
+--- linux-4.18/drivers/video/fbdev/core/bootsplash.c.0105~	2018-08-27 10:29:31.329084650 +0200
++++ linux-4.18/drivers/video/fbdev/core/bootsplash.c	2018-08-27 10:29:31.331084654 +0200
 @@ -165,6 +165,13 @@ bool bootsplash_would_render_now(void)
  		&& bootsplash_is_enabled();
  }
@@ -54,8 +56,9 @@
  
  	if (bootsplash_would_render_now())
  		schedule_work(&splash_state.work_redraw_vc);
---- linux-4.14/include/linux/bootsplash.h.0105~	2018-01-22 22:13:28.380673033 +0100
-+++ linux-4.14/include/linux/bootsplash.h	2018-01-22 22:13:28.395673047 +0100
+diff -up linux-4.18/include/linux/bootsplash.h.0105~ linux-4.18/include/linux/bootsplash.h
+--- linux-4.18/include/linux/bootsplash.h.0105~	2018-08-27 10:29:31.321084633 +0200
++++ linux-4.18/include/linux/bootsplash.h	2018-08-27 10:29:31.331084654 +0200
 @@ -19,6 +19,8 @@ extern void bootsplash_render_full(struc
  
  extern bool bootsplash_would_render_now(void);

@@ -5063,33 +5063,6 @@ diff -up linux-4.17/drivers/gpu/drm/Makefile.0150~ linux-4.17/drivers/gpu/drm/Ma
  obj-$(CONFIG_DRM_TVE200) += tve200/
  obj-$(CONFIG_DRM_XEN) += xen/
 +obj-$(CONFIG_DRM_LIMA)  += lima/
-diff -up linux-4.17/include/uapi/drm/drm_fourcc.h.0150~ linux-4.17/include/uapi/drm/drm_fourcc.h
---- linux-4.17/include/uapi/drm/drm_fourcc.h.0150~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/include/uapi/drm/drm_fourcc.h	2018-07-02 19:37:08.166000956 +0200
-@@ -183,6 +183,7 @@ extern "C" {
- #define DRM_FORMAT_MOD_VENDOR_QCOM    0x05
- #define DRM_FORMAT_MOD_VENDOR_VIVANTE 0x06
- #define DRM_FORMAT_MOD_VENDOR_BROADCOM 0x07
-+#define DRM_FORMAT_MOD_VENDOR_ARM     0x08
- /* add more to the end as needed */
- 
- #define DRM_FORMAT_RESERVED	      ((1ULL << 56) - 1)
-@@ -405,6 +406,15 @@ extern "C" {
-  */
- #define DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED fourcc_mod_code(BROADCOM, 1)
- 
-+/*
-+ * ARM tiled format
-+ *
-+ * This is used by ARM Mali Utgard/Midgard GPU. It divides buffer into
-+ * 16x16 pixel blocks. Blocks are stored linearly in order, but pixels
-+ * in the block are reordered.
-+ */
-+#define DRM_FORMAT_MOD_ARM_TILED fourcc_mod_code(ARM, 1)
-+
- #if defined(__cplusplus)
- }
- #endif
 diff -up linux-4.17/include/uapi/drm/lima_drm.h.0150~ linux-4.17/include/uapi/drm/lima_drm.h
 --- linux-4.17/include/uapi/drm/lima_drm.h.0150~	2018-07-02 19:37:08.166000956 +0200
 +++ linux-4.17/include/uapi/drm/lima_drm.h	2018-07-02 19:37:08.166000956 +0200

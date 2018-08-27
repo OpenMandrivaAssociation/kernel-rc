@@ -1,9 +1,9 @@
-diff -up linux-4.17/drivers/video/console/Kconfig.0100~ linux-4.17/drivers/video/console/Kconfig
---- linux-4.17/drivers/video/console/Kconfig.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/drivers/video/console/Kconfig	2018-06-05 20:47:02.391455193 +0200
-@@ -150,6 +150,30 @@ config FRAMEBUFFER_CONSOLE_ROTATION
-          such that other users of the framebuffer will remain normally
-          oriented.
+diff -up linux-4.18/drivers/video/console/Kconfig.0100~ linux-4.18/drivers/video/console/Kconfig
+--- linux-4.18/drivers/video/console/Kconfig.0100~	2018-08-27 10:28:08.073909394 +0200
++++ linux-4.18/drivers/video/console/Kconfig	2018-08-27 10:29:04.500028244 +0200
+@@ -161,6 +161,30 @@ config FRAMEBUFFER_CONSOLE_DEFERRED_TAKE
+ 	  by the firmware in place, rather then replacing the contents with a
+ 	  black screen as soon as fbcon loads.
  
 +config BOOTSPLASH
 +	bool "Bootup splash screen"
@@ -32,9 +32,9 @@ diff -up linux-4.17/drivers/video/console/Kconfig.0100~ linux-4.17/drivers/video
  config STI_CONSOLE
          bool "STI text console"
  	depends on PARISC && HAS_IOMEM
-diff -up linux-4.17/drivers/video/fbdev/core/bootsplash.c.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash.c
---- linux-4.17/drivers/video/fbdev/core/bootsplash.c.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/drivers/video/fbdev/core/bootsplash.c	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/bootsplash.c.0100~ linux-4.18/drivers/video/fbdev/core/bootsplash.c
+--- linux-4.18/drivers/video/fbdev/core/bootsplash.c.0100~	2018-08-27 10:28:08.073909394 +0200
++++ linux-4.18/drivers/video/fbdev/core/bootsplash.c	2018-08-27 10:28:08.073909394 +0200
 @@ -0,0 +1,294 @@
 +/*
 + * Kernel based bootsplash.
@@ -330,9 +330,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/bootsplash.c.0100~ linux-4.17/drive
 +err:
 +	pr_err("Failed to initialize.\n");
 +}
-diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h
---- linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/bootsplash_internal.h.0100~ linux-4.18/drivers/video/fbdev/core/bootsplash_internal.h
+--- linux-4.18/drivers/video/fbdev/core/bootsplash_internal.h.0100~	2018-08-27 10:28:08.073909394 +0200
++++ linux-4.18/drivers/video/fbdev/core/bootsplash_internal.h	2018-08-27 10:28:08.073909394 +0200
 @@ -0,0 +1,55 @@
 +/*
 + * Kernel based bootsplash.
@@ -389,9 +389,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_internal.h.0100~ linux-4
 +void bootsplash_do_render_background(struct fb_info *info);
 +
 +#endif
-diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_render.c.0100~ linux-4.17/drivers/video/fbdev/core/bootsplash_render.c
---- linux-4.17/drivers/video/fbdev/core/bootsplash_render.c.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/drivers/video/fbdev/core/bootsplash_render.c	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/bootsplash_render.c.0100~ linux-4.18/drivers/video/fbdev/core/bootsplash_render.c
+--- linux-4.18/drivers/video/fbdev/core/bootsplash_render.c.0100~	2018-08-27 10:28:08.073909394 +0200
++++ linux-4.18/drivers/video/fbdev/core/bootsplash_render.c	2018-08-27 10:28:08.073909394 +0200
 @@ -0,0 +1,93 @@
 +/*
 + * Kernel based bootsplash.
@@ -486,9 +486,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/bootsplash_render.c.0100~ linux-4.1
 +		}
 +	}
 +}
-diff -up linux-4.17/drivers/video/fbdev/core/dummyblit.c.0100~ linux-4.17/drivers/video/fbdev/core/dummyblit.c
---- linux-4.17/drivers/video/fbdev/core/dummyblit.c.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/drivers/video/fbdev/core/dummyblit.c	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/dummyblit.c.0100~ linux-4.18/drivers/video/fbdev/core/dummyblit.c
+--- linux-4.18/drivers/video/fbdev/core/dummyblit.c.0100~	2018-08-27 10:28:08.074909396 +0200
++++ linux-4.18/drivers/video/fbdev/core/dummyblit.c	2018-08-27 10:28:08.074909396 +0200
 @@ -0,0 +1,89 @@
 +/*
 + *  linux/drivers/video/fbdev/core/dummyblit.c -- Dummy Blitting Operation
@@ -579,9 +579,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/dummyblit.c.0100~ linux-4.17/driver
 +MODULE_AUTHOR("Max Staudt <mstaudt@suse.de>");
 +MODULE_DESCRIPTION("Dummy Blitting Operation");
 +MODULE_LICENSE("GPL");
-diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/video/fbdev/core/fbcon.c
---- linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/drivers/video/fbdev/core/fbcon.c	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.18/drivers/video/fbdev/core/fbcon.c
+--- linux-4.18/drivers/video/fbdev/core/fbcon.c.0100~	2018-08-27 10:28:08.025909293 +0200
++++ linux-4.18/drivers/video/fbdev/core/fbcon.c	2018-08-27 10:28:08.074909396 +0200
 @@ -80,6 +80,7 @@
  #include <asm/irq.h>
  
@@ -590,7 +590,7 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/vi
  
  #ifdef FBCONDEBUG
  #  define DPRINTK(fmt, args...) printk(KERN_DEBUG "%s: " fmt, __func__ , ## args)
-@@ -541,6 +542,8 @@ static int do_fbcon_takeover(int show_lo
+@@ -553,6 +554,8 @@ static int do_fbcon_takeover(int show_lo
  	for (i = first_fb_vc; i <= last_fb_vc; i++)
  		con2fb_map[i] = info_idx;
  
@@ -599,7 +599,7 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/vi
  	err = do_take_over_console(&fb_con, first_fb_vc, last_fb_vc,
  				fbcon_is_default);
  
-@@ -660,6 +663,9 @@ static void set_blitting_type(struct vc_
+@@ -673,6 +676,9 @@ static void set_blitting_type(struct vc_
  	else {
  		fbcon_set_rotation(info);
  		fbcon_set_bitops(ops);
@@ -609,7 +609,7 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/vi
  	}
  }
  
-@@ -682,6 +688,19 @@ static void set_blitting_type(struct vc_
+@@ -695,6 +701,19 @@ static void set_blitting_type(struct vc_
  	ops->p = &fb_display[vc->vc_num];
  	fbcon_set_rotation(info);
  	fbcon_set_bitops(ops);
@@ -629,7 +629,7 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/vi
  }
  
  static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
-@@ -2191,6 +2210,9 @@ static int fbcon_switch(struct vc_data *
+@@ -2206,6 +2225,9 @@ static int fbcon_switch(struct vc_data *
  	info = registered_fb[con2fb_map[vc->vc_num]];
  	ops = info->fbcon_par;
  
@@ -639,9 +639,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.c.0100~ linux-4.17/drivers/vi
  	if (softback_top) {
  		if (softback_lines)
  			fbcon_set_origin(vc);
-diff -up linux-4.17/drivers/video/fbdev/core/fbcon.h.0100~ linux-4.17/drivers/video/fbdev/core/fbcon.h
---- linux-4.17/drivers/video/fbdev/core/fbcon.h.0100~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/drivers/video/fbdev/core/fbcon.h	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/fbcon.h.0100~ linux-4.18/drivers/video/fbdev/core/fbcon.h
+--- linux-4.18/drivers/video/fbdev/core/fbcon.h.0100~	2018-08-12 22:41:04.000000000 +0200
++++ linux-4.18/drivers/video/fbdev/core/fbcon.h	2018-08-27 10:28:08.074909396 +0200
 @@ -215,6 +215,11 @@ static inline int attr_col_ec(int shift,
  #define SCROLL_REDRAW	   0x004
  #define SCROLL_PAN_REDRAW  0x005
@@ -654,9 +654,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/fbcon.h.0100~ linux-4.17/drivers/vi
  #ifdef CONFIG_FB_TILEBLITTING
  extern void fbcon_set_tileops(struct vc_data *vc, struct fb_info *info);
  #endif
-diff -up linux-4.17/drivers/video/fbdev/core/Makefile.0100~ linux-4.17/drivers/video/fbdev/core/Makefile
---- linux-4.17/drivers/video/fbdev/core/Makefile.0100~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/drivers/video/fbdev/core/Makefile	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/drivers/video/fbdev/core/Makefile.0100~ linux-4.18/drivers/video/fbdev/core/Makefile
+--- linux-4.18/drivers/video/fbdev/core/Makefile.0100~	2018-08-12 22:41:04.000000000 +0200
++++ linux-4.18/drivers/video/fbdev/core/Makefile	2018-08-27 10:28:08.074909396 +0200
 @@ -27,3 +27,6 @@ obj-$(CONFIG_FB_SYS_IMAGEBLIT) += sysimg
  obj-$(CONFIG_FB_SYS_FOPS)      += fb_sys_fops.o
  obj-$(CONFIG_FB_SVGALIB)       += svgalib.o
@@ -664,9 +664,9 @@ diff -up linux-4.17/drivers/video/fbdev/core/Makefile.0100~ linux-4.17/drivers/v
 +
 +obj-$(CONFIG_BOOTSPLASH)       += bootsplash.o bootsplash_render.o \
 +                                  dummyblit.o
-diff -up linux-4.17/include/linux/bootsplash.h.0100~ linux-4.17/include/linux/bootsplash.h
---- linux-4.17/include/linux/bootsplash.h.0100~	2018-06-05 20:45:52.041451339 +0200
-+++ linux-4.17/include/linux/bootsplash.h	2018-06-05 20:45:52.041451339 +0200
+diff -up linux-4.18/include/linux/bootsplash.h.0100~ linux-4.18/include/linux/bootsplash.h
+--- linux-4.18/include/linux/bootsplash.h.0100~	2018-08-27 10:28:08.074909396 +0200
++++ linux-4.18/include/linux/bootsplash.h	2018-08-27 10:28:08.074909396 +0200
 @@ -0,0 +1,43 @@
 +/*
 + * Kernel based bootsplash.
@@ -711,10 +711,10 @@ diff -up linux-4.17/include/linux/bootsplash.h.0100~ linux-4.17/include/linux/bo
 +
 +
 +#endif
-diff -up linux-4.17/MAINTAINERS.0100~ linux-4.17/MAINTAINERS
---- linux-4.17/MAINTAINERS.0100~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/MAINTAINERS	2018-06-05 20:45:52.041451339 +0200
-@@ -2715,6 +2715,14 @@ S:	Supported
+diff -up linux-4.18/MAINTAINERS.0100~ linux-4.18/MAINTAINERS
+--- linux-4.18/MAINTAINERS.0100~	2018-08-27 10:28:07.950909135 +0200
++++ linux-4.18/MAINTAINERS	2018-08-27 10:28:08.076909400 +0200
+@@ -2807,6 +2807,14 @@ S:	Supported
  F:	drivers/net/bonding/
  F:	include/uapi/linux/if_bonding.h
  

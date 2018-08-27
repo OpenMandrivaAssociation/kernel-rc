@@ -1,16 +1,19 @@
---- linux-4.13/drivers/gpu/drm/i915/intel_hdmi.c.0004~	2017-10-27 15:23:03.573142104 +0200
-+++ linux-4.13/drivers/gpu/drm/i915/intel_hdmi.c	2017-10-27 15:25:55.498835136 +0200
-@@ -1305,11 +1305,11 @@ intel_hdmi_mode_valid(struct drm_connect
+diff -up linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c.0004~ linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c
+--- linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c.0004~	2018-08-27 10:24:36.030459526 +0200
++++ linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c	2018-08-27 10:26:05.676650418 +0200
+@@ -1568,13 +1568,13 @@ intel_hdmi_mode_valid(struct drm_connect
  		clock /= 2;
  
  	/* check if we can do 8bpc */
 -	status = hdmi_port_clock_valid(hdmi, clock, true, force_dvi);
 +	status = hdmi_port_clock_valid(hdmi, clock, false, force_dvi);
  
- 	/* if we can't do 8bpc we may still be able to do 12bpc */
- 	if (!HAS_GMCH_DISPLAY(dev_priv) && status != MODE_OK && hdmi->has_hdmi_sink && !force_dvi)
--		status = hdmi_port_clock_valid(hdmi, clock * 3 / 2, true, force_dvi);
-+		status = hdmi_port_clock_valid(hdmi, clock * 3 / 2, false, force_dvi);
+ 	if (hdmi->has_hdmi_sink && !force_dvi) {
+ 		/* if we can't do 8bpc we may still be able to do 12bpc */
+ 		if (status != MODE_OK && !HAS_GMCH_DISPLAY(dev_priv))
+ 			status = hdmi_port_clock_valid(hdmi, clock * 3 / 2,
+-						       true, force_dvi);
++						       false, force_dvi);
  
- 	return status;
- }
+ 		/* if we can't do 8,12bpc we may still be able to do 10bpc */
+ 		if (status != MODE_OK && INTEL_GEN(dev_priv) >= 11)
