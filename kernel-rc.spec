@@ -314,6 +314,7 @@ Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
 Patch144:	0124-Extend-FEC-enum.patch
 Patch145:	saa716x-driver-integration.patch
 Patch146:	saa716x-4.15.patch
+Patch147:	saa716x-linux-4.19.patch
 
 # Add LIMA driver for Mali 400/450
 # From https://gitlab.freedesktop.org/lima/linux.git

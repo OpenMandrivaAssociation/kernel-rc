@@ -24,7 +24,7 @@ diff -up linux-4.18/drivers/crypto/ccp/psp-dev.c.0333~ linux-4.18/drivers/crypto
  }
  
 -static void sev_wait_cmd_ioc(struct psp_device *psp, unsigned int *reg)
-+static void sev_wait_cmd_ioc(struct psp_device *psp, unsigned int *reg, unsigned int timeout)
++static int sev_wait_cmd_ioc(struct psp_device *psp, unsigned int *reg, unsigned int timeout)
  {
 -	wait_event(psp->sev_int_queue, psp->sev_int_rcvd);
 +	int ret;
