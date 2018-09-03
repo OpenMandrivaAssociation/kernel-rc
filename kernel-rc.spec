@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	19
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -346,7 +346,12 @@ Patch310:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/gcc-patch-
 Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/4.18-bfq-sq-mq-v8r12-2K180817.patch
 
 # Assorted fixes
-Patch330:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-miscellaneous-v3/0001-Increase-timeout-in-lspcon_wait_mode.patch
+## Intel Core2Duo got always unstable tsc , with changes in 4.18
+## some models cannot boot anymore , they are stuck in a endless loop.
+## see: https://lkml.org/lkml/2018/8/30/341
+##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
+## patch is an backport from : https://lkml.org/lkml/2018/9/3/253
+Patch330:	https://raw.githubusercontent.com/frugalware/frugalware-current/71a887a9f309345f966c4d09c920642a62efb66f/source/base/kernel/fix-C2D-CPUs-booting.patch
 # Ported from https://marc.info/?l=linux-crypto-vger&m=153436754612783&q=raw
 Patch333:	workaround-udev-on-ryzen.patch
 
