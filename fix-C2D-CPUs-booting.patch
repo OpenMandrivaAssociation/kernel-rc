@@ -1,6 +1,6 @@
 diff -up linux-4.18/kernel/time/clocksource.c.0330~ linux-4.18/kernel/time/clocksource.c
---- linux-4.18/kernel/time/clocksource.c.0330~	2018-09-03 15:38:54.281724119 +0200
-+++ linux-4.18/kernel/time/clocksource.c	2018-09-03 15:40:56.145967466 +0200
+--- linux-4.18/kernel/time/clocksource.c.0330~	2018-09-11 22:39:36.429638943 +0200
++++ linux-4.18/kernel/time/clocksource.c	2018-09-11 22:41:15.357571073 +0200
 @@ -112,13 +112,27 @@ static int finished_booting;
  static u64 suspend_start;
  
@@ -31,16 +31,25 @@ diff -up linux-4.18/kernel/time/clocksource.c.0330~ linux-4.18/kernel/time/clock
  static DEFINE_SPINLOCK(watchdog_lock);
  static int watchdog_running;
  static atomic_t watchdog_reset_pending;
-@@ -158,7 +172,7 @@ static void __clocksource_unstable(struc
+@@ -142,7 +156,7 @@ static void __clocksource_change_rating(
+ #define WATCHDOG_INTERVAL (HZ >> 1)
+ #define WATCHDOG_THRESHOLD (NSEC_PER_SEC >> 4)
  
- 	/* kick clocksource_watchdog_work() */
+-static void clocksource_watchdog_work(struct work_struct *work)
++static void clocksource_watchdog_work(struct kthread_work *work)
+ {
+ 	/*
+ 	 * We cannot directly run clocksource_watchdog_kthread() here, because
+@@ -179,7 +193,7 @@ static void __clocksource_unstable(struc
+ 
+ 	/* kick clocksource_watchdog_kthread() */
  	if (finished_booting)
 -		schedule_work(&watchdog_work);
 +		kthread_queue_work(watchdog_worker, &watchdog_work);
  }
  
  /**
-@@ -199,7 +213,7 @@ static void clocksource_watchdog(struct
+@@ -220,7 +234,7 @@ static void clocksource_watchdog(struct
  		/* Clocksource already marked unstable? */
  		if (cs->flags & CLOCK_SOURCE_UNSTABLE) {
  			if (finished_booting)
@@ -49,7 +58,7 @@ diff -up linux-4.18/kernel/time/clocksource.c.0330~ linux-4.18/kernel/time/clock
  			continue;
  		}
  
-@@ -269,7 +283,7 @@ static void clocksource_watchdog(struct
+@@ -290,7 +304,7 @@ static void clocksource_watchdog(struct
  			 */
  			if (cs != curr_clocksource) {
  				cs->flags |= CLOCK_SOURCE_RESELECT;
@@ -58,16 +67,7 @@ diff -up linux-4.18/kernel/time/clocksource.c.0330~ linux-4.18/kernel/time/clock
  			} else {
  				tick_clock_notify();
  			}
-@@ -418,7 +432,7 @@ static int __clocksource_watchdog_work(v
- 	return select;
- }
- 
--static void clocksource_watchdog_work(struct work_struct *work)
-+static void clocksource_watchdog_work(struct kthread_work *work)
- {
- 	mutex_lock(&clocksource_mutex);
- 	if (__clocksource_watchdog_work())
-@@ -806,6 +820,7 @@ static int __init clocksource_done_booti
+@@ -826,6 +840,7 @@ static int __init clocksource_done_booti
  {
  	mutex_lock(&clocksource_mutex);
  	curr_clocksource = clocksource_default_clock();

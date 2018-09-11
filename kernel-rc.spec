@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	19
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -882,6 +882,8 @@ done
 #
 %prep
 %setup -q -n linux-%{tar_ver} -a 140
+cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
+
 %if 0%{relc} || 0%{sublevel}
 [ -e .git ] || git init
 xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
@@ -983,26 +985,36 @@ CreateConfig() {
 %endif
 
 %if %{with build_modxz}
-sed -i -e "s/^# CONFIG_KERNEL_XZ is not set/CONFIG_KERNEL_XZ=y/g" %{_sourcedir}/common.config
+sed -i -e "s/^# CONFIG_KERNEL_XZ is not set/CONFIG_KERNEL_XZ=y/g" kernel/configs/common.config
 %endif
 
 %if %{with build_modzstd}
-sed -i -e "s/^# CONFIG_KERNEL_ZSTD is not set/CONFIG_KERNEL_ZSTD=y/g" %{_sourcedir}/common.config
-sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" %{_sourcedir}/common.config
+sed -i -e "s/^# CONFIG_KERNEL_ZSTD is not set/CONFIG_KERNEL_ZSTD=y/g" kernel/configs/common.config
+sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/common.config
 %endif
 
+	case ${arch} in
+	i?86)
+		CONFIGS="i386_defconfig"
+		;;
+	x86_64|znver1)
+		CONFIGS="x86_64_defconfig"
+		;;
+	*)
+		CONFIGS="defconfig"
+		;;
+	esac
 	for i in common common-${type} ${arch}-common ${arch}-${type} $CLANG_EXTRAS; do
-		[ -e %{_sourcedir}/$i.config ] || continue
-		if [ -e .config ]; then
-			# Make sure the later configs override the former ones.
-			# More specific configs should be able to override generic ones no matter what.
-			NEWCONFIGS=$(cat %{_sourcedir}/$i.config |grep -E '^(CONFIG_|# CONFIG_)' |sed -e 's,=.*,,;s,^# ,,;s, is not set,,')
-			for j in $NEWCONFIGS; do
-				sed -i -e "/^$j=.*/d;/^# $j is not set/d" .config
-			done
-		fi
-		cat %{_sourcedir}/$i.config >>.config
+		[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
 	done
+	if [ "$arch" = "znver1" ]; then
+		# We need to build with ARCH=x86_64 rather than ARCH=znver1
+		# and pull in both x86_64 and znver1 configs, with the latter
+		# coming last so it can override the former
+		CONFIGS="${CONFIGS/znver1.config/x86_64.config znver1.config}"
+		arch=x86
+	fi
+	make ARCH="${arch}" $CONFIGS
 }
 
 PrepareKernel() {
@@ -1018,7 +1030,6 @@ PrepareKernel() {
 %endif
     # make sure EXTRAVERSION says what we want it to say
     sed -ri "s|^(EXTRAVERSION =).*|\1 -$extension|" Makefile
-    %{smake} oldconfig
 }
 
 BuildKernel() {
@@ -1398,41 +1409,6 @@ install -d %{temp_root}
 ###
 # DO it...
 ###
-# First of all, let's check for new config options...
-for a in arm arm64 i386 x86_64 znver1; do
-	CreateConfig $a desktop
-	export ARCH=$a
-	[ "$ARCH" = "znver1" ] && export ARCH=x86
-	make ARCH=$ARCH listnewconfig |grep '^CONFIG' >newconfigs.$a || :
-done
-cat newconfigs.* >newconfigs
-cat newconfigs.arm |while read r; do
-	if grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.arm64 && grep -qE "^$r\$" newconfigs.i386 && grep -qE "^$r\$" newconfigs.x86_64 && grep -qE "^$r\$" newconfigs.znver1; then
-		echo $r >>newconfigs.common
-	fi
-done
-for i in arm arm64 i386 x86_64 znver1; do
-	cat newconfigs.$i |while read r; do
-		grep -qE "^$r\$" newconfigs.common || echo $r >>newconfigs.${i}only
-	done
-done
-if [ -s newconfigs ]; then
-	set +x
-	printf '%s\n' "New config options have been added - please update the *.config files."
-	printf '%s\n' "New config options you need to take care of:"
-	if [ -e newconfigs.common ]; then
-		printf '%s\n' "For common.config:"
-		sed -e 's/.*=n/# & is not set/;s,=n,,' newconfigs.common
-	fi
-	for i in arm arm64 i386 x86_64 znver1; do
-		[ -e newconfigs.${i}only ] || continue
-		printf '%s\n' "For $i-common.config:"
-		sed -e 's/.*=n/# & is not set/;s,=n,,' newconfigs.${i}only
-	done
-	exit 1
-fi
-rm -f newconfigs*
-
 # Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
 for a in arm arm64 i386 x86_64 znver1; do
@@ -1440,7 +1416,6 @@ for a in arm arm64 i386 x86_64 znver1; do
 		CreateConfig $a $t
 		export ARCH=$a
 		[ "$ARCH" = "znver1" ] && export ARCH=x86
-		make oldconfig
 %if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
 			# While we have a kernel configured for it, let's package
