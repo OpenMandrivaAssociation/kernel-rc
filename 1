@@ -1,0 +1,14 @@
+--- a/drivers/net/ethernet/realtek/r8169.c
++++ b/drivers/net/ethernet/realtek/r8169.c
+@@ -5043,7 +5043,8 @@
+ {
+ 	/* Set DMA burst size and Interframe Gap Time */
+ 	RTL_W32(tp, TxConfig, (TX_DMA_BURST << TxDMAShift) |
+-		(InterFrameGap << TxInterFrameGapShift));
++		(InterFrameGap << TxInterFrameGapShift)
++		| TXCFG_AUTO_FIFO);
+ }
+ 
+ static void rtl_set_rx_max_size(struct rtl8169_private *tp)
+
+  
