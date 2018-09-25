@@ -23,10 +23,10 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.1
+%define rpmrel		0.rc%{relc}.2
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
-%define rpmrel		2
+%define rpmrel		1
 %define tar_ver		%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -352,8 +352,8 @@ Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/
 ##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
 ## patch is an backport from : https://lkml.org/lkml/2018/9/3/253
 Patch330:	https://raw.githubusercontent.com/frugalware/frugalware-current/71a887a9f309345f966c4d09c920642a62efb66f/source/base/kernel/fix-C2D-CPUs-booting.patch
-# https://lkml.org/lkml/2018/9/19/3
-Patch331:	https://lkml.org/lkml/diff/2018/9/19/3/1
+# https://lkml.org/lkml/2018/9/25/1118
+Patch331:	https://lkml.org/lkml/diff/2018/9/25/1118/1
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
