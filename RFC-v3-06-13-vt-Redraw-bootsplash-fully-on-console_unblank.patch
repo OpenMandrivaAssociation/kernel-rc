@@ -1,6 +1,6 @@
-diff -up linux-4.18/drivers/tty/vt/vt.c.0105~ linux-4.18/drivers/tty/vt/vt.c
---- linux-4.18/drivers/tty/vt/vt.c.0105~	2018-08-27 10:29:31.271084528 +0200
-+++ linux-4.18/drivers/tty/vt/vt.c	2018-08-27 10:29:55.237173474 +0200
+diff -up linux-4.19/drivers/tty/vt/vt.c.0105~ linux-4.19/drivers/tty/vt/vt.c
+--- linux-4.19/drivers/tty/vt/vt.c.0105~	2018-11-15 02:55:33.904454394 +0100
++++ linux-4.19/drivers/tty/vt/vt.c	2018-11-15 02:56:30.804027773 +0100
 @@ -104,6 +104,7 @@
  #include <linux/kdb.h>
  #include <linux/ctype.h>
@@ -9,17 +9,17 @@ diff -up linux-4.18/drivers/tty/vt/vt.c.0105~ linux-4.18/drivers/tty/vt/vt.c
  #include <linux/gcd.h>
  
  #define MAX_NR_CON_DRIVER 16
-@@ -4239,6 +4240,7 @@ void do_unblank_screen(int leaving_gfx)
+@@ -4235,6 +4236,7 @@ void do_unblank_screen(int leaving_gfx)
  	}
  
  	console_blanked = 0;
 +	bootsplash_mark_dirty();
- 	if (vc->vc_sw->con_blank(vc, 0, leaving_gfx) || vt_force_oops_output(vc))
+ 	if (vc->vc_sw->con_blank(vc, 0, leaving_gfx))
  		/* Low-level driver cannot restore -> do it ourselves */
  		update_screen(vc);
-diff -up linux-4.18/drivers/video/fbdev/core/bootsplash.c.0105~ linux-4.18/drivers/video/fbdev/core/bootsplash.c
---- linux-4.18/drivers/video/fbdev/core/bootsplash.c.0105~	2018-08-27 10:29:31.329084650 +0200
-+++ linux-4.18/drivers/video/fbdev/core/bootsplash.c	2018-08-27 10:29:31.331084654 +0200
+diff -up linux-4.19/drivers/video/fbdev/core/bootsplash.c.0105~ linux-4.19/drivers/video/fbdev/core/bootsplash.c
+--- linux-4.19/drivers/video/fbdev/core/bootsplash.c.0105~	2018-11-15 02:55:33.982455190 +0100
++++ linux-4.19/drivers/video/fbdev/core/bootsplash.c	2018-11-15 02:55:33.983455200 +0100
 @@ -165,6 +165,13 @@ bool bootsplash_would_render_now(void)
  		&& bootsplash_is_enabled();
  }
@@ -56,9 +56,9 @@ diff -up linux-4.18/drivers/video/fbdev/core/bootsplash.c.0105~ linux-4.18/drive
  
  	if (bootsplash_would_render_now())
  		schedule_work(&splash_state.work_redraw_vc);
-diff -up linux-4.18/include/linux/bootsplash.h.0105~ linux-4.18/include/linux/bootsplash.h
---- linux-4.18/include/linux/bootsplash.h.0105~	2018-08-27 10:29:31.321084633 +0200
-+++ linux-4.18/include/linux/bootsplash.h	2018-08-27 10:29:31.331084654 +0200
+diff -up linux-4.19/include/linux/bootsplash.h.0105~ linux-4.19/include/linux/bootsplash.h
+--- linux-4.19/include/linux/bootsplash.h.0105~	2018-11-15 02:55:33.975455118 +0100
++++ linux-4.19/include/linux/bootsplash.h	2018-11-15 02:55:33.984455210 +0100
 @@ -19,6 +19,8 @@ extern void bootsplash_render_full(struc
  
  extern bool bootsplash_would_render_now(void);

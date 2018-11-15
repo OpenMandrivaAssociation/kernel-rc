@@ -11,9 +11,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	4
-%define patchlevel	19
+%define patchlevel	20
 %define sublevel	0
-%define relc		5
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -284,10 +284,9 @@ Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-fi
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
 # Temporarily disabled until ported upstream
-#Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/uksm-4.17.patch
+#Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/uksm-4.19.patch
 # Sometimes other people are ahead of upstream porting to new releases...
-Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-uksm/0001-uksm-4.18-initial-submission.patch
-Patch121:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/pf-uksm/0002-uksm-4.18-rework-exit_mmap-locking.patch
+#Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/4.19/pf-uksm/0001-uksm-4.19-initial-submission.patch
 
 %if %{with build_modzstd}
 # https://patchwork.kernel.org/patch/10003007/
@@ -352,8 +351,10 @@ Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/
 ##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
 ## patch is an backport from : https://lkml.org/lkml/2018/9/3/253
 Patch330:	https://raw.githubusercontent.com/frugalware/frugalware-current/71a887a9f309345f966c4d09c920642a62efb66f/source/base/kernel/fix-C2D-CPUs-booting.patch
-# https://lkml.org/lkml/2018/9/25/1118
-Patch331:	https://lkml.org/lkml/diff/2018/9/25/1118/1
+
+# Modular binder and ashmem -- let's try to make anbox happy
+Patch340:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
+Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -364,12 +365,14 @@ Patch331:	https://lkml.org/lkml/diff/2018/9/25/1118/1
 # (tpg) some patches from ClearLinux
 Patch400:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch401:	0103-Increase-the-ext4-default-commit-age.patch
-Patch402:	0105-pci-pme-wakeups.patch
+#Patch402:	0105-pci-pme-wakeups.patch
 Patch403:	0106-ksm-wakeups.patch
 Patch404:	0107-intel_idle-tweak-cpuidle-cstates.patch
 Patch405:	0109-init_task-faster-timerslack.patch
-Patch406:	0110-fs-ext4-fsync-optimize-double-fsync-a-bunch.patch
-Patch407:	0111-overload-on-wakeup.patch
+# Needs rebase
+#Patch406:	0110-fs-ext4-fsync-optimize-double-fsync-a-bunch.patch
+# Needs rebase
+#Patch407:	0111-overload-on-wakeup.patch
 # needs a rediff
 #Patch408:	0113-fix-initcall-timestamps.patch
 # This is actually a bad idea.
@@ -386,9 +389,12 @@ Patch416:	0123-e1000e-increase-pause-and-refresh-time.patch
 Patch417:	0124-kernel-time-reduce-ntp-wakeups.patch
 Patch418:	0125-init-wait-for-partition-and-retry-scan.patch
 Patch419:	0151-mm-Export-do_madvise.patch
-Patch420:	0152-x86-kvm-Notify-host-to-release-pages.patch
-Patch421:	0153-x86-Return-memory-from-guest-to-host-kernel.patch
-Patch422:	0154-sysctl-vm-Fine-grained-cache-shrinking.patch
+# Needs rebase
+#Patch420:	0152-x86-kvm-Notify-host-to-release-pages.patch
+# Relies on 420
+#Patch421:	0153-x86-Return-memory-from-guest-to-host-kernel.patch
+# Needs rebase
+#Patch422:	0154-sysctl-vm-Fine-grained-cache-shrinking.patch
 %endif
 
 # Defines for the things that are needed for all the kernels
