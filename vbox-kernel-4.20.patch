@@ -1,0 +1,41 @@
+diff -up linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~ linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c
+--- linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~	2018-11-16 01:12:46.928954082 +0100
++++ linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c	2018-11-16 01:18:06.808997529 +0100
+@@ -129,7 +129,7 @@ static struct miscdevice g_CtlDev =
+ static const struct ethtool_ops gEthToolOpsVBoxNetAdp =
+ {
+     .get_drvinfo        = vboxNetAdpEthGetDrvinfo,
+-    .get_settings       = vboxNetAdpEthGetSettings,
++    .get_link_ksettings = vboxNetAdpEthGetSettings,
+     .get_link           = ethtool_op_get_link,
+ };
+ 
+@@ -204,20 +204,14 @@ static void vboxNetAdpEthGetDrvinfo(stru
+ /* ethtool_ops::get_settings */
+ static int vboxNetAdpEthGetSettings(struct net_device *pNetDev, struct ethtool_cmd *cmd)
+ {
+-    cmd->supported      = 0;
+-    cmd->advertising    = 0;
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)
+-    ethtool_cmd_speed_set(cmd, SPEED_10);
+-#else
+-    cmd->speed          = SPEED_10;
+-#endif
+-    cmd->duplex         = DUPLEX_FULL;
+-    cmd->port           = PORT_TP;
+-    cmd->phy_address    = 0;
+-    cmd->transceiver    = XCVR_INTERNAL;
+-    cmd->autoneg        = AUTONEG_DISABLE;
+-    cmd->maxtxpkt       = 0;
+-    cmd->maxrxpkt       = 0;
++    ethtool_convert_legacy_u32_to_link_mode(cmd->link_modes.supported, 0);
++    ethtool_convert_legacy_u32_to_link_mode(cmd->link_modes.advertising, 0);
++    cmd->base.speed       = SPEED_10;
++    cmd->base.duplex      = DUPLEX_FULL;
++    cmd->base.port        = PORT_TP;
++    cmd->base.phy_address = 0;
++    cmd->base.transceiver = XCVR_INTERNAL;
++    cmd->base.autoneg     = AUTONEG_DISABLE;
+     return 0;
+ }
+ 

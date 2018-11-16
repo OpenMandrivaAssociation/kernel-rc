@@ -279,6 +279,7 @@ Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-fi
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%apply_patches
+Source115:	vbox-kernel-4.20.patch
 
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
@@ -500,8 +501,8 @@ Suggests:	microcode-intel
 # get compiler error messages on failures)
 %if %mdvver >= 3000000
 %ifarch %{ix86} %{x86_64}
-BuildRequires:	dkms-virtualbox >= 5.2.8-1
-BuildRequires:	dkms-vboxadditions >= 5.2.8-1
+BuildRequires:	dkms-virtualbox >= 5.2.22-1
+BuildRequires:	dkms-vboxadditions >= 5.2.22-1
 %endif
 %endif
 
@@ -944,6 +945,7 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
+git apply %{SOURCE115}
 %endif
 %endif
 
