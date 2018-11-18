@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	20
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -23,7 +23,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
 %else
 %define rpmrel		1
