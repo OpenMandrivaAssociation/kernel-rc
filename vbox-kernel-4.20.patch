@@ -1,6 +1,15 @@
 diff -up linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~ linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c
 --- linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~	2018-11-16 01:12:46.928954082 +0100
 +++ linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c	2018-11-16 01:18:06.808997529 +0100
+@@ -84,7 +84,7 @@ static long VBoxNetAdpLinuxIOCtlUnlocked
+ #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 36) */
+ 
+ static void vboxNetAdpEthGetDrvinfo(struct net_device *dev, struct ethtool_drvinfo *info);
+-static int vboxNetAdpEthGetSettings(struct net_device *dev, struct ethtool_cmd *cmd);
++static int vboxNetAdpEthGetSettings(struct net_device *dev, struct ethtool_link_ksettings *cmd);
+ 
+ 
+ /*********************************************************************************************************************************
 @@ -129,7 +129,7 @@ static struct miscdevice g_CtlDev =
  static const struct ethtool_ops gEthToolOpsVBoxNetAdp =
  {
@@ -12,7 +21,8 @@ diff -up linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~ linux-4
  
 @@ -204,20 +204,14 @@ static void vboxNetAdpEthGetDrvinfo(stru
  /* ethtool_ops::get_settings */
- static int vboxNetAdpEthGetSettings(struct net_device *pNetDev, struct ethtool_cmd *cmd)
+-static int vboxNetAdpEthGetSettings(struct net_device *pNetDev, struct ethtool_cmd *cmd)
++static int vboxNetAdpEthGetSettings(struct net_device *pNetDev, struct ethtool_link_ksettings *cmd)
  {
 -    cmd->supported      = 0;
 -    cmd->advertising    = 0;
@@ -38,4 +48,19 @@ diff -up linux-4.19/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~ linux-4
 +    cmd->base.autoneg     = AUTONEG_DISABLE;
      return 0;
  }
+ 
+diff -up linux-4.19/drivers/virt/vboxdrv/r0drv/linux/time-r0drv-linux.c.omv~ linux-4.19/drivers/virt/vboxdrv/r0drv/linux/time-r0drv-linux.c
+--- linux-4.19/drivers/virt/vboxdrv/r0drv/linux/time-r0drv-linux.c.omv~	2018-11-18 17:15:45.890353477 +0100
++++ linux-4.19/drivers/virt/vboxdrv/r0drv/linux/time-r0drv-linux.c	2018-11-18 17:17:22.386760987 +0100
+@@ -171,8 +171,10 @@ RTDECL(PRTTIMESPEC) RTTimeNow(PRTTIMESPE
+ {
+     IPRT_LINUX_SAVE_EFL_AC();
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 16)
++    struct timespec64 Ts64;
+     struct timespec Ts;
+-    ktime_get_real_ts(&Ts);
++    ktime_get_real_ts64(&Ts64);
++    Ts = timespec64_to_timespec(Ts64);
+     IPRT_LINUX_RESTORE_EFL_AC();
+     return RTTimeSpecSetTimespec(pTime, &Ts);
  
