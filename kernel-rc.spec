@@ -1163,7 +1163,7 @@ SaveDevel() {
     cp -fR tools/objtool/* $TempDevelRoot/tools/objtool
     cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
 
-    for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
+    for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc powerpc s390 score sh sparc tile unicore32 xtensa; do
 	rm -rf $TempDevelRoot/arch/$i
     done
