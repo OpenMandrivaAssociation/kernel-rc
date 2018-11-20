@@ -1632,7 +1632,7 @@ rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
 
 # we remove all the source files that we don't ship
 # first architecture files
-for i in alpha arc avr32 blackfin c6x cris frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
+for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
     mips nds32 nios2 openrisc parisc powerpc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
     rm -rf %{target_source}/arch/$i
 done
