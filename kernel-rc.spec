@@ -13,7 +13,7 @@
 %define kernelversion	4
 %define patchlevel	20
 %define sublevel	0
-%define relc		4
+%define relc		5
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
