@@ -1011,7 +1011,7 @@ sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/com
 		arch=x86
 	fi
 	make ARCH="${arch}" $CONFIGS
-	scripts/config --set-val BUILD_SALT $(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')
+	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 }
 
 PrepareKernel() {
