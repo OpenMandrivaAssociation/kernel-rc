@@ -10,12 +10,13 @@
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
-%define kernelversion	4
-%define patchlevel	20
+%define kernelversion	5
+%define patchlevel	0
 %define sublevel	0
-%define relc		7
+%define relc		2
 # Only ever wrong on x.0 releases...
-%define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
+#define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
+%define previous	4.20
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -24,7 +25,7 @@
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
 %define rpmrel		0.rc%{relc}.1
-%define tar_ver   	%{kernelversion}.%(expr %{patchlevel} - 1)
+%define tar_ver   	%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
 %define tar_ver		%{kernelversion}.%{patchlevel}
@@ -164,8 +165,12 @@ URL:		http://www.kernel.org
 # Sources
 #
 ### This is for full SRC RPM
+%if 0%{relc}
+Source0:	https://git.kernel.org/torvalds/t/linux-%{tar_ver}.tar.gz
+%else
 Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{tar_ver}.tar.xz
 Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{tar_ver}.tar.sign
+%endif
 ### This is for stripped SRC RPM
 %if %{with build_nosrc}
 NoSource:	0
@@ -195,15 +200,8 @@ Source51:	cpupower.config
 # (-stable patch, -rc, ...)
 # Added as a Source rather that Patch because it needs to be
 # applied with "git apply" -- may contain binary patches.
-%if 0%{relc}
-#Source90:	https://git.kernel.org/torvalds/p/v%{kernelversion}.%{patchlevel}-rc%{relc}/v%{tar_ver}
-# Preferrable because it's already compressed (and therefore
-# much less of a pain for filestore) when it's available...
-Source90:	https://fossies.org/linux/kernel/v%{kernelversion}.%{patchlevel}/patch_v%{previous}_%{kernelversion}.%{patchlevel}-rc%{relc}.xz
-%else
 %if 0%{sublevel}
 Source90:	https://cdn.kernel.org/pub/linux/kernel/v4.x/patch-%{version}.xz
-%endif
 %endif
 Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
@@ -276,11 +274,6 @@ Patch111:	RFC-v3-12-13-tools-bootsplash-Add-a-basic-splash-file-creation-tool.pa
 # Contains git binary patch -- needs to be applied with git apply instead of apply_patches
 Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-file.patch
 
-# Patches to VirtualBox and other external modules are
-# pulled in as Source: rather than Patch: because it's arch specific
-# and can't be applied by %%apply_patches
-Source115:	vbox-kernel-4.20.patch
-
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
@@ -289,15 +282,17 @@ Source115:	vbox-kernel-4.20.patch
 # Sometimes other people are ahead of upstream porting to new releases...
 #Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/4.19/pf-uksm/0001-uksm-4.19-initial-submission.patch
 
+# VirtualBox module patches are added as SOURCE: instead of PATCH:
+# because it needs to be applied after sources are compied in
+# (long after %%autosetup)
+Source115:	vbox-kernel-5.0.patch
+
 %if %{with build_modzstd}
 # https://patchwork.kernel.org/patch/10003007/
 Patch126:	v2-1-2-lib-Add-support-for-ZSTD-compressed-kernel.patch
 # https://patchwork.kernel.org/patch/10003011/
 Patch127:	v2-2-2-x86-Add-support-for-ZSTD-compressed-kernel.patch
 %endif
-
-# https://bugs.freedesktop.org/show_bug.cgi?id=100446
-Patch130:	nouveau-pascal-backlight.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -342,9 +337,6 @@ Patch301:	vbox-4.18.patch
 # More actively maintained for newer kernels
 Patch310:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/gcc-patch-backup-from-pf/0001-gcctunes-4.18-merge-graysky-s-patchset.patch
 
-# BFQ-MQ
-Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/4.18-bfq-sq-mq-v8r12-2K180817.patch
-
 # Assorted fixes
 ## Intel Core2Duo got always unstable tsc , with changes in 4.18
 ## some models cannot boot anymore , they are stuck in a endless loop.
@@ -352,22 +344,18 @@ Patch320:	https://github.com/sirlucjan/kernel-patches/raw/master/4.18/bfq-sq-mq/
 ##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
 ## patch is an backport from : https://lkml.org/lkml/2018/9/3/253
 Patch330:	https://raw.githubusercontent.com/frugalware/frugalware-current/71a887a9f309345f966c4d09c920642a62efb66f/source/base/kernel/fix-C2D-CPUs-booting.patch
+Patch331:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/base/kernel/drop_ancient-and-wrong-msg.patch
 
 # Modular binder and ashmem -- let's try to make anbox happy
 Patch340:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
-Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
-
-# Patches to external modules
-# Marked SourceXXX instead of PatchXXX because the modules
-# being touched aren't in the tree at the time %%apply_patches
-# runs...
+# based on https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch -- rebased
+Patch341:	export-symbols-needed-by-android-drivers.patch
 
 %if %{with clr}
 # (tpg) some patches from ClearLinux
 Patch400:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch401:	0103-Increase-the-ext4-default-commit-age.patch
 #Patch402:	0105-pci-pme-wakeups.patch
-Patch403:	0106-ksm-wakeups.patch
 Patch404:	0107-intel_idle-tweak-cpuidle-cstates.patch
 Patch405:	0109-init_task-faster-timerslack.patch
 # Needs rebase
@@ -891,7 +879,7 @@ done
 %setup -q -n linux-%{tar_ver} -a 140
 cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
 
-%if 0%{relc} || 0%{sublevel}
+%if 0%{sublevel}
 [ -e .git ] || git init
 xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
@@ -1023,6 +1011,7 @@ sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/com
 		arch=x86
 	fi
 	make ARCH="${arch}" $CONFIGS
+	scripts/config --set-val BUILD_SALT $(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')
 }
 
 PrepareKernel() {

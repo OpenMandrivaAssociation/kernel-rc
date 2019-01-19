@@ -1,6 +1,6 @@
-diff -up linux-4.17/arch/x86/boot/compressed/Makefile.0127~ linux-4.17/arch/x86/boot/compressed/Makefile
---- linux-4.17/arch/x86/boot/compressed/Makefile.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/arch/x86/boot/compressed/Makefile	2018-06-05 20:53:01.711474875 +0200
+diff -up linux-5.0-rc1/arch/x86/boot/compressed/Makefile.0127~ linux-5.0-rc1/arch/x86/boot/compressed/Makefile
+--- linux-5.0-rc1/arch/x86/boot/compressed/Makefile.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/arch/x86/boot/compressed/Makefile	2019-01-07 05:27:54.660675302 +0100
 @@ -24,7 +24,7 @@ OBJECT_FILES_NON_STANDARD	:= y
  KCOV_INSTRUMENT		:= n
  
@@ -10,7 +10,7 @@ diff -up linux-4.17/arch/x86/boot/compressed/Makefile.0127~ linux-4.17/arch/x86/
  
  KBUILD_CFLAGS := -m$(BITS) -O2
  KBUILD_CFLAGS += -fno-strict-aliasing $(call cc-option, -fPIE, -fPIC)
-@@ -137,6 +137,8 @@ $(obj)/vmlinux.bin.lzo: $(vmlinux.bin.al
+@@ -142,6 +142,8 @@ $(obj)/vmlinux.bin.lzo: $(vmlinux.bin.al
  	$(call if_changed,lzo)
  $(obj)/vmlinux.bin.lz4: $(vmlinux.bin.all-y) FORCE
  	$(call if_changed,lz4)
@@ -19,17 +19,17 @@ diff -up linux-4.17/arch/x86/boot/compressed/Makefile.0127~ linux-4.17/arch/x86/
  
  suffix-$(CONFIG_KERNEL_GZIP)	:= gz
  suffix-$(CONFIG_KERNEL_BZIP2)	:= bz2
-@@ -144,6 +146,7 @@ suffix-$(CONFIG_KERNEL_LZMA)	:= lzma
+@@ -149,6 +151,7 @@ suffix-$(CONFIG_KERNEL_LZMA)	:= lzma
  suffix-$(CONFIG_KERNEL_XZ)	:= xz
  suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
  suffix-$(CONFIG_KERNEL_LZ4) 	:= lz4
 +suffix-$(CONFIG_KERNEL_ZSTD)	:= zst
  
  quiet_cmd_mkpiggy = MKPIGGY $@
-       cmd_mkpiggy = $(obj)/mkpiggy $< > $@ || ( rm -f $@ ; false )
-diff -up linux-4.17/arch/x86/boot/compressed/misc.c.0127~ linux-4.17/arch/x86/boot/compressed/misc.c
---- linux-4.17/arch/x86/boot/compressed/misc.c.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/arch/x86/boot/compressed/misc.c	2018-06-05 20:48:46.972460921 +0200
+       cmd_mkpiggy = $(obj)/mkpiggy $< > $@
+diff -up linux-5.0-rc1/arch/x86/boot/compressed/misc.c.0127~ linux-5.0-rc1/arch/x86/boot/compressed/misc.c
+--- linux-5.0-rc1/arch/x86/boot/compressed/misc.c.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/arch/x86/boot/compressed/misc.c	2019-01-07 05:23:57.218206495 +0100
 @@ -76,6 +76,10 @@ static int lines, cols;
  #ifdef CONFIG_KERNEL_LZ4
  #include "../../../../lib/decompress_unlz4.c"
@@ -41,9 +41,9 @@ diff -up linux-4.17/arch/x86/boot/compressed/misc.c.0127~ linux-4.17/arch/x86/bo
  /*
   * NOTE: When adding a new decompressor, please update the analysis in
   * ../header.S.
-diff -up linux-4.17/arch/x86/boot/header.S.0127~ linux-4.17/arch/x86/boot/header.S
---- linux-4.17/arch/x86/boot/header.S.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/arch/x86/boot/header.S	2018-06-05 20:48:46.972460921 +0200
+diff -up linux-5.0-rc1/arch/x86/boot/header.S.0127~ linux-5.0-rc1/arch/x86/boot/header.S
+--- linux-5.0-rc1/arch/x86/boot/header.S.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/arch/x86/boot/header.S	2019-01-07 05:23:57.218206495 +0100
 @@ -526,8 +526,14 @@ pref_address:		.quad LOAD_PHYSICAL_ADDR
  # the size-dependent part now grows so fast.
  #
@@ -60,9 +60,9 @@ diff -up linux-4.17/arch/x86/boot/header.S.0127~ linux-4.17/arch/x86/boot/header
  #if ZO_z_output_len > ZO_z_input_len
  # define ZO_z_extract_offset	(ZO_z_output_len + ZO_z_extra_bytes - \
  				 ZO_z_input_len)
-diff -up linux-4.17/arch/x86/include/asm/boot.h.0127~ linux-4.17/arch/x86/include/asm/boot.h
---- linux-4.17/arch/x86/include/asm/boot.h.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/arch/x86/include/asm/boot.h	2018-06-05 20:48:46.972460921 +0200
+diff -up linux-5.0-rc1/arch/x86/include/asm/boot.h.0127~ linux-5.0-rc1/arch/x86/include/asm/boot.h
+--- linux-5.0-rc1/arch/x86/include/asm/boot.h.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/arch/x86/include/asm/boot.h	2019-01-07 05:23:57.218206495 +0100
 @@ -24,9 +24,11 @@
  # error "Invalid value for CONFIG_PHYSICAL_ALIGN"
  #endif
@@ -77,10 +77,10 @@ diff -up linux-4.17/arch/x86/include/asm/boot.h.0127~ linux-4.17/arch/x86/includ
  # define BOOT_HEAP_SIZE		 0x10000
  #endif
  
-diff -up linux-4.17/arch/x86/Kconfig.0127~ linux-4.17/arch/x86/Kconfig
---- linux-4.17/arch/x86/Kconfig.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/arch/x86/Kconfig	2018-06-05 20:48:46.972460921 +0200
-@@ -157,6 +157,7 @@ config X86
+diff -up linux-5.0-rc1/arch/x86/Kconfig.0127~ linux-5.0-rc1/arch/x86/Kconfig
+--- linux-5.0-rc1/arch/x86/Kconfig.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/arch/x86/Kconfig	2019-01-07 05:23:57.218206495 +0100
+@@ -163,6 +163,7 @@ config X86
  	select HAVE_KERNEL_LZMA
  	select HAVE_KERNEL_LZO
  	select HAVE_KERNEL_XZ
@@ -88,9 +88,9 @@ diff -up linux-4.17/arch/x86/Kconfig.0127~ linux-4.17/arch/x86/Kconfig
  	select HAVE_KPROBES
  	select HAVE_KPROBES_ON_FTRACE
  	select HAVE_FUNCTION_ERROR_INJECTION
-diff -up linux-4.17/Documentation/x86/boot.txt.0127~ linux-4.17/Documentation/x86/boot.txt
---- linux-4.17/Documentation/x86/boot.txt.0127~	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/Documentation/x86/boot.txt	2018-06-05 20:48:46.972460921 +0200
+diff -up linux-5.0-rc1/Documentation/x86/boot.txt.0127~ linux-5.0-rc1/Documentation/x86/boot.txt
+--- linux-5.0-rc1/Documentation/x86/boot.txt.0127~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/Documentation/x86/boot.txt	2019-01-07 05:23:57.219206509 +0100
 @@ -666,9 +666,9 @@ Protocol:	2.08+
    uncompressed data should be determined using the standard magic
    numbers.  The currently supported compression formats are gzip

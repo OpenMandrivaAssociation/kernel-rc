@@ -1,6 +1,6 @@
-diff -up linux-4.18/include/linux/decompress/unzstd.h.0126~ linux-4.18/include/linux/decompress/unzstd.h
---- linux-4.18/include/linux/decompress/unzstd.h.0126~	2018-08-27 10:30:18.618293392 +0200
-+++ linux-4.18/include/linux/decompress/unzstd.h	2018-08-27 10:30:18.618293392 +0200
+diff -up linux-5.0-rc1/include/linux/decompress/unzstd.h.0126~ linux-5.0-rc1/include/linux/decompress/unzstd.h
+--- linux-5.0-rc1/include/linux/decompress/unzstd.h.0126~	2019-01-07 05:19:22.140370116 +0100
++++ linux-5.0-rc1/include/linux/decompress/unzstd.h	2019-01-07 05:19:22.140370116 +0100
 @@ -0,0 +1,26 @@
 +/*
 + * Copyright (C) 2017 Facebook
@@ -28,10 +28,10 @@ diff -up linux-4.18/include/linux/decompress/unzstd.h.0126~ linux-4.18/include/l
 +	   long *pos,
 +	   void (*error_fn)(char *x));
 +#endif
-diff -up linux-4.18/init/Kconfig.0126~ linux-4.18/init/Kconfig
---- linux-4.18/init/Kconfig.0126~	2018-08-27 10:30:18.619293397 +0200
-+++ linux-4.18/init/Kconfig	2018-08-27 10:37:03.767033234 +0200
-@@ -134,13 +134,16 @@ config HAVE_KERNEL_LZO
+diff -up linux-5.0-rc1/init/Kconfig.0126~ linux-5.0-rc1/init/Kconfig
+--- linux-5.0-rc1/init/Kconfig.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/init/Kconfig	2019-01-07 05:19:22.140370116 +0100
+@@ -137,13 +137,16 @@ config HAVE_KERNEL_LZO
  config HAVE_KERNEL_LZ4
  	bool
  
@@ -49,7 +49,7 @@ diff -up linux-4.18/init/Kconfig.0126~ linux-4.18/init/Kconfig
  	help
  	  The linux kernel is a kind of self-extracting executable.
  	  Several compression algorithms are available, which differ
-@@ -219,6 +222,15 @@ config KERNEL_LZ4
+@@ -222,6 +225,15 @@ config KERNEL_LZ4
  	  is about 8% bigger than LZO. But the decompression speed is
  	  faster than LZO.
  
@@ -65,9 +65,9 @@ diff -up linux-4.18/init/Kconfig.0126~ linux-4.18/init/Kconfig
  config KERNEL_UNCOMPRESSED
  	bool "None"
  	depends on HAVE_KERNEL_UNCOMPRESSED
-diff -up linux-4.18/lib/decompress.c.0126~ linux-4.18/lib/decompress.c
---- linux-4.18/lib/decompress.c.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/lib/decompress.c	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/decompress.c.0126~ linux-5.0-rc1/lib/decompress.c
+--- linux-5.0-rc1/lib/decompress.c.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/decompress.c	2019-01-07 05:19:22.140370116 +0100
 @@ -13,6 +13,7 @@
  #include <linux/decompress/inflate.h>
  #include <linux/decompress/unlzo.h>
@@ -94,9 +94,9 @@ diff -up linux-4.18/lib/decompress.c.0126~ linux-4.18/lib/decompress.c
  	{ {0, 0}, NULL, NULL }
  };
  
-diff -up linux-4.18/lib/decompress_unzstd.c.0126~ linux-4.18/lib/decompress_unzstd.c
---- linux-4.18/lib/decompress_unzstd.c.0126~	2018-08-27 10:30:18.619293397 +0200
-+++ linux-4.18/lib/decompress_unzstd.c	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/decompress_unzstd.c.0126~ linux-5.0-rc1/lib/decompress_unzstd.c
+--- linux-5.0-rc1/lib/decompress_unzstd.c.0126~	2019-01-07 05:19:22.140370116 +0100
++++ linux-5.0-rc1/lib/decompress_unzstd.c	2019-01-07 05:19:22.140370116 +0100
 @@ -0,0 +1,341 @@
 +/*
 + * Copyright (C) 2017 Facebook
@@ -439,10 +439,10 @@ diff -up linux-4.18/lib/decompress_unzstd.c.0126~ linux-4.18/lib/decompress_unzs
 +	return __unzstd(buf, len, fill, flush, out_buf, out_len, pos, error);
 +}
 +#endif
-diff -up linux-4.18/lib/Kconfig.0126~ linux-4.18/lib/Kconfig
---- linux-4.18/lib/Kconfig.0126~	2018-08-27 10:30:18.561293103 +0200
-+++ linux-4.18/lib/Kconfig	2018-08-27 10:30:18.619293397 +0200
-@@ -304,6 +304,10 @@ config DECOMPRESS_LZ4
+diff -up linux-5.0-rc1/lib/Kconfig.0126~ linux-5.0-rc1/lib/Kconfig
+--- linux-5.0-rc1/lib/Kconfig.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/Kconfig	2019-01-07 05:19:22.140370116 +0100
+@@ -312,6 +312,10 @@ config DECOMPRESS_LZ4
  	select LZ4_DECOMPRESS
  	tristate
  
@@ -453,10 +453,10 @@ diff -up linux-4.18/lib/Kconfig.0126~ linux-4.18/lib/Kconfig
  #
  # Generic allocator support is selected if needed
  #
-diff -up linux-4.18/lib/Makefile.0126~ linux-4.18/lib/Makefile
---- linux-4.18/lib/Makefile.0126~	2018-08-27 10:30:18.613293367 +0200
-+++ linux-4.18/lib/Makefile	2018-08-27 10:30:18.619293397 +0200
-@@ -136,6 +136,7 @@ lib-$(CONFIG_DECOMPRESS_LZMA) += decompr
+diff -up linux-5.0-rc1/lib/Makefile.0126~ linux-5.0-rc1/lib/Makefile
+--- linux-5.0-rc1/lib/Makefile.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/Makefile	2019-01-07 05:19:22.140370116 +0100
+@@ -140,6 +140,7 @@ lib-$(CONFIG_DECOMPRESS_LZMA) += decompr
  lib-$(CONFIG_DECOMPRESS_XZ) += decompress_unxz.o
  lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
  lib-$(CONFIG_DECOMPRESS_LZ4) += decompress_unlz4.o
@@ -464,9 +464,9 @@ diff -up linux-4.18/lib/Makefile.0126~ linux-4.18/lib/Makefile
  
  obj-$(CONFIG_TEXTSEARCH) += textsearch.o
  obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
-diff -up linux-4.18/lib/xxhash.c.0126~ linux-4.18/lib/xxhash.c
---- linux-4.18/lib/xxhash.c.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/lib/xxhash.c	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/xxhash.c.0126~ linux-5.0-rc1/lib/xxhash.c
+--- linux-5.0-rc1/lib/xxhash.c.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/xxhash.c	2019-01-07 05:19:22.205370990 +0100
 @@ -80,13 +80,11 @@ void xxh32_copy_state(struct xxh32_state
  {
  	memcpy(dst, src, sizeof(*dst));
@@ -557,9 +557,9 @@ diff -up linux-4.18/lib/xxhash.c.0126~ linux-4.18/lib/xxhash.c
  MODULE_LICENSE("Dual BSD/GPL");
  MODULE_DESCRIPTION("xxHash");
 +#endif
-diff -up linux-4.18/lib/zstd/decompress.c.0126~ linux-4.18/lib/zstd/decompress.c
---- linux-4.18/lib/zstd/decompress.c.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/lib/zstd/decompress.c	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/zstd/decompress.c.0126~ linux-5.0-rc1/lib/zstd/decompress.c
+--- linux-5.0-rc1/lib/zstd/decompress.c.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/zstd/decompress.c	2019-01-07 05:19:22.205370990 +0100
 @@ -2487,6 +2487,7 @@ size_t ZSTD_decompressStream(ZSTD_DStrea
  	}
  }
@@ -573,9 +573,9 @@ diff -up linux-4.18/lib/zstd/decompress.c.0126~ linux-4.18/lib/zstd/decompress.c
  MODULE_LICENSE("Dual BSD/GPL");
  MODULE_DESCRIPTION("Zstd Decompressor");
 +#endif
-diff -up linux-4.18/lib/zstd/fse_decompress.c.0126~ linux-4.18/lib/zstd/fse_decompress.c
---- linux-4.18/lib/zstd/fse_decompress.c.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/lib/zstd/fse_decompress.c	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/zstd/fse_decompress.c.0126~ linux-5.0-rc1/lib/zstd/fse_decompress.c
+--- linux-5.0-rc1/lib/zstd/fse_decompress.c.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/zstd/fse_decompress.c	2019-01-07 05:19:22.205370990 +0100
 @@ -47,6 +47,7 @@
  ****************************************************************/
  #include "bitstream.h"
@@ -599,9 +599,9 @@ diff -up linux-4.18/lib/zstd/fse_decompress.c.0126~ linux-4.18/lib/zstd/fse_deco
  /* **************************************************************
  *  Templates
  ****************************************************************/
-diff -up linux-4.18/lib/zstd/zstd_internal.h.0126~ linux-4.18/lib/zstd/zstd_internal.h
---- linux-4.18/lib/zstd/zstd_internal.h.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/lib/zstd/zstd_internal.h	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/lib/zstd/zstd_internal.h.0126~ linux-5.0-rc1/lib/zstd/zstd_internal.h
+--- linux-5.0-rc1/lib/zstd/zstd_internal.h.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/lib/zstd/zstd_internal.h	2019-01-07 05:19:22.205370990 +0100
 @@ -127,7 +127,13 @@ static const U32 OF_defaultNormLog = OF_
  *  Shared functions to include for inlining
  *********************************************/
@@ -633,12 +633,12 @@ diff -up linux-4.18/lib/zstd/zstd_internal.h.0126~ linux-4.18/lib/zstd/zstd_inte
  	do {
  		ZSTD_copy8(op, ip);
  		op += 8;
-diff -up linux-4.18/scripts/Makefile.lib.0126~ linux-4.18/scripts/Makefile.lib
---- linux-4.18/scripts/Makefile.lib.0126~	2018-08-27 10:30:18.568293139 +0200
-+++ linux-4.18/scripts/Makefile.lib	2018-08-27 10:30:18.619293397 +0200
-@@ -389,6 +389,21 @@ cmd_xzmisc = (cat $(filter-out FORCE,$^)
- 	xz --check=crc32 --lzma2=dict=1MiB) > $@ || \
- 	(rm -f $@ ; false)
+diff -up linux-5.0-rc1/scripts/Makefile.lib.0126~ linux-5.0-rc1/scripts/Makefile.lib
+--- linux-5.0-rc1/scripts/Makefile.lib.0126~	2019-01-07 05:19:22.205370990 +0100
++++ linux-5.0-rc1/scripts/Makefile.lib	2019-01-07 05:23:25.656754645 +0100
+@@ -400,6 +400,21 @@ quiet_cmd_xzmisc = XZMISC  $@
+ cmd_xzmisc = (cat $(filter-out FORCE,$^) | \
+ 	xz --check=crc32 --lzma2=dict=1MiB) > $@
  
 +# ZSTD
 +# ---------------------------------------------------------------------------
@@ -651,16 +651,16 @@ diff -up linux-4.18/scripts/Makefile.lib.0126~ linux-4.18/scripts/Makefile.lib
 +
 +quiet_cmd_zstd = ZSTD    $@
 +cmd_zstd = (cat $(filter-out FORCE,$^) | \
-+	zstd -19 && \
++        zstd -19 && \
 +        $(call size_append, $(filter-out FORCE,$^))) > $@ || \
-+	(rm -f $@ ; false)
++        (rm -f $@ ; false)
 +
  # ASM offsets
  # ---------------------------------------------------------------------------
  
-diff -up linux-4.18/usr/Kconfig.0126~ linux-4.18/usr/Kconfig
---- linux-4.18/usr/Kconfig.0126~	2018-08-12 22:41:04.000000000 +0200
-+++ linux-4.18/usr/Kconfig	2018-08-27 10:30:18.619293397 +0200
+diff -up linux-5.0-rc1/usr/Kconfig.0126~ linux-5.0-rc1/usr/Kconfig
+--- linux-5.0-rc1/usr/Kconfig.0126~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/usr/Kconfig	2019-01-07 05:19:22.205370990 +0100
 @@ -106,6 +106,15 @@ config RD_LZ4
  	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
  	  If unsure, say N.

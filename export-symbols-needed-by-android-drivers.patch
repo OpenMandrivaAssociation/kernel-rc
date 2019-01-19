@@ -1,18 +1,6 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Tue, 26 Jun 2018 16:59:01 +0100
-Subject: Export symbols needed by Android drivers
-Bug-Debian: https://bugs.debian.org/901492
-
-We want to enable use of the Android ashmem and binder drivers to
-support Anbox, but they should not be built-in as that would waste
-resources and increase security attack surface on systems that don't
-need them.
-
-Export the currently un-exported symbols they depend on.
-
----
---- a/fs/file.c
-+++ b/fs/file.c
+diff -up linux-5.0-rc1/fs/file.c.0341~ linux-5.0-rc1/fs/file.c
+--- linux-5.0-rc1/fs/file.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/fs/file.c	2019-01-07 05:36:42.099652386 +0100
 @@ -409,6 +409,7 @@ struct files_struct *get_files_struct(st
  
  	return files;
@@ -45,9 +33,10 @@ Export the currently un-exported symbols they depend on.
  
  void fd_install(unsigned int fd, struct file *file)
  {
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -999,6 +999,7 @@ void mmput_async(struct mm_struct *mm)
+diff -up linux-5.0-rc1/kernel/fork.c.0341~ linux-5.0-rc1/kernel/fork.c
+--- linux-5.0-rc1/kernel/fork.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/kernel/fork.c	2019-01-07 05:36:42.099652386 +0100
+@@ -1084,6 +1084,7 @@ void mmput_async(struct mm_struct *mm)
  		schedule_work(&mm->async_put_work);
  	}
  }
@@ -55,9 +44,21 @@ Export the currently un-exported symbols they depend on.
  #endif
  
  /**
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -1280,6 +1280,7 @@ struct sighand_struct *__lock_task_sigha
+diff -up linux-5.0-rc1/kernel/sched/core.c.0341~ linux-5.0-rc1/kernel/sched/core.c
+--- linux-5.0-rc1/kernel/sched/core.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/kernel/sched/core.c	2019-01-07 05:36:42.101652417 +0100
+@@ -3930,6 +3930,7 @@ int can_nice(const struct task_struct *p
+ 	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
+ 		capable(CAP_SYS_NICE));
+ }
++EXPORT_SYMBOL_GPL(can_nice);
+ 
+ #ifdef __ARCH_WANT_SYS_NICE
+ 
+diff -up linux-5.0-rc1/kernel/signal.c.0341~ linux-5.0-rc1/kernel/signal.c
+--- linux-5.0-rc1/kernel/signal.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/kernel/signal.c	2019-01-07 05:36:42.100652401 +0100
+@@ -1312,6 +1312,7 @@ struct sighand_struct *__lock_task_sigha
  
  	return sighand;
  }
@@ -65,19 +66,21 @@ Export the currently un-exported symbols they depend on.
  
  /*
   * send signal info to all the members of a group
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -1624,6 +1624,7 @@ void zap_page_range(struct vm_area_struc
- 	mmu_notifier_invalidate_range_end(mm, start, end);
- 	tlb_finish_mmu(&tlb, start, end);
+diff -up linux-5.0-rc1/mm/memory.c.0341~ linux-5.0-rc1/mm/memory.c
+--- linux-5.0-rc1/mm/memory.c.0341~	2019-01-07 05:36:42.100652401 +0100
++++ linux-5.0-rc1/mm/memory.c	2019-01-07 05:39:36.970341876 +0100
+@@ -1364,6 +1364,7 @@ void zap_page_range(struct vm_area_struc
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb, start, range.end);
  }
 +EXPORT_SYMBOL_GPL(zap_page_range);
  
  /**
   * zap_page_range_single - remove user pages in a given range
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -4326,6 +4326,7 @@ int shmem_zero_setup(struct vm_area_stru
+diff -up linux-5.0-rc1/mm/shmem.c.0341~ linux-5.0-rc1/mm/shmem.c
+--- linux-5.0-rc1/mm/shmem.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/mm/shmem.c	2019-01-07 05:36:42.100652401 +0100
+@@ -3988,6 +3988,7 @@ int shmem_zero_setup(struct vm_area_stru
  
  	return 0;
  }
@@ -85,9 +88,10 @@ Export the currently un-exported symbols they depend on.
  
  /**
   * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -1308,6 +1308,7 @@ int map_kernel_range_noflush(unsigned lo
+diff -up linux-5.0-rc1/mm/vmalloc.c.0341~ linux-5.0-rc1/mm/vmalloc.c
+--- linux-5.0-rc1/mm/vmalloc.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/mm/vmalloc.c	2019-01-07 05:36:42.101652417 +0100
+@@ -1295,6 +1295,7 @@ int map_kernel_range_noflush(unsigned lo
  {
  	return vmap_page_range_noflush(addr, addr + size, prot, pages);
  }
@@ -95,7 +99,7 @@ Export the currently un-exported symbols they depend on.
  
  /**
   * unmap_kernel_range_noflush - unmap kernel VM area
-@@ -1448,6 +1449,7 @@ struct vm_struct *get_vm_area(unsigned l
+@@ -1435,6 +1436,7 @@ struct vm_struct *get_vm_area(unsigned l
  				  NUMA_NO_NODE, GFP_KERNEL,
  				  __builtin_return_address(0));
  }
@@ -103,9 +107,10 @@ Export the currently un-exported symbols they depend on.
  
  struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
  				const void *caller)
---- a/security/security.c
-+++ b/security/security.c
-@@ -231,24 +231,28 @@ int security_binder_set_context_mgr(stru
+diff -up linux-5.0-rc1/security/security.c.0341~ linux-5.0-rc1/security/security.c
+--- linux-5.0-rc1/security/security.c.0341~	2019-01-07 02:08:20.000000000 +0100
++++ linux-5.0-rc1/security/security.c	2019-01-07 05:36:42.101652417 +0100
+@@ -247,24 +247,28 @@ int security_binder_set_context_mgr(stru
  {
  	return call_int_hook(binder_set_context_mgr, 0, mgr);
  }
@@ -134,13 +139,25 @@ Export the currently un-exported symbols they depend on.
  
  int security_ptrace_access_check(struct task_struct *child, unsigned int mode)
  {
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -3976,6 +3976,7 @@ int can_nice(const struct task_struct *p
- 	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
- 		capable(CAP_SYS_NICE));
+diff -up linux-5.0-rc2/fs/file.c.omv~ linux-5.0-rc2/fs/file.c
+--- linux-5.0-rc2/fs/file.c.omv~	2019-01-19 06:14:11.022236291 +0100
++++ linux-5.0-rc2/fs/file.c	2019-01-19 06:14:28.723464356 +0100
+@@ -672,6 +672,7 @@ out_unlock:
+ 	*res = NULL;
+ 	return -ENOENT;
  }
-+EXPORT_SYMBOL_GPL(can_nice);
++EXPORT_SYMBOL(__close_fd_get_file); /* for binder */
  
- #ifdef __ARCH_WANT_SYS_NICE
+ void do_close_on_exec(struct files_struct *files)
+ {
+diff -up linux-5.0-rc2/kernel/task_work.c.omv~ linux-5.0-rc2/kernel/task_work.c
+--- linux-5.0-rc2/kernel/task_work.c.omv~	2019-01-19 06:24:02.824990811 +0100
++++ linux-5.0-rc2/kernel/task_work.c	2019-01-19 06:19:04.133049259 +0100
+@@ -40,6 +40,7 @@ task_work_add(struct task_struct *task,
+ 		set_notify_resume(task);
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(task_work_add); /* for binder */
  
+ /**
+  * task_work_cancel - cancel a pending work added by task_work_add()
