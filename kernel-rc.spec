@@ -1757,6 +1757,7 @@ cd -
 %{_libdir}/libcpupower.so.0.0.1
 %{_unitdir}/cpupower.service
 %{_mandir}/man[1-8]/cpupower*
+%{_datadir}/bash-completion/completions/cpupower
 %config(noreplace) %{_sysconfdir}/sysconfig/cpupower
 
 %files -n cpupower-devel
