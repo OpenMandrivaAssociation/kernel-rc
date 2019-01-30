@@ -21,6 +21,12 @@
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
 
+# (crazy) , well that new way of doing buil-id symlinks
+# does not seems to work, see:
+# https://issues.openmandriva.org/show_bug.cgi?id=2400
+# let us try *old* way for kernel package(s)
+%global _build_id_links alldebug
+
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
