@@ -392,6 +392,11 @@ Patch419:	0151-mm-Export-do_madvise.patch
 #Patch422:	0154-sysctl-vm-Fine-grained-cache-shrinking.patch
 %endif
 
+# (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
+# Not even sure what Vendor that one is .. However it seems be one of the ones random doing that
+# like some Toshibas and some Samsung ones , so disable APST for this one..
+Patch800: Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
+
 # Defines for the things that are needed for all the kernels
 #
 %define common_desc_kernel The kernel package contains the Linux kernel (vmlinuz), the core of your \
