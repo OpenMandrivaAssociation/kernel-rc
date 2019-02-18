@@ -526,6 +526,10 @@ Provides:	%kprovides1 %kprovides2			\
 Provides:	%{kname}-%{1}				\
 Requires(pre):	%requires3 %requires4			\
 Requires:	%requires5				\
+%ifarch %{ix86} %{x86_64}				\
+Requires:	grub2 >= 2.02-26			\
+Requires(post):	grub2 >= 2.02-26			\
+%endif							\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
 Conflicts:	%kconflicts4 %kconflicts5		\
