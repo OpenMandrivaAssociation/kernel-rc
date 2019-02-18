@@ -30,7 +30,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.1
+%define rpmrel		0.rc%{relc}.2
 %define tar_ver   	%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
@@ -213,6 +213,7 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
+Patch6:		linux-5.0-rc7-fix-speakers-on-acer-predator-helios-500.patch
 
 %if %{with clang}
 # Patches to make it build with clang
