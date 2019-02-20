@@ -528,8 +528,8 @@ Provides:	%{kname}-%{1}				\
 Requires(pre):	%requires3 %requires4			\
 Requires:	%requires5				\
 %ifarch %{ix86} %{x86_64}				\
-Requires:	grub2 >= 2.02-26			\
-Requires(post):	grub2 >= 2.02-26			\
+Requires:	grub2 >= 2.02-27			\
+Requires(post):	grub2 >= 2.02-27			\
 %endif							\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
@@ -1322,11 +1322,9 @@ cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 ### Create kernel Post script
 cat > $kernel_files-post <<EOF
 # create initrd/grub.cfg for installed kernel first.
-# yes twice but better paranoid than sorry..
 
 /sbin/depmod -a %{kversion}-$kernel_flavour-%{buildrpmrel}
 /usr/bin/dracut -f --kver %{kversion}-$kernel_flavour-%{buildrpmrel}
-/usr/sbin/update-grub2
 
 # try rebuild all other initrd's , however that may take a while with lots
 # kernels installed
@@ -1335,25 +1333,21 @@ for i in $(ls vmlinuz-[0-9]*| sed 's/.*vmlinuz-//g')
 do
 	if [[ vmlinuz-$i =~ vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ]]; then
 		continue
-	elif [[ -e "initrd-$i.img" ]]; then
+	fi
+	if [[ -e "initrd-$i.img" ]]; then
 		## if exist ignore
 		continue
-	else
-		/sbin/depmod -a "$i"
-		/usr/bin/dracut -f --kver "$i"
 	fi
+
+	/sbin/depmod -a "$i"
+	/usr/bin/dracut -f --kver "$i"
+
 done
 
 ## cleanup some werid symlinks we never used anyway
 rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 
-# (crazy) remove at least one <hash>/foo_bar ?
-#mid=$(cat /etc/machine-id)
-#if [ -n "$mid" ]; then
-#      rm -rf "$mid"
-#fi
-
-# run update-grub2 again
+# run update-grub2
 /usr/sbin/update-grub2
 
 # (crazy) only half the story , need grub patches , OM scripts ( including ARM ) removed suport for systemd-boot
