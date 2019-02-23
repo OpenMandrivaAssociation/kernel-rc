@@ -49,11 +49,6 @@
 %define kname		kernel-release
 %endif
 
-# fakerel and fakever never change, they are used to fool
-# rpm/urpmi/smart
-%define fakever		1
-%define fakerel		%mkrel 1
-
 # version defines
 %define kversion	%{kernelversion}.%{patchlevel}.%{sublevel}
 %define kverrel		%{kversion}-%{rpmrel}
@@ -519,12 +514,12 @@ BuildRequires:	dkms-vboxadditions >= 5.2.22-1
 # name: the flavour name in the package name
 # flavour: first parameter of CreateKernel()
 %define mkflavour()					\
-%package -n %{kname}-%{1}-%{buildrel}			\
-Version:	%{fakever}				\
-Release:	%{fakerel}				\
+%package -n %{kname}-%{1}				\
+Version:	%{kversion}				\
+Release:	%{rpmrel}				\
 Provides:	%kprovides1 %kprovides2			\
 %{expand:%%{?kprovides_%{1}:Provides: %{kprovides_%{1}}}} \
-Provides:	%{kname}-%{1}				\
+Provides:	%{kname}-%{1}-%{buildrel}		\
 Requires(pre):	%requires3 %requires4			\
 Requires:	%requires5				\
 %ifarch %{ix86} %{x86_64}				\
@@ -534,6 +529,9 @@ Requires(post):	grub2 >= 2.02-27			\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
 Conflicts:	%kconflicts4 %kconflicts5		\
+Conflicts:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
+Obsoletes:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
+Provides:	installonlypkg(kernel)			\
 Provides:	should-restart = system			\
 Suggests:	crda					\
 Suggests:	iw					\
@@ -548,13 +546,13 @@ Conflicts:	arch(znver1)				\
 %endif							\
 Summary:	%{expand:%{summary_%(echo %{1} | sed -e "s/-/_/")}} \
 Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-%{buildrel}		\
+%description -n %{kname}-%{1}				\
 %common_desc_kernel %{expand:%{info_%(echo %{1} | sed -e "s/-/_/")}} \
 							\
 %if %{with build_devel}					\
-%package -n	%{kname}-%{1}-devel-%{buildrel}		\
-Version:	%{fakever}				\
-Release:	%{fakerel}				\
+%package -n	%{kname}-%{1}-devel			\
+Version:	%{kversion}				\
+Release:	%{rpmrel}				\
 Requires:	glibc-devel				\
 Requires:	ncurses-devel				\
 Requires:	make					\
@@ -567,13 +565,16 @@ Summary:	The kernel-devel files for %{kname}-%{1}-%{buildrel} \
 Group:		Development/Kernel			\
 Provides:	kernel-devel = %{kverrel}		\
 Provides:	%{kname}-devel = %{kverrel} 		\
-Provides:	%{kname}-%{1}-devel			\
-Requires:	%{kname}-%{1}-%{buildrel}		\
+Provides:	%{kname}-%{1}-devel-%{buildrel}		\
+Conflicts:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel} \
+Obsoletes:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel} \
+Provides:	installonlypkg(kernel) 			\
+Requires:	%{kname}-%{1} = %{kversion}-%{rpmrel}	\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
 Conflicts:	arch(znver1)				\
 %endif							\
-%description -n %{kname}-%{1}-devel-%{buildrel}		\
+%description -n %{kname}-%{1}-devel			\
 This package contains the kernel files (headers and build tools) \
 that should be enough to build additional drivers for   \
 use with %{kname}-%{1}-%{buildrel}.                     \
@@ -584,18 +585,20 @@ If you want to build your own kernel, you need to install the full \
 %endif							\
 							\
 %if %{with build_debug}					\
-%package -n	%{kname}-%{1}-%{buildrel}-debuginfo	\
-Version:	%{fakever}				\
-Release:	%{fakerel}				\
+%package -n	%{kname}-%{1}-debuginfo			\
+Version:	%{kversion}				\
+Release:	%{rpmrel}				\
 Summary:	Files with debuginfo for %{kname}-%{1}-%{buildrel} \
 Group:		Development/Debug			\
 Provides:	kernel-debug = %{kverrel} 		\
-Requires:	%{kname}-%{1}-%{buildrel}		\
+Provides:	kernel-%{1}-%{buildrel}-debuginfo 	\
+Provides:	installonlypkg(kernel) 			\
+Requires:	%{kname}-%{1} = %{kversion}-%{rpmrel}	\
 %ifarch %{ix86}						\
 Conflicts:	arch(x86_64)				\
 Conflicts:	arch(znver1)				\
 %endif							\
-%description -n %{kname}-%{1}-%{buildrel}-debuginfo	\
+%description -n %{kname}-%{1}-debuginfo			\
 This package contains the files with debuginfo to aid in debug tasks \
 when using %{kname}-%{1}-%{buildrel}.			\
 							\
@@ -604,63 +607,25 @@ needs debugging info from the kernel, this package may help. \
 							\
 %endif							\
 							\
-%package -n %{kname}-%{1}-latest			\
-Version:	%{kversion}				\
-Release:	%{rpmrel}				\
-Summary:	Virtual rpm for latest %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-Requires:	%{kname}-%{1}-%{buildrel}		\
-%ifarch %{ix86}						\
-Conflicts:	arch(x86_64)				\
-Conflicts:	arch(znver1)				\
-%endif							\
-%{expand:%%{?latest_obsoletes_%{1}:Obsoletes: %{latest_obsoletes_%{1}}}} \
-%{expand:%%{?latest_provides_%{1}:Provides: %{latest_provides_%{1}}}} \
-%description -n %{kname}-%{1}-latest			\
-This package is a virtual rpm that aims to make sure you always have the \
-latest %{kname}-%{1} installed...			\
+%post -n %{kname}-%{1} -f kernel_files.%{1}-post 	\
+%posttrans -n %{kname}-%{1} -f kernel_files.%{1}-posttrans \
+%preun -n %{kname}-%{1} -f kernel_files.%{1}-preun 	\
+%postun -n %{kname}-%{1} -f kernel_files.%{1}-postun 	\
 							\
 %if %{with build_devel}					\
-%package -n %{kname}-%{1}-devel-latest			\
-Version:	%{kversion}				\
-Release:	%{rpmrel}				\
-Summary:	Virtual rpm for latest %{kname}-%{1}-devel \
-Group:		Development/Kernel			\
-Requires:	%{kname}-%{1}-devel-%{buildrel}		\
-%ifarch %{ix86}						\
-Conflicts:	arch(x86_64)				\
-Conflicts:	arch(znver1)				\
-%endif							\
-Provides:	%{kname}-devel-latest			\
-%{expand:%%{?latest_obsoletes_devel_%{1}:Obsoletes: %{latest_obsoletes_devel_%{1}}}} \
-%{expand:%%{?latest_provides_devel_%{1}:Provides: %{latest_provides_devel_%{1}}}} \
-%description -n %{kname}-%{1}-devel-latest		\
-This package is a virtual rpm that aims to make sure you always have the \
-latest %{kname}-%{1}-devel installed...			\
-							\
+%post -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-post \
+%preun -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-preun \
+%postun -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-postun \
 %endif							\
 							\
-%post -n %{kname}-%{1}-%{buildrel} -f kernel_files.%{1}-post \
-%posttrans -n %{kname}-%{1}-%{buildrel} -f kernel_files.%{1}-posttrans \
-%preun -n %{kname}-%{1}-%{buildrel} -f kernel_files.%{1}-preun \
-%postun -n %{kname}-%{1}-%{buildrel} -f kernel_files.%{1}-postun \
+%files -n %{kname}-%{1} -f kernel_files.%{1} 		\
 							\
 %if %{with build_devel}					\
-%post -n %{kname}-%{1}-devel-%{buildrel} -f kernel_devel_files.%{1}-post \
-%preun -n %{kname}-%{1}-devel-%{buildrel} -f kernel_devel_files.%{1}-preun \
-%postun -n %{kname}-%{1}-devel-%{buildrel} -f kernel_devel_files.%{1}-postun \
-%endif							\
-							\
-%files -n %{kname}-%{1}-%{buildrel} -f kernel_files.%{1} \
-%files -n %{kname}-%{1}-latest				\
-							\
-%if %{with build_devel}					\
-%files -n %{kname}-%{1}-devel-%{buildrel} -f kernel_devel_files.%{1} \
-%files -n %{kname}-%{1}-devel-latest			\
+%files -n %{kname}-%{1}-devel -f kernel_devel_files.%{1} \
 %endif							\
 							\
 %if %{with build_debug}					\
-%files -n %{kname}-%{1}-%{buildrel}-debuginfo -f kernel_debug_files.%{1} \
+%files -n %{kname}-%{1}-debuginfo -f kernel_debug_files.%{1} \
 %endif
 
 # kernel-desktop: i686, smp-alternatives, 4 GB / x86_64
@@ -699,9 +664,9 @@ CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
 # kernel-source
 #
 %if %{with build_source}
-%package -n %{kname}-source-%{buildrel}
-Version:	%{fakever}
-Release:	%{fakerel}
+%package -n %{kname}-source
+Version:	%{kversion}
+Release:	%{rpmrel}
 Requires:	glibc-devel
 Requires:	ncurses-devel
 Requires:	make
@@ -712,30 +677,19 @@ Summary:	The Linux source code for %{kname}-%{buildrel}
 Group:		Development/Kernel
 Autoreqprov:	no
 Provides:	kernel-source = %{kverrel}
+Provides:	kernel-source-%{buildrel}
+Conflicts:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel}
+Obsoletes:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel}
+Provides:	installonlypkg(kernel)
 Buildarch:	noarch
 
-%description -n %{kname}-source-%{buildrel}
+%description -n %{kname}-source
 The %{kname}-source package contains the source code files for the Mandriva and
 ROSA kernel. Theese source files are only needed if you want to build your own
 custom kernel that is better tuned to your particular hardware.
 
 If you only want the files needed to build 3rdparty (nVidia, Ati, dkms-*,...)
-drivers against, install the *-devel-* rpm that is matching your kernel.
-
-#
-# kernel-source-latest: virtual rpm
-#
-%package -n %{kname}-source-latest
-Version:	%{kversion}
-Release:	%{rpmrel}
-Summary:	Virtual rpm for latest %{kname}-source
-Group:		Development/Kernel
-Requires:	%{kname}-source-%{buildrel}
-Buildarch:	noarch
-
-%description -n %{kname}-source-latest
-This package is a virtual rpm that aims to make sure you always have the
-latest %{kname}-source installed...
+drivers against, install the *-devel rpm that is matching your kernel.
 %endif
 
 #
@@ -1719,7 +1673,7 @@ cd -
 ############################################################
 
 %if %{with build_source}
-%files -n %{kname}-source-%{buildrel}
+%files -n %{kname}-source
 %doc README.kernel-sources
 %dir %{_kerneldir}
 %dir %{_kerneldir}/arch
@@ -1786,8 +1740,6 @@ cd -
 %{_kerneldir}/MAINTAINERS
 %{_kerneldir}/Makefile
 %{_kerneldir}/README
-
-%files -n %{kname}-source-latest
 %endif
 
 %if %{with build_doc}
