@@ -1,30 +1,29 @@
-diff -up linux-5.0-rc7/sound/pci/hda/hda_auto_parser.c.omv~ linux-5.0-rc7/sound/pci/hda/hda_auto_parser.c
-diff -up linux-5.0-rc7/sound/pci/hda/patch_realtek.c.omv~ linux-5.0-rc7/sound/pci/hda/patch_realtek.c
---- linux-5.0-rc7/sound/pci/hda/patch_realtek.c.omv~	2019-02-18 23:35:22.904073704 +0100
-+++ linux-5.0-rc7/sound/pci/hda/patch_realtek.c	2019-02-19 00:22:19.718059950 +0100
-@@ -5632,6 +5632,7 @@ enum {
- 	ALC294_FIXUP_ASUS_SPK,
- 	ALC225_FIXUP_HEADSET_JACK,
- 	ALC293_FIXUP_SYSTEM76_MIC_NO_PRESENCE,
+diff -up linux-5.0-rc8/sound/pci/hda/patch_realtek.c.0006~ linux-5.0-rc8/sound/pci/hda/patch_realtek.c
+--- linux-5.0-rc8/sound/pci/hda/patch_realtek.c.0006~	2019-02-25 01:46:45.000000000 +0100
++++ linux-5.0-rc8/sound/pci/hda/patch_realtek.c	2019-02-25 17:55:27.032586591 +0100
+@@ -1857,6 +1857,7 @@ enum {
+ 	ALC1220_FIXUP_CLEVO_P950,
+ 	ALC1220_FIXUP_SYSTEM76_ORYP5,
+ 	ALC1220_FIXUP_SYSTEM76_ORYP5_PINS,
 +	ALC299_FIXUP_PREDATOR_SPK,
  };
  
- static const struct hda_fixup alc269_fixups[] = {
-@@ -6587,6 +6588,13 @@ static const struct hda_fixup alc269_fix
+ static void alc889_fixup_coef(struct hda_codec *codec,
+@@ -6627,6 +6628,13 @@ static const struct hda_fixup alc269_fix
  		.chained = true,
- 		.chain_id = ALC269_FIXUP_HEADSET_MODE_NO_HP_MIC
+ 		.chain_id = ALC285_FIXUP_LENOVO_HEADPHONE_NOISE
  	},
 +	[ALC299_FIXUP_PREDATOR_SPK] = {
 +		.type = HDA_FIXUP_PINS,
 +		.v.pins = (const struct hda_pintbl[]) {
-+			{ 0x1a, 0x01a1913c }, /* use as headset mic, without its own jack detect */
++			{ 0x21, 0x90170150 }, /* use as headset mic, without its own jack detect */
 +			{ }
 +		}
 +	},
  };
  
  static const struct snd_pci_quirk alc269_fixup_tbl[] = {
-@@ -6603,6 +6611,7 @@ static const struct snd_pci_quirk alc269
+@@ -6643,6 +6651,7 @@ static const struct snd_pci_quirk alc269
  	SND_PCI_QUIRK(0x1025, 0x079b, "Acer Aspire V5-573G", ALC282_FIXUP_ASPIRE_V5_PINS),
  	SND_PCI_QUIRK(0x1025, 0x102b, "Acer Aspire C24-860", ALC286_FIXUP_ACER_AIO_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1025, 0x106d, "Acer Cloudbook 14", ALC283_FIXUP_CHROME_BOOK),
@@ -32,7 +31,7 @@ diff -up linux-5.0-rc7/sound/pci/hda/patch_realtek.c.omv~ linux-5.0-rc7/sound/pc
  	SND_PCI_QUIRK(0x1025, 0x128f, "Acer Veriton Z6860G", ALC286_FIXUP_ACER_AIO_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1025, 0x1290, "Acer Veriton Z4860G", ALC286_FIXUP_ACER_AIO_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1025, 0x1291, "Acer Veriton Z4660G", ALC286_FIXUP_ACER_AIO_MIC_NO_PRESENCE),
-@@ -6997,6 +7006,7 @@ static const struct hda_model_fixup alc2
+@@ -7037,6 +7046,7 @@ static const struct hda_model_fixup alc2
  	{.id = ALC255_FIXUP_DELL_HEADSET_MIC, .name = "alc255-dell-headset"},
  	{.id = ALC295_FIXUP_HP_X360, .name = "alc295-hp-x360"},
  	{.id = ALC225_FIXUP_HEADSET_JACK, .name = "alc-sense-combo"},
@@ -40,7 +39,7 @@ diff -up linux-5.0-rc7/sound/pci/hda/patch_realtek.c.omv~ linux-5.0-rc7/sound/pc
  	{}
  };
  #define ALC225_STANDARD_PINS \
-@@ -7381,6 +7391,8 @@ static const struct snd_hda_pin_quirk al
+@@ -7421,6 +7431,8 @@ static const struct snd_hda_pin_quirk al
  		ALC225_STANDARD_PINS,
  		{0x12, 0xb7a60130},
  		{0x17, 0x90170110}),
@@ -49,7 +48,7 @@ diff -up linux-5.0-rc7/sound/pci/hda/patch_realtek.c.omv~ linux-5.0-rc7/sound/pc
  	{}
  };
  
-@@ -7446,6 +7458,9 @@ static int patch_alc269(struct hda_codec
+@@ -7486,6 +7498,9 @@ static int patch_alc269(struct hda_codec
  	spec->shutup = alc_default_shutup;
  	spec->init_hook = alc_default_init;
  

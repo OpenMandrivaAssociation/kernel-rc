@@ -13,10 +13,7 @@
 %define kernelversion	5
 %define patchlevel	0
 %define sublevel	0
-%define relc		7
-# Only ever wrong on x.0 releases...
-#define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
-%define previous	4.20
+%define relc		8
 
 %define buildrel	%{kversion}-%{buildrpmrel}
 %define rpmtag	%{disttag}
@@ -30,7 +27,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define tar_ver   	%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
