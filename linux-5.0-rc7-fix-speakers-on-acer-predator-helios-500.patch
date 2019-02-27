@@ -48,13 +48,3 @@ diff -up linux-5.0-rc8/sound/pci/hda/patch_realtek.c.0006~ linux-5.0-rc8/sound/p
  	{}
  };
  
-@@ -7486,6 +7498,9 @@ static int patch_alc269(struct hda_codec
- 	spec->shutup = alc_default_shutup;
- 	spec->init_hook = alc_default_init;
- 
-+	pr_info("Patching ALC269 for vendor ID %08x subsystem %08x\n", codec->core.vendor_id, codec->core.subsystem_id);
-+	pr_info("Model: %s, Chip name: %s\n", codec->modelname, codec->core.chip_name);
-+
- 	switch (codec->core.vendor_id) {
- 	case 0x10ec0269:
- 		spec->codec_variant = ALC269_TYPE_ALC269VA;

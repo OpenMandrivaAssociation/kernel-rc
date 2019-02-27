@@ -205,7 +205,10 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
+# https://bugzilla.kernel.org/show_bug.cgi?id=202621
 Patch6:		linux-5.0-rc7-fix-speakers-on-acer-predator-helios-500.patch
+# https://bugzilla.kernel.org/show_bug.cgi?id=202651
+Patch7:		linux-5.0-rc8-fix-aquantia-ethernet.patch
 
 %if %{with clang}
 # Patches to make it build with clang
