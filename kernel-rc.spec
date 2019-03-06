@@ -2,7 +2,7 @@
 %define _disable_ld_no_undefined 1
 
 # (tpg) try to speed up things
-%global optflags %{optflags} -Ofast
+%global optflags %{optflags} -O3
 
 # While perf comes with python2 scripts
 %define _python_bytecompile_build 0
