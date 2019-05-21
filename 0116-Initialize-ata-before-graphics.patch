@@ -1,22 +1,23 @@
-diff -up linux-4.18/drivers/Makefile.0410~ linux-4.18/drivers/Makefile
---- linux-4.18/drivers/Makefile.0410~	2018-08-27 10:46:35.041887277 +0200
-+++ linux-4.18/drivers/Makefile	2018-08-27 10:47:18.296013489 +0200
-@@ -58,14 +58,9 @@ obj-y				+= char/
+diff -up linux-5.1/drivers/Makefile.44~ linux-5.1/drivers/Makefile
+--- linux-5.1/drivers/Makefile.44~	2019-05-06 02:42:58.000000000 +0200
++++ linux-5.1/drivers/Makefile	2019-05-07 17:36:35.335277516 +0200
+@@ -58,15 +58,8 @@ obj-y				+= char/
  # iommu/ comes before gpu as gpu are using iommu controllers
- obj-$(CONFIG_IOMMU_SUPPORT)	+= iommu/
+ obj-y				+= iommu/
  
 -# gpu/ comes after char for AGP vs DRM startup and after iommu
 -obj-y				+= gpu/
- 
+-
  obj-$(CONFIG_CONNECTOR)		+= connector/
  
 -# i810fb and intelfb depend on char/agp/
 -obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
 -obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
- 
+-
  obj-$(CONFIG_PARPORT)		+= parport/
  obj-$(CONFIG_NVM)		+= lightnvm/
-@@ -79,6 +74,11 @@ obj-$(CONFIG_IDE)		+= ide/
+ obj-y				+= base/ block/ misc/ mfd/ nfc/
+@@ -79,6 +72,11 @@ obj-$(CONFIG_IDE)		+= ide/
  obj-y				+= scsi/
  obj-y				+= nvme/
  obj-$(CONFIG_ATA)		+= ata/

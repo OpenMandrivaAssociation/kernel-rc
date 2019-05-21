@@ -1,7 +1,7 @@
-diff -up linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c.0004~ linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c
---- linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c.0004~	2018-08-27 10:24:36.030459526 +0200
-+++ linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c	2018-08-27 10:26:05.676650418 +0200
-@@ -1568,13 +1568,13 @@ intel_hdmi_mode_valid(struct drm_connect
+diff -up linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c.3~ linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c
+--- linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c.3~	2019-05-07 17:17:24.996151319 +0200
++++ linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c	2019-05-07 17:19:03.873570987 +0200
+@@ -1584,13 +1584,13 @@ intel_hdmi_mode_valid(struct drm_connect
  		clock /= 2;
  
  	/* check if we can do 8bpc */
@@ -10,7 +10,7 @@ diff -up linux-4.18/drivers/gpu/drm/i915/intel_hdmi.c.0004~ linux-4.18/drivers/g
  
  	if (hdmi->has_hdmi_sink && !force_dvi) {
  		/* if we can't do 8bpc we may still be able to do 12bpc */
- 		if (status != MODE_OK && !HAS_GMCH_DISPLAY(dev_priv))
+ 		if (status != MODE_OK && !HAS_GMCH(dev_priv))
  			status = hdmi_port_clock_valid(hdmi, clock * 3 / 2,
 -						       true, force_dvi);
 +						       false, force_dvi);
