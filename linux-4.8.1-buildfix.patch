@@ -1,18 +1,18 @@
-diff -up linux-5.2-rc1/arch/arm64/kernel/vdso/Makefile.4~ linux-5.2-rc1/arch/arm64/kernel/vdso/Makefile
---- linux-5.2-rc1/arch/arm64/kernel/vdso/Makefile.4~	2019-05-21 02:50:12.484303922 +0200
-+++ linux-5.2-rc1/arch/arm64/kernel/vdso/Makefile	2019-05-21 02:55:14.651708274 +0200
-@@ -13,7 +13,7 @@ targets := $(obj-vdso) vdso.so vdso.so.d
+diff -up linux-5.2-rc2/arch/arm64/kernel/vdso/Makefile.4~ linux-5.2-rc2/arch/arm64/kernel/vdso/Makefile
+--- linux-5.2-rc2/arch/arm64/kernel/vdso/Makefile.4~	2019-05-27 18:14:22.458915059 +0200
++++ linux-5.2-rc2/arch/arm64/kernel/vdso/Makefile	2019-05-27 18:15:08.331912834 +0200
+@@ -12,7 +12,7 @@ obj-vdso := gettimeofday.o note.o sigret
+ targets := $(obj-vdso) vdso.so vdso.so.dbg
  obj-vdso := $(addprefix $(obj)/, $(obj-vdso))
  
- ldflags-y := -shared -nostdlib -soname=linux-vdso.so.1 \
--		$(call ld-option, --hash-style=sysv) -n -T
-+		$(call ld-option, --hash-style=sysv -fuse-ld=bfd) -n -T
+-ldflags-y := -shared -nostdlib -soname=linux-vdso.so.1 --hash-style=sysv \
++ldflags-y := -shared -nostdlib -soname=linux-vdso.so.1 --hash-style=sysv -fuse-ld=bfd \
+ 		--build-id -n -T
  
  # Disable gcov profiling for VDSO code
- GCOV_PROFILE := n
-diff -up linux-5.2-rc1/arch/x86/entry/vdso/Makefile.4~ linux-5.2-rc1/arch/x86/entry/vdso/Makefile
---- linux-5.2-rc1/arch/x86/entry/vdso/Makefile.4~	2019-05-20 00:47:09.000000000 +0200
-+++ linux-5.2-rc1/arch/x86/entry/vdso/Makefile	2019-05-21 02:50:12.485303914 +0200
+diff -up linux-5.2-rc2/arch/x86/entry/vdso/Makefile.4~ linux-5.2-rc2/arch/x86/entry/vdso/Makefile
+--- linux-5.2-rc2/arch/x86/entry/vdso/Makefile.4~	2019-05-27 01:49:19.000000000 +0200
++++ linux-5.2-rc2/arch/x86/entry/vdso/Makefile	2019-05-27 18:14:22.458915059 +0200
 @@ -47,7 +47,7 @@ targets += $(vdso_img_sodbg) $(vdso_img-
  CPPFLAGS_vdso.lds += -P -C
  
