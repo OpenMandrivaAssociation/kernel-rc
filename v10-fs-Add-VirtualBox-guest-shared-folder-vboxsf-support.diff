@@ -1,71 +1,25 @@
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 533f78b840af..5d19c0b61b6c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -16598,6 +16598,12 @@ F:	include/linux/vbox_utils.h
- F:	include/uapi/linux/vbox*.h
- F:	drivers/virt/vboxguest/
- 
-+VIRTUAL BOX SHARED FOLDER VFS DRIVER:
-+M:	Hans de Goede <hdegoede@redhat.com>
-+L:	linux-fsdevel@vger.kernel.org
-+S:	Maintained
-+F:	fs/vboxsf/*
-+
- VIRTUAL SERIO DEVICE DRIVER
- M:	Stephen Chandler Paul <thatslyude@gmail.com>
- S:	Maintained
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 3e6d3101f3ff..695ddbb1958c 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -261,6 +261,7 @@ source "fs/romfs/Kconfig"
- source "fs/pstore/Kconfig"
+diff -up linux-5.4/fs/Kconfig.16~ linux-5.4/fs/Kconfig
+--- linux-5.4/fs/Kconfig.16~	2019-12-01 17:07:07.940143736 +0100
++++ linux-5.4/fs/Kconfig	2019-12-01 18:43:48.949699096 +0100
+@@ -264,6 +264,7 @@ source "fs/pstore/Kconfig"
  source "fs/sysv/Kconfig"
  source "fs/ufs/Kconfig"
+ source "fs/erofs/Kconfig"
 +source "fs/vboxsf/Kconfig"
  
  endif # MISC_FILESYSTEMS
  
-diff --git a/fs/Makefile b/fs/Makefile
-index 427fec226fae..abc67831d531 100644
---- a/fs/Makefile
-+++ b/fs/Makefile
-@@ -129,3 +129,4 @@ obj-$(CONFIG_F2FS_FS)		+= f2fs/
- obj-$(CONFIG_CEPH_FS)		+= ceph/
+diff -up linux-5.4/fs/Makefile.16~ linux-5.4/fs/Makefile
+--- linux-5.4/fs/Makefile.16~	2019-12-01 17:07:07.940143736 +0100
++++ linux-5.4/fs/Makefile	2019-12-01 18:44:24.168785983 +0100
+@@ -132,3 +132,4 @@ obj-$(CONFIG_CEPH_FS)		+= ceph/
  obj-$(CONFIG_PSTORE)		+= pstore/
  obj-$(CONFIG_EFIVAR_FS)		+= efivarfs/
+ obj-$(CONFIG_EROFS_FS)		+= erofs/
 +obj-$(CONFIG_VBOXSF_FS)		+= vboxsf/
-diff --git a/fs/vboxsf/Kconfig b/fs/vboxsf/Kconfig
-new file mode 100644
-index 000000000000..b84586ae08b3
---- /dev/null
-+++ b/fs/vboxsf/Kconfig
-@@ -0,0 +1,10 @@
-+config VBOXSF_FS
-+	tristate "VirtualBox guest shared folder (vboxsf) support"
-+	depends on X86 && VBOXGUEST
-+	select NLS
-+	help
-+	  VirtualBox hosts can share folders with guests, this driver
-+	  implements the Linux-guest side of this allowing folders exported
-+	  by the host to be mounted under Linux.
-+
-+	  If you want to use shared folders in VirtualBox guests, answer Y or M.
-diff --git a/fs/vboxsf/Makefile b/fs/vboxsf/Makefile
-new file mode 100644
-index 000000000000..fcbd488f9eec
---- /dev/null
-+++ b/fs/vboxsf/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_VBOXSF_FS) += vboxsf.o
-+
-+vboxsf-objs := dir.o file.o utils.o vboxsf_wrappers.o super.o
-diff --git a/fs/vboxsf/dir.c b/fs/vboxsf/dir.c
-new file mode 100644
-index 000000000000..bc8a8f711a0b
---- /dev/null
-+++ b/fs/vboxsf/dir.c
+diff -up linux-5.4/fs/vboxsf/dir.c.16~ linux-5.4/fs/vboxsf/dir.c
+--- linux-5.4/fs/vboxsf/dir.c.16~	2019-12-01 17:07:07.941143737 +0100
++++ linux-5.4/fs/vboxsf/dir.c	2019-12-01 17:07:07.941143737 +0100
 @@ -0,0 +1,538 @@
 +// SPDX-License-Identifier: MIT
 +/*
@@ -605,11 +559,9 @@ index 000000000000..bc8a8f711a0b
 +	.setattr = vboxsf_setattr,
 +	.symlink = sf_symlink
 +};
-diff --git a/fs/vboxsf/file.c b/fs/vboxsf/file.c
-new file mode 100644
-index 000000000000..60fa7ef6d797
---- /dev/null
-+++ b/fs/vboxsf/file.c
+diff -up linux-5.4/fs/vboxsf/file.c.16~ linux-5.4/fs/vboxsf/file.c
+--- linux-5.4/fs/vboxsf/file.c.16~	2019-12-01 17:07:07.941143737 +0100
++++ linux-5.4/fs/vboxsf/file.c	2019-12-01 17:07:07.941143737 +0100
 @@ -0,0 +1,452 @@
 +// SPDX-License-Identifier: MIT
 +/*
@@ -1063,11 +1015,30 @@ index 000000000000..60fa7ef6d797
 +const struct inode_operations vboxsf_lnk_iops = {
 +	.get_link = sf_get_link
 +};
-diff --git a/fs/vboxsf/shfl_hostintf.h b/fs/vboxsf/shfl_hostintf.h
-new file mode 100644
-index 000000000000..9553994f4997
---- /dev/null
-+++ b/fs/vboxsf/shfl_hostintf.h
+diff -up linux-5.4/fs/vboxsf/Kconfig.16~ linux-5.4/fs/vboxsf/Kconfig
+--- linux-5.4/fs/vboxsf/Kconfig.16~	2019-12-01 17:07:07.940143736 +0100
++++ linux-5.4/fs/vboxsf/Kconfig	2019-12-01 17:07:07.940143736 +0100
+@@ -0,0 +1,10 @@
++config VBOXSF_FS
++	tristate "VirtualBox guest shared folder (vboxsf) support"
++	depends on X86 && VBOXGUEST
++	select NLS
++	help
++	  VirtualBox hosts can share folders with guests, this driver
++	  implements the Linux-guest side of this allowing folders exported
++	  by the host to be mounted under Linux.
++
++	  If you want to use shared folders in VirtualBox guests, answer Y or M.
+diff -up linux-5.4/fs/vboxsf/Makefile.16~ linux-5.4/fs/vboxsf/Makefile
+--- linux-5.4/fs/vboxsf/Makefile.16~	2019-12-01 17:07:07.940143736 +0100
++++ linux-5.4/fs/vboxsf/Makefile	2019-12-01 17:07:07.940143736 +0100
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_VBOXSF_FS) += vboxsf.o
++
++vboxsf-objs := dir.o file.o utils.o vboxsf_wrappers.o super.o
+diff -up linux-5.4/fs/vboxsf/shfl_hostintf.h.16~ linux-5.4/fs/vboxsf/shfl_hostintf.h
+--- linux-5.4/fs/vboxsf/shfl_hostintf.h.16~	2019-12-01 17:07:07.941143737 +0100
++++ linux-5.4/fs/vboxsf/shfl_hostintf.h	2019-12-01 17:07:07.941143737 +0100
 @@ -0,0 +1,919 @@
 +/* SPDX-License-Identifier: MIT */
 +/*
@@ -1988,11 +1959,9 @@ index 000000000000..9553994f4997
 +#define SHFL_CPARMS_SYMLINK  (4)
 +
 +#endif
-diff --git a/fs/vboxsf/super.c b/fs/vboxsf/super.c
-new file mode 100644
-index 000000000000..8d7d7819ea64
---- /dev/null
-+++ b/fs/vboxsf/super.c
+diff -up linux-5.4/fs/vboxsf/super.c.16~ linux-5.4/fs/vboxsf/super.c
+--- linux-5.4/fs/vboxsf/super.c.16~	2019-12-01 17:07:07.941143737 +0100
++++ linux-5.4/fs/vboxsf/super.c	2019-12-01 17:07:07.941143737 +0100
 @@ -0,0 +1,491 @@
 +// SPDX-License-Identifier: MIT
 +/*
@@ -2485,11 +2454,9 @@ index 000000000000..8d7d7819ea64
 +MODULE_AUTHOR("Oracle Corporation");
 +MODULE_LICENSE("GPL v2");
 +MODULE_ALIAS_FS("vboxsf");
-diff --git a/fs/vboxsf/utils.c b/fs/vboxsf/utils.c
-new file mode 100644
-index 000000000000..224523d0fa58
---- /dev/null
-+++ b/fs/vboxsf/utils.c
+diff -up linux-5.4/fs/vboxsf/utils.c.16~ linux-5.4/fs/vboxsf/utils.c
+--- linux-5.4/fs/vboxsf/utils.c.16~	2019-12-01 17:07:07.941143737 +0100
++++ linux-5.4/fs/vboxsf/utils.c	2019-12-01 17:07:07.941143737 +0100
 @@ -0,0 +1,563 @@
 +// SPDX-License-Identifier: MIT
 +/*
@@ -3054,11 +3021,9 @@ index 000000000000..224523d0fa58
 +
 +	return err;
 +}
-diff --git a/fs/vboxsf/vboxsf_wrappers.c b/fs/vboxsf/vboxsf_wrappers.c
-new file mode 100644
-index 000000000000..9c827220c92b
---- /dev/null
-+++ b/fs/vboxsf/vboxsf_wrappers.c
+diff -up linux-5.4/fs/vboxsf/vboxsf_wrappers.c.16~ linux-5.4/fs/vboxsf/vboxsf_wrappers.c
+--- linux-5.4/fs/vboxsf/vboxsf_wrappers.c.16~	2019-12-01 17:07:07.942143739 +0100
++++ linux-5.4/fs/vboxsf/vboxsf_wrappers.c	2019-12-01 17:07:07.942143739 +0100
 @@ -0,0 +1,375 @@
 +// SPDX-License-Identifier: MIT
 +/*
@@ -3435,11 +3400,9 @@ index 000000000000..9c827220c92b
 +{
 +	return vboxsf_call(SHFL_FN_SET_SYMLINKS, NULL, 0, NULL);
 +}
-diff --git a/fs/vboxsf/vfsmod.h b/fs/vboxsf/vfsmod.h
-new file mode 100644
-index 000000000000..d7615c00cdd9
---- /dev/null
-+++ b/fs/vboxsf/vfsmod.h
+diff -up linux-5.4/fs/vboxsf/vfsmod.h.16~ linux-5.4/fs/vboxsf/vfsmod.h
+--- linux-5.4/fs/vboxsf/vfsmod.h.16~	2019-12-01 17:07:07.942143739 +0100
++++ linux-5.4/fs/vboxsf/vfsmod.h	2019-12-01 17:07:07.942143739 +0100
 @@ -0,0 +1,132 @@
 +/* SPDX-License-Identifier: MIT */
 +/*
@@ -3573,3 +3536,19 @@ index 000000000000..d7615c00cdd9
 +int vboxsf_set_symlinks(void);
 +
 +#endif
+diff -up linux-5.4/MAINTAINERS.16~ linux-5.4/MAINTAINERS
+--- linux-5.4/MAINTAINERS.16~	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/MAINTAINERS	2019-12-01 17:07:07.940143736 +0100
+@@ -17341,6 +17341,12 @@ F:	include/linux/vbox_utils.h
+ F:	include/uapi/linux/vbox*.h
+ F:	drivers/virt/vboxguest/
+ 
++VIRTUAL BOX SHARED FOLDER VFS DRIVER:
++M:	Hans de Goede <hdegoede@redhat.com>
++L:	linux-fsdevel@vger.kernel.org
++S:	Maintained
++F:	fs/vboxsf/*
++
+ VIRTUAL SERIO DEVICE DRIVER
+ M:	Stephen Chandler Paul <thatslyude@gmail.com>
+ S:	Maintained

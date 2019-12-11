@@ -1,4 +1,7 @@
 # utils/cpuidle-info.c:193: error: undefined reference to 'cpufreq_cpu_exists'
+# investigate aarch64
+%define _binaries_in_noarch_packages_terminate_build   0
+#end
 %define _disable_ld_no_undefined 1
 
 # (tpg) try to speed up things
@@ -17,9 +20,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	2
+%define patchlevel	5
 %define sublevel	0
-%define relc		4
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -64,11 +67,13 @@
 
 # Build defines
 %bcond_with build_doc
+# uksm is not usually released for -rc builds
+%bcond_with uksm
 %bcond_without build_source
 %bcond_without build_devel
 %bcond_with build_debug
 %bcond_with clang
-%bcond_without bootsplash
+%bcond_with bootsplash
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
 %if %mdvver > 3000000
@@ -131,6 +136,12 @@
 %bcond_with build_desktop
 %bcond_without build_server
 %endif
+
+# RISC-V
+%ifarch %{riscv}
+%bcond_without build_desktop
+%bcond_with build_server
+%endif
 # End of user definitions
 
 # For the .nosrc.rpm
@@ -153,7 +164,7 @@
 	[ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
 
 # Sparc arch wants sparc64 kernels
-%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/')
+%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/')
 
 #
 # SRC RPM description
@@ -215,6 +226,7 @@ Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
+Patch6:		linux-5.2.9-riscv-compile.patch
 
 %if %{with clang}
 # Patches to make it build with clang
@@ -292,11 +304,14 @@ Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-fi
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
-#Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/uksm-4.19.patch
+%if %{with uksm}
+# brokes armx builds
+Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.4.patch
 # Sometimes other people are ahead of upstream porting to new releases...
 # No UKSM for 5.2-rc yet...
 #Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/uksm-pf/0001-uksm-5.1-initial-submission.patch
 #Patch121:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/uksm-pf-fix/0001-uksm-5.1-apply-52d1e606ee733.patch
+%endif
 
 %if %{with build_modzstd}
 # https://patchwork.kernel.org/patch/10003007/
@@ -304,9 +319,6 @@ Patch126:	v2-1-2-lib-Add-support-for-ZSTD-compressed-kernel.patch
 # https://patchwork.kernel.org/patch/10003011/
 Patch127:	v2-2-2-x86-Add-support-for-ZSTD-compressed-kernel.patch
 %endif
-
-Patch133:	https://gitweb.frugalware.org/frugalware-current/raw/master/source/base/kernel/drop_ancient-and-wrong-msg.patch
-
 
 ### Additional hardware support
 ### TV tuners:
@@ -324,6 +336,7 @@ Patch144:	0124-Extend-FEC-enum.patch
 Patch145:	saa716x-driver-integration.patch
 Patch146:	saa716x-4.15.patch
 Patch147:	saa716x-linux-4.19.patch
+Patch148:	saa716x-5.4.patch
 
 # Lima driver for ARM Mali graphics chips
 # Generated from https://gitlab.freedesktop.org/lima/linux.git
@@ -337,27 +350,27 @@ Patch147:	saa716x-linux-4.19.patch
 # https://patchwork.kernel.org/patch/10906949/
 # For newer versions, check
 # https://patchwork.kernel.org/project/linux-fsdevel/list/?submitter=582
-Patch300:	v10-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.diff
+Patch300:	v15-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.diff
+Source300:	virtualbox-kernel-5.3.patch
 
 # Better support for newer x86 processors
 # Original patch:
 #Patch310:	https://raw.githubusercontent.com/graysky2/kernel_gcc_patch/master/enable_additional_cpu_optimizations_for_gcc_v8.1%2B_kernel_v4.13%2B.patch
 # More actively maintained for newer kernels
-Patch310:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/cpu-patches/0001-cpu-5.1-merge-graysky-s-patchset.patch
-Patch311:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/cpu-patches/0002-cpu-5.1-add-a-CONFIG-option-that-sets-O3.patch
+Patch310:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
 
 # Assorted fixes
 ## Intel Core2Duo got always unstable tsc , with changes in 4.18
 ## some models cannot boot anymore , they are stuck in a endless loop.
 ## see: https://lkml.org/lkml/2018/8/30/341
 ##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
-## patch is an backport from : https://lkml.org/lkml/2018/9/3/253
-Patch330:	https://raw.githubusercontent.com/frugalware/frugalware-current/71a887a9f309345f966c4d09c920642a62efb66f/source/base/kernel/fix-C2D-CPUs-booting.patch
-Patch332:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/loop-patches/0001-loop-Better-discard-for-block-devices.patch
 
 # Modular binder and ashmem -- let's try to make anbox happy
 Patch340:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
+
+# Fix build
+Patch350:	linux-5.5-compile.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -369,33 +382,44 @@ Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 # https://github.com/clearlinux-pkgs/linux/
 Patch400:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch401:	0103-Increase-the-ext4-default-commit-age.patch
-Patch402:	0103-silence-rapl.patch
 Patch403:	0105-pci-pme-wakeups.patch
 # Incompatible with UKSM
 #Patch404:	0106-ksm-wakeups.patch
 Patch405:	0107-intel_idle-tweak-cpuidle-cstates.patch
-Patch406:	0110-fs-ext4-fsync-optimize-double-fsync-a-bunch.patch
 # Not necessarily a good idea -- not all CPU cores are
 # guaranteed to be the same (e.g. big.LITTLE)
-#Patch407:	0114-smpboot-reuse-timer-calibration.patch
+%ifarch %{ix86} %{x86_64}
+Patch407:	0114-smpboot-reuse-timer-calibration.patch
+%endif
 Patch408:	0116-Initialize-ata-before-graphics.patch
-Patch409:	0117-reduce-e1000e-boot-time-by-tightening-sleep-ranges.patch
 Patch410:	0119-e1000e-change-default-policy.patch
 Patch411:	0112-give-rdrand-some-credit.patch
 Patch412:	0120-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
-Patch414:	0123-e1000e-increase-pause-and-refresh-time.patch
 Patch415:	0124-kernel-time-reduce-ntp-wakeups.patch
 Patch416:	0125-init-wait-for-partition-and-retry-scan.patch
-Patch417:	0502-locking-rwsem-spin-faster.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
 # Not even sure what Vendor that one is .. However it seems be one of the ones random doing that
 # like some Toshibas and some Samsung ones , so disable APST for this one..
-Patch800: Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
+# Seems to be a M.2 SSD SKhynix..
+Patch800:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
 # Restore ACPI loglevels to sane values
-Patch801: https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
-Patch802: https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
+Patch801:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
+Patch802:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
+# (tpg) enable MuQSS CPU scheduler
+# FIXME re-enable when ported to 5.3
+Patch803:	http://ck.kolivas.org/patches/muqss/5.0/5.4/0001-MultiQueue-Skiplist-Scheduler-v0.196.patch
+# (bero) And make it compatible with modular binder
+Patch804:	MuQSS-export-can_nice-for-binder.patch
+# (crazy) need to know what function() breaks on nvme failures
+Patch809:	nvme-pci-more-info.patch
+# ( crazy ) this one is adding be_silent mod parameter to acer-wmi
+# When a Unknow function is detected ( aka new ACPI interface not yet impelmeted etc )
+# a message is printed in dmesg each time you use this , eg press some key , plug / unplug AC.
+# Folks reported these upstream can load the model with be_silent=1 to stop the dmesg flood,
+# until is implemented / fixed.
+#Patch810:  acer-wmi-silence-unknow-functions-messages.patch
 
 # Defines for the things that are needed for all the kernels
 #
@@ -797,8 +821,6 @@ Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{kverrel}
 Obsoletes:	kernel-headers < 1:%{kverrel}
-# we don't need the kernel binary in chroot
-#Requires:	%{kname} = %{kverrel}
 %rename linux-userspace-headers
 
 %description headers
@@ -939,6 +961,7 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
+#patch -p1 -z .300a~ -b <%{S:300}
 %endif
 %endif
 
@@ -1094,7 +1117,7 @@ BuildKernel() {
     %{smake} INSTALL_MOD_PATH=%{temp_root} KERNELRELEASE=$KernelVer INSTALL_MOD_STRIP=1 modules_install
 
 # headers
-    %{make_build} INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer headers_install
+    %{make_build} INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
 %ifarch %{armx}
     %{smake} ARCH=%{target_arch} V=1 dtbs INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
@@ -1203,11 +1226,11 @@ $DevelRoot/include/drm
 $DevelRoot/include/dt-bindings
 $DevelRoot/include/generated
 $DevelRoot/include/keys
+$DevelRoot/include/kunit
 $DevelRoot/include/kvm
 $DevelRoot/include/linux
 $DevelRoot/include/math-emu
 $DevelRoot/include/media
-$DevelRoot/include/memory
 $DevelRoot/include/misc
 $DevelRoot/include/net
 $DevelRoot/include/pcmcia
@@ -1219,6 +1242,7 @@ $DevelRoot/include/sound
 $DevelRoot/include/target
 $DevelRoot/include/trace
 $DevelRoot/include/uapi
+$DevelRoot/include/vdso
 $DevelRoot/include/video
 $DevelRoot/include/xen
 $DevelRoot/init
@@ -1240,7 +1264,6 @@ $DevelRoot/Kconfig
 $DevelRoot/Makefile
 $DevelRoot/Module.symvers
 $DevelRoot/arch/Kconfig
-%doc README.kernel-sources
 EOF
 
 ### Create -devel Post script on the fly
@@ -1302,7 +1325,10 @@ cat > $kernel_files <<EOF
 %dir %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.*
-%doc README.kernel-sources
+# device tree binary
+%ifarch %{armx}
+%{_bootdir}/dtb-%{kversion}-$kernel_flavour-%{buildrpmrel}
+%endif
 EOF
 
 %if %{with build_debug}
@@ -1684,6 +1710,7 @@ done
 rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes}
 rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore}
 rm -rf %{target_source}/.tmp_depmod/
+rm -rf %{buildroot}/usr/src/linux-*/uksm.txt
 
 # more cleaning
 cd %{target_source}
@@ -1712,7 +1739,6 @@ cd -
 
 %if %{with build_source}
 %files -n %{kname}-source
-%doc README.kernel-sources
 %dir %{_kerneldir}
 %dir %{_kerneldir}/arch
 %dir %{_kerneldir}/include
@@ -1738,11 +1764,11 @@ cd -
 %{_kerneldir}/include/drm
 %{_kerneldir}/include/dt-bindings
 %{_kerneldir}/include/keys
+%{_kerneldir}/include/kunit
 %{_kerneldir}/include/kvm
 %{_kerneldir}/include/linux
 %{_kerneldir}/include/math-emu
 %{_kerneldir}/include/media
-%{_kerneldir}/include/memory
 %{_kerneldir}/include/misc
 %{_kerneldir}/include/net
 %{_kerneldir}/include/pcmcia
@@ -1754,6 +1780,7 @@ cd -
 %{_kerneldir}/include/target
 %{_kerneldir}/include/trace
 %{_kerneldir}/include/uapi
+%{_kerneldir}/include/vdso
 %{_kerneldir}/include/video
 %{_kerneldir}/include/xen
 %{_kerneldir}/init

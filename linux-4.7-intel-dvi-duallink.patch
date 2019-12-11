@@ -1,6 +1,6 @@
-diff -up linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c.3~ linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c
---- linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c.3~	2019-05-07 17:17:24.996151319 +0200
-+++ linux-5.1/drivers/gpu/drm/i915/intel_hdmi.c	2019-05-07 17:19:03.873570987 +0200
+diff -up linux-5.1/drivers/gpu/drm/i915/display/intel_hdmi.c.3~ linux-5.1/drivers/gpu/drm/i915/display/intel_hdmi.c
+--- linux-5.1/drivers/gpu/drm/i915/display/intel_hdmi.c.3~	2019-05-07 17:17:24.996151319 +0200
++++ linux-5.1/drivers/gpu/drm/i915/display/intel_hdmi.c	2019-05-07 17:19:03.873570987 +0200
 @@ -1584,13 +1584,13 @@ intel_hdmi_mode_valid(struct drm_connect
  		clock /= 2;
  
