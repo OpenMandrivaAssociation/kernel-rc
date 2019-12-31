@@ -22,7 +22,7 @@
 %define kernelversion	5
 %define patchlevel	5
 %define sublevel	0
-%define relc		1
+%define relc		4
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -350,7 +350,7 @@ Patch148:	saa716x-5.4.patch
 # https://patchwork.kernel.org/patch/10906949/
 # For newer versions, check
 # https://patchwork.kernel.org/project/linux-fsdevel/list/?submitter=582
-Patch300:	v15-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.diff
+Patch300:	v19-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.diff
 Source300:	virtualbox-kernel-5.3.patch
 
 # Better support for newer x86 processors
