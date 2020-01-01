@@ -227,6 +227,10 @@ Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
 Patch5:		linux-4.8.1-buildfix.patch
 Patch6:		linux-5.2.9-riscv-compile.patch
+# Work around rpm dependency generator screaming about
+# error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
+# caused by aacraid versioning ("1.2.1[50983]-custom")
+Patch7:		aacraid-dont-freak-out-dependency-generator.patch
 
 %if %{with clang}
 # Patches to make it build with clang
