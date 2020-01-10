@@ -356,6 +356,7 @@ Patch148:	saa716x-5.4.patch
 # https://patchwork.kernel.org/project/linux-fsdevel/list/?submitter=582
 Patch300:	v19-fs-Add-VirtualBox-guest-shared-folder-vboxsf-support.diff
 Source300:	virtualbox-kernel-5.3.patch
+Source301:	vbox-6.1-fix-build-on-znver1-hosts.patch
 
 # Better support for newer x86 processors
 # Original patch:
@@ -966,6 +967,7 @@ sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefi
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 #patch -p1 -z .300a~ -b <%{S:300}
+patch -p1 -z .301a~ -b <%{S:301}
 %endif
 %endif
 
