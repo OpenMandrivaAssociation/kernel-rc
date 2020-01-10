@@ -297,13 +297,13 @@ Patch110:	RFC-v3-11-13-bootsplash-sysfs-entries-to-load-and-unload-files.patch
 # https://patchwork.kernel.org/patch/10172597/
 Patch111:	RFC-v3-12-13-tools-bootsplash-Add-a-basic-splash-file-creation-tool.patch
 # https://patchwork.kernel.org/patch/10172661/
-# Contains git binary patch -- needs to be applied with git apply instead of apply_patches
+# Contains git binary patch -- needs to be applied with git apply instead of autopatch -p1
 Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-file.patch
 %endif
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
-# and can't be applied by %%apply_patches
+# and can't be applied by %%autopatch -p1
 
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
@@ -379,7 +379,7 @@ Patch350:	linux-5.5-compile.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
-# being touched aren't in the tree at the time %%apply_patches
+# being touched aren't in the tree at the time %%autopatch -p1
 # runs...
 
 %if %{with clr}
@@ -887,7 +887,7 @@ rm -rf .git
 %if %mdvver > 3000000
 %autopatch -p1
 %else
-%apply_patches
+%autopatch -p1
 %endif
 %if %{with bootsplash}
 git apply %{SOURCE112}
