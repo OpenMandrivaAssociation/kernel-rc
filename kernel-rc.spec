@@ -529,7 +529,7 @@ Suggests:	microcode-intel
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %if %mdvver >= 3000000
-%ifarch %{ix86} %{x86_64}
+%ifarch %{x86_64}
 BuildRequires:	virtualbox-kernel-module-sources
 BuildRequires:	virtualbox-guest-kernel-module-sources
 %endif
@@ -909,7 +909,7 @@ LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
 %if %mdvver >= 3000000
-%ifarch %{ix86} %{x86_64}
+%ifarch %{x86_64}
 # === VirtualBox guest additions ===
 %define use_internal_vboxvideo 0
 %if ! 0%{use_internal_vboxvideo}
