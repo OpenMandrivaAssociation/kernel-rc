@@ -72,7 +72,7 @@
 %bcond_without build_source
 %bcond_without build_devel
 %bcond_with build_debug
-%bcond_with clang
+%bcond_without clang
 %bcond_with bootsplash
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
@@ -233,39 +233,13 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
 
 %if %{with clang}
-# Patches to make it build with clang
-Patch1000:	0001-kbuild-LLVMLinux-Set-compiler-flags-for-clang.patch
-Patch1001:	0002-fs-LLVMLinux-Remove-warning-from-COMPATIBLE_IOCTL.patch
-Patch1002:	0003-kbuild-LLVMLinux-Add-support-for-generating-LLVM-bit.patch
-Patch1003:	0004-kbuild-LLVMLinux-Make-asm-offset-generation-work-wit.patch
-Patch1004:	0005-md-sysfs-LLVMLinux-Remove-nested-function-from-bcach.patch
-Patch1005:	0006-apparmor-LLVMLinux-Remove-VLAIS.patch
-Patch1006:	0007-exofs-LLVMLinux-Remove-VLAIS-from-exofs-FIXME-Check-.patch
-Patch1007:	0008-md-raid10-LLVMLinux-Remove-VLAIS-from-raid10-driver.patch
-Patch1008:	0009-fs-nfs-LLVMLinux-Remove-VLAIS-from-nfs.patch
-Patch1009:	0010-net-wimax-i2400-LLVMLinux-Remove-VLAIS-from-wimax-i2.patch
-Patch1010:	0011-Kbuild-LLVMLinux-Use-Oz-instead-of-Os-when-using-cla.patch
-Patch1011:	0012-WORKAROUND-x86-boot-LLVMLinux-Work-around-clang-PR39.patch
-Patch1012:	0013-DO-NOT-UPSTREAM-xen-LLVMLinux-Remove-VLAIS-from-xen-.patch
-Patch1013:	0014-DO-NOT-UPSTREAM-arm-LLVMLinux-Provide-__aeabi_-symbo.patch
-Patch1014:	0015-DO-NOT-UPSTREAM-arm-firmware-LLVMLinux-replace-naked.patch
-Patch1015:	0016-arm-LLVMLinux-Remove-unreachable-from-naked-function.patch
-Patch1016:	0017-MIPS-LLVMLinux-Fix-a-cast-to-type-not-present-in-uni.patch
-Patch1017:	0018-MIPS-LLVMLinux-Fix-an-inline-asm-input-output-type-m.patch
-Patch1018:	0019-MIPS-LLVMLinux-Silence-variable-self-assignment-warn.patch
-Patch1019:	0020-MIPS-LLVMLinux-Silence-unicode-warnings-when-preproc.patch
-Patch1020:	0021-Don-t-use-attributes-error-and-warning-with-clang.patch
-Patch1021:	0022-Fix-undefined-references-to-acpi_idle_driver-on-aarc.patch
-Patch1022:	0023-HACK-firmware-LLVMLinux-fix-EFI-libstub-with-clang.patch
-Patch1023:	0024-aarch64-crypto-LLVMLinux-Fix-inline-assembly-for-cla.patch
-Patch1024:	0025-aarch64-LLVMLinux-Make-spin_lock_prefetch-asm-code-c.patch
-Patch1025:	0026-LLVMLinux-Don-t-use-attribute-externally_visible-whe.patch
-Patch1026:	0027-x86-crypto-LLVMLinux-Fix-building-x86_64-AES-extensi.patch
-Patch1027:	0028-x86-LLVMLinux-Qualify-mul-as-mulq-to-make-clang-happ.patch
-Patch1028:	0029-kbuild-LLVMLinux-Add-Werror-to-cc-option-in-order-to.patch
-Patch1029:	0030-x86-kbuild-LLVMLinux-Check-for-compiler-support-of-f.patch
-#Patch1030:	0031-x86-cmpxchg-break.patch
-Patch1031:	0001-Fix-for-compilation-with-clang.patch
+# https://github.com/ClangBuiltLinux/linux/issues/700
+Patch900:       ARM-xor-neon-Replace-__GNUC__-checks-with-CONFIG_CC_IS_GCC.patch
+# https://github.com/ClangBuiltLinux/linux/issues/579
+Patch902:       ix86-cant-create-dynamic-relocation-R_386_32-with-LLD.patch
+# https://github.com/ClangBuiltLinux/linux/issues/3
+Patch903:       i386-percpu.patch
+Patch904:	5.6-rc2-i915-clang.patch
 %endif
 
 # Bootsplash system
@@ -357,6 +331,7 @@ Patch148:	saa716x-5.4.patch
 Source300:	virtualbox-kernel-5.3.patch
 Source301:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source302:	vbox-kernel-5.6.patch
+Source303:	vbox-6.1.2-clang.patch
 
 # Better support for newer x86 processors
 # Original patch:
@@ -473,9 +448,13 @@ BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	binutils
 BuildRequires:	hostname
+%if %{with clang}
+BuildRequires:	clang llvm lld
+%else
 BuildRequires:	gcc >= 7.2.1_2017.11-3
 BuildRequires:	gcc-plugin-devel >= 7.2.1_2017.11-3
 BuildRequires:	gcc-c++ >= 7.2.1_2017.11-3
+%endif
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
 # For git apply
@@ -591,7 +570,6 @@ Release:	%{rpmrel}				\
 Requires:	glibc-devel				\
 Requires:	ncurses-devel				\
 Requires:	make					\
-Requires:	gcc >= 7.2.1_2017.11-3			\
 Requires:	perl					\
 %ifarch %{x86_64}					\
 Requires:	pkgconfig(libelf)			\
@@ -971,6 +949,7 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 #patch -p1 -z .300a~ -b <%{S:300}
 patch -p1 -z .301a~ -b <%{S:301}
 patch -p1 -z .302a~ -b <%{S:302}
+patch -p1 -z .303a~ -b <%{S:303}
 %endif
 %endif
 
@@ -1013,8 +992,14 @@ CreateConfig() {
 
 %if %{with clang}
 	CLANG_EXTRAS=clang-workarounds
+	CC=clang
+	CXX=clang++
+	LLVM_TOOLS='OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar'
 %else
 	CLANG_EXTRAS=""
+	CC=gcc
+	CXX=g++
+	LLVM_TOOLS=""
 %endif
 
 %if %{with build_modxz}
@@ -1049,7 +1034,7 @@ sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/com
 		arch=x86
 	fi
 
-	make ARCH="${arch}" $CONFIGS
+	make ARCH="${arch}" CC="$CC" HOSTCC="$CC" HOSTCXX="$CXX" CXX="$CXX" HOSTCFLAGS="%{optflags}" $LLVM_TOOLS $CONFIGS
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 }
 
@@ -1074,13 +1059,13 @@ BuildKernel() {
 # (tpg) build with gcc, as kernel is not yet ready for LLVM/clang
 %ifarch %{x86_64}
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS -flto"
+    %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
     %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -flto"
 %endif
 %else
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS"
+    %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
     %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
