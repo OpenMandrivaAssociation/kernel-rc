@@ -22,7 +22,7 @@
 %define kernelversion	5
 %define patchlevel	6
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -399,7 +399,6 @@ Patch809:	nvme-pci-more-info.patch
 # Folks reported these upstream can load the model with be_silent=1 to stop the dmesg flood,
 # until is implemented / fixed.
 #Patch810:  acer-wmi-silence-unknow-functions-messages.patch
-Patch811:       https://lore.kernel.org/lkml/CAMe9rOrtj-Hrr6tmSrwg_V9bawXXB2WjsSedL=aCaaH-=ZSKsA@mail.gmail.com/2-0001-x86-Don-t-declare-__force_order-in-kaslr_64.c.patch
 Patch812:       linux-5.5-corsair-strafe-quirks.patch
 Patch813:	cpupower-gcc10.patch
 
