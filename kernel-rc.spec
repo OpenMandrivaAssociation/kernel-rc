@@ -5,7 +5,7 @@
 %define _disable_ld_no_undefined 1
 
 # (tpg) try to speed up things
-%global optflags %{optflags} -O3
+%global optflags %(echo %{optflags} -O3 |sed -e 's/-flto//')
 
 # While perf comes with python2 scripts
 %define _python_bytecompile_build 0
@@ -22,7 +22,7 @@
 %define kernelversion	5
 %define patchlevel	6
 %define sublevel	0
-%define relc		3
+%define relc		4
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -72,7 +72,7 @@
 %bcond_without build_source
 %bcond_without build_devel
 %bcond_with build_debug
-%bcond_without clang
+%bcond_with clang
 %bcond_with bootsplash
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
@@ -316,6 +316,15 @@ Patch146:	saa716x-4.15.patch
 Patch147:	saa716x-linux-4.19.patch
 Patch148:	saa716x-5.4.patch
 
+# Additional WiFi drivers taken from the Endless kernel
+# git clone https://github.com/endlessm/linux.git
+# cd linux
+# tar cf extra-wifi-drivers-`date +%Y%m%d`.tar drivers/net/wireless/rtl8*
+# zstd -19 extra-wifi-drivers*.tar
+Source200:      extra-wifi-drivers-20200301.tar.zst
+Patch201:       extra-wifi-drivers-compile.patch
+Patch202:	extra-wifi-drivers-port-to-5.6.patch
+
 # Lima driver for ARM Mali graphics chips
 # Generated from https://gitlab.freedesktop.org/lima/linux.git
 # using git diff v5.1..lima/lima-5.1
@@ -450,9 +459,9 @@ BuildRequires:	hostname
 %if %{with clang}
 BuildRequires:	clang llvm lld
 %else
-BuildRequires:	gcc >= 7.2.1_2017.11-3
-BuildRequires:	gcc-plugin-devel >= 7.2.1_2017.11-3
-BuildRequires:	gcc-c++ >= 7.2.1_2017.11-3
+BuildRequires:	gcc9.2
+BuildRequires:	gcc9.2-c++
+BuildRequires:	%{_lib}gcc9.2-devel
 %endif
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
@@ -856,7 +865,7 @@ done
 # End packages - here begins build stage
 #
 %prep
-%setup -q -n linux-%{tar_ver} -a 140
+%setup -q -n linux-%{tar_ver} -a 140 -a 200
 cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
 %if 0%{sublevel}
 [ -e .git ] || git init
@@ -866,7 +875,7 @@ rm -rf .git
 %if %mdvver > 3000000
 %autopatch -p1
 %else
-%autopatch -p1
+%apply_patches
 %endif
 %if %{with bootsplash}
 git apply %{SOURCE112}
@@ -876,6 +885,14 @@ git apply %{SOURCE112}
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
 sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/Makefile
 find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" |xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
+
+# Merge RTL8723DE and RTL8821CE drivers
+cd drivers/net/wireless
+sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8821ce/Kconfig' Kconfig
+sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8723de/Kconfig' Kconfig
+sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8821CE) += rtl8821ce/' Makefile
+sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8723DE) += rtl8723de/' Makefile
+cd -
 
 %if %{with build_debug}
 %define debug --debug
@@ -996,8 +1013,8 @@ CreateConfig() {
 	LLVM_TOOLS='OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar'
 %else
 	CLANG_EXTRAS=""
-	CC=gcc
-	CXX=g++
+	CC=gcc9.2
+	CXX=g++9.2
 	LLVM_TOOLS=""
 %endif
 
@@ -1060,13 +1077,13 @@ BuildKernel() {
 %if %{with clang}
     %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
-    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS -flto"
+    %kmake all CC=gcc9.2 CXX=g++9.2 CFLAGS="$CFLAGS"
 %endif
 %else
 %if %{with clang}
     %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
-    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
+    %kmake all CC=gcc9.2 CXX=g++9.2 CFLAGS="$CFLAGS"
 %endif
 %endif
 
@@ -1174,6 +1191,10 @@ SaveDevel() {
     cp -fR tools/lib/subcmd/* $TempDevelRoot/tools/lib/subcmd
     cp -fR tools/objtool/* $TempDevelRoot/tools/objtool
     cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
+
+# include statements in the Makefiles barf, and there's nothing relevant to -devel
+    rm -rf $TempDevelRoot/drivers/net/wireless/rtl8*
+    sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
 
     for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc powerpc s390 score sh sparc tile unicore32 xtensa; do
