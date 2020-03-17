@@ -1,0 +1,13 @@
+diff -Naur linux-5.5.9/arch/x86/kernel/Makefile linux-5.5.9-p/arch/x86/kernel/Makefile
+--- linux-5.5.9/arch/x86/kernel/Makefile	2020-03-12 07:18:49.000000000 +0100
++++ linux-5.5.9-p/arch/x86/kernel/Makefile	2020-03-16 15:06:33.354637851 +0100
+@@ -11,6 +11,9 @@
+ 
+ CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
+ 
++dropstackprotector := $(call cc-option, -fno-stack-protector)
++CFLAGS_smpboot.o := $(dropstackprotector)
++
+ ifdef CONFIG_FUNCTION_TRACER
+ # Do not profile debug and lowlevel utilities
+ CFLAGS_REMOVE_tsc.o = -pg

@@ -410,6 +410,7 @@ Patch809:	nvme-pci-more-info.patch
 #Patch810:  acer-wmi-silence-unknow-functions-messages.patch
 Patch812:       linux-5.5-corsair-strafe-quirks.patch
 Patch813:	cpupower-gcc10.patch
+Patch814:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
 # Defines for the things that are needed for all the kernels
 #
@@ -459,9 +460,8 @@ BuildRequires:	hostname
 %if %{with clang}
 BuildRequires:	clang llvm lld
 %else
-BuildRequires:	gcc9.2
-BuildRequires:	gcc9.2-c++
-BuildRequires:	%{_lib}gcc9.2-devel
+BuildRequires:	gcc
+BuildRequires:	gcc-c++
 %endif
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
@@ -1013,8 +1013,8 @@ CreateConfig() {
 	LLVM_TOOLS='OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar'
 %else
 	CLANG_EXTRAS=""
-	CC=gcc9.2
-	CXX=g++9.2
+	CC=gcc
+	CXX=g++
 	LLVM_TOOLS=""
 %endif
 
@@ -1077,13 +1077,13 @@ BuildKernel() {
 %if %{with clang}
     %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
-    %kmake all CC=gcc9.2 CXX=g++9.2 CFLAGS="$CFLAGS"
+    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
 %else
 %if %{with clang}
     %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
 %else
-    %kmake all CC=gcc9.2 CXX=g++9.2 CFLAGS="$CFLAGS"
+    %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
 %endif
 
