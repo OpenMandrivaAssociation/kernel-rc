@@ -22,7 +22,7 @@
 %define kernelversion	5
 %define patchlevel	6
 %define sublevel	0
-%define relc		5
+%define relc		6
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -409,7 +409,6 @@ Patch809:	nvme-pci-more-info.patch
 # until is implemented / fixed.
 #Patch810:  acer-wmi-silence-unknow-functions-messages.patch
 Patch812:       linux-5.5-corsair-strafe-quirks.patch
-Patch813:	cpupower-gcc10.patch
 Patch814:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
 # Defines for the things that are needed for all the kernels
