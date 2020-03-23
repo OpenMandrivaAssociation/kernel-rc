@@ -1,6 +1,6 @@
-diff -up linux-5.6-rc1/include/linux/decompress/unzstd.h.7~ linux-5.6-rc1/include/linux/decompress/unzstd.h
---- linux-5.6-rc1/include/linux/decompress/unzstd.h.7~	2020-02-10 02:17:53.553990233 +0100
-+++ linux-5.6-rc1/include/linux/decompress/unzstd.h	2020-02-10 02:17:53.553990233 +0100
+diff -up linux-5.6-rc7/include/linux/decompress/unzstd.h.7~ linux-5.6-rc7/include/linux/decompress/unzstd.h
+--- linux-5.6-rc7/include/linux/decompress/unzstd.h.7~	2020-03-23 14:49:58.767802976 +0100
++++ linux-5.6-rc7/include/linux/decompress/unzstd.h	2020-03-23 14:49:58.767802976 +0100
 @@ -0,0 +1,26 @@
 +/*
 + * Copyright (C) 2017 Facebook
@@ -28,9 +28,9 @@ diff -up linux-5.6-rc1/include/linux/decompress/unzstd.h.7~ linux-5.6-rc1/includ
 +	   long *pos,
 +	   void (*error_fn)(char *x));
 +#endif
-diff -up linux-5.6-rc1/init/Kconfig.7~ linux-5.6-rc1/init/Kconfig
---- linux-5.6-rc1/init/Kconfig.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/init/Kconfig	2020-02-10 02:17:53.553990233 +0100
+diff -up linux-5.6-rc7/init/Kconfig.7~ linux-5.6-rc7/init/Kconfig
+--- linux-5.6-rc7/init/Kconfig.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/init/Kconfig	2020-03-23 14:49:58.767802976 +0100
 @@ -173,13 +173,16 @@ config HAVE_KERNEL_LZO
  config HAVE_KERNEL_LZ4
  	bool
@@ -65,9 +65,9 @@ diff -up linux-5.6-rc1/init/Kconfig.7~ linux-5.6-rc1/init/Kconfig
  config KERNEL_UNCOMPRESSED
  	bool "None"
  	depends on HAVE_KERNEL_UNCOMPRESSED
-diff -up linux-5.6-rc1/lib/decompress.c.7~ linux-5.6-rc1/lib/decompress.c
---- linux-5.6-rc1/lib/decompress.c.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/decompress.c	2020-02-10 02:17:53.554990232 +0100
+diff -up linux-5.6-rc7/lib/decompress.c.7~ linux-5.6-rc7/lib/decompress.c
+--- linux-5.6-rc7/lib/decompress.c.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/decompress.c	2020-03-23 14:49:58.767802976 +0100
 @@ -13,6 +13,7 @@
  #include <linux/decompress/inflate.h>
  #include <linux/decompress/unlzo.h>
@@ -94,9 +94,9 @@ diff -up linux-5.6-rc1/lib/decompress.c.7~ linux-5.6-rc1/lib/decompress.c
  	{ {0, 0}, NULL, NULL }
  };
  
-diff -up linux-5.6-rc1/lib/decompress_unzstd.c.7~ linux-5.6-rc1/lib/decompress_unzstd.c
---- linux-5.6-rc1/lib/decompress_unzstd.c.7~	2020-02-10 02:17:53.554990232 +0100
-+++ linux-5.6-rc1/lib/decompress_unzstd.c	2020-02-10 02:17:53.554990232 +0100
+diff -up linux-5.6-rc7/lib/decompress_unzstd.c.7~ linux-5.6-rc7/lib/decompress_unzstd.c
+--- linux-5.6-rc7/lib/decompress_unzstd.c.7~	2020-03-23 14:49:58.767802976 +0100
++++ linux-5.6-rc7/lib/decompress_unzstd.c	2020-03-23 14:49:58.767802976 +0100
 @@ -0,0 +1,341 @@
 +/*
 + * Copyright (C) 2017 Facebook
@@ -439,9 +439,9 @@ diff -up linux-5.6-rc1/lib/decompress_unzstd.c.7~ linux-5.6-rc1/lib/decompress_u
 +	return __unzstd(buf, len, fill, flush, out_buf, out_len, pos, error);
 +}
 +#endif
-diff -up linux-5.6-rc1/lib/Kconfig.7~ linux-5.6-rc1/lib/Kconfig
---- linux-5.6-rc1/lib/Kconfig.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/Kconfig	2020-02-10 02:17:53.554990232 +0100
+diff -up linux-5.6-rc7/lib/Kconfig.7~ linux-5.6-rc7/lib/Kconfig
+--- linux-5.6-rc7/lib/Kconfig.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/Kconfig	2020-03-23 14:49:58.768802973 +0100
 @@ -336,6 +336,10 @@ config DECOMPRESS_LZ4
  	select LZ4_DECOMPRESS
  	tristate
@@ -453,9 +453,9 @@ diff -up linux-5.6-rc1/lib/Kconfig.7~ linux-5.6-rc1/lib/Kconfig
  #
  # Generic allocator support is selected if needed
  #
-diff -up linux-5.6-rc1/lib/Makefile.7~ linux-5.6-rc1/lib/Makefile
---- linux-5.6-rc1/lib/Makefile.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/Makefile	2020-02-10 02:17:53.554990232 +0100
+diff -up linux-5.6-rc7/lib/Makefile.7~ linux-5.6-rc7/lib/Makefile
+--- linux-5.6-rc7/lib/Makefile.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/Makefile	2020-03-23 14:49:58.768802973 +0100
 @@ -160,6 +160,7 @@ lib-$(CONFIG_DECOMPRESS_LZMA) += decompr
  lib-$(CONFIG_DECOMPRESS_XZ) += decompress_unxz.o
  lib-$(CONFIG_DECOMPRESS_LZO) += decompress_unlzo.o
@@ -464,9 +464,9 @@ diff -up linux-5.6-rc1/lib/Makefile.7~ linux-5.6-rc1/lib/Makefile
  
  obj-$(CONFIG_TEXTSEARCH) += textsearch.o
  obj-$(CONFIG_TEXTSEARCH_KMP) += ts_kmp.o
-diff -up linux-5.6-rc1/lib/xxhash.c.7~ linux-5.6-rc1/lib/xxhash.c
---- linux-5.6-rc1/lib/xxhash.c.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/xxhash.c	2020-02-10 02:17:53.554990232 +0100
+diff -up linux-5.6-rc7/lib/xxhash.c.7~ linux-5.6-rc7/lib/xxhash.c
+--- linux-5.6-rc7/lib/xxhash.c.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/xxhash.c	2020-03-23 14:49:58.768802973 +0100
 @@ -80,13 +80,11 @@ void xxh32_copy_state(struct xxh32_state
  {
  	memcpy(dst, src, sizeof(*dst));
@@ -557,9 +557,9 @@ diff -up linux-5.6-rc1/lib/xxhash.c.7~ linux-5.6-rc1/lib/xxhash.c
  MODULE_LICENSE("Dual BSD/GPL");
  MODULE_DESCRIPTION("xxHash");
 +#endif
-diff -up linux-5.6-rc1/lib/zstd/decompress.c.7~ linux-5.6-rc1/lib/zstd/decompress.c
---- linux-5.6-rc1/lib/zstd/decompress.c.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/zstd/decompress.c	2020-02-10 02:17:53.555990232 +0100
+diff -up linux-5.6-rc7/lib/zstd/decompress.c.7~ linux-5.6-rc7/lib/zstd/decompress.c
+--- linux-5.6-rc7/lib/zstd/decompress.c.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/zstd/decompress.c	2020-03-23 14:49:58.769802970 +0100
 @@ -2490,6 +2490,7 @@ size_t ZSTD_decompressStream(ZSTD_DStrea
  	}
  }
@@ -573,9 +573,9 @@ diff -up linux-5.6-rc1/lib/zstd/decompress.c.7~ linux-5.6-rc1/lib/zstd/decompres
  MODULE_LICENSE("Dual BSD/GPL");
  MODULE_DESCRIPTION("Zstd Decompressor");
 +#endif
-diff -up linux-5.6-rc1/lib/zstd/fse_decompress.c.7~ linux-5.6-rc1/lib/zstd/fse_decompress.c
---- linux-5.6-rc1/lib/zstd/fse_decompress.c.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/zstd/fse_decompress.c	2020-02-10 02:17:53.555990232 +0100
+diff -up linux-5.6-rc7/lib/zstd/fse_decompress.c.7~ linux-5.6-rc7/lib/zstd/fse_decompress.c
+--- linux-5.6-rc7/lib/zstd/fse_decompress.c.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/zstd/fse_decompress.c	2020-03-23 14:49:58.769802970 +0100
 @@ -47,6 +47,7 @@
  ****************************************************************/
  #include "bitstream.h"
@@ -599,9 +599,9 @@ diff -up linux-5.6-rc1/lib/zstd/fse_decompress.c.7~ linux-5.6-rc1/lib/zstd/fse_d
  /* **************************************************************
  *  Templates
  ****************************************************************/
-diff -up linux-5.6-rc1/lib/zstd/zstd_internal.h.7~ linux-5.6-rc1/lib/zstd/zstd_internal.h
---- linux-5.6-rc1/lib/zstd/zstd_internal.h.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/lib/zstd/zstd_internal.h	2020-02-10 02:17:53.555990232 +0100
+diff -up linux-5.6-rc7/lib/zstd/zstd_internal.h.7~ linux-5.6-rc7/lib/zstd/zstd_internal.h
+--- linux-5.6-rc7/lib/zstd/zstd_internal.h.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/lib/zstd/zstd_internal.h	2020-03-23 14:49:58.769802970 +0100
 @@ -127,7 +127,13 @@ static const U32 OF_defaultNormLog = OF_
  *  Shared functions to include for inlining
  *********************************************/
@@ -633,9 +633,9 @@ diff -up linux-5.6-rc1/lib/zstd/zstd_internal.h.7~ linux-5.6-rc1/lib/zstd/zstd_i
  	do {
  		ZSTD_copy8(op, ip);
  		op += 8;
-diff -up linux-5.6-rc1/scripts/Makefile.lib.7~ linux-5.6-rc1/scripts/Makefile.lib
---- linux-5.6-rc1/scripts/Makefile.lib.7~	2020-02-10 01:08:48.000000000 +0100
-+++ linux-5.6-rc1/scripts/Makefile.lib	2020-02-10 02:17:53.555990232 +0100
+diff -up linux-5.6-rc7/scripts/Makefile.lib.7~ linux-5.6-rc7/scripts/Makefile.lib
+--- linux-5.6-rc7/scripts/Makefile.lib.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/scripts/Makefile.lib	2020-03-23 14:49:58.769802970 +0100
 @@ -394,6 +394,21 @@ quiet_cmd_xzkern = XZKERN  $@
  quiet_cmd_xzmisc = XZMISC  $@
        cmd_xzmisc = cat $(real-prereqs) | xz --check=crc32 --lzma2=dict=1MiB > $@
@@ -658,9 +658,9 @@ diff -up linux-5.6-rc1/scripts/Makefile.lib.7~ linux-5.6-rc1/scripts/Makefile.li
  # ASM offsets
  # ---------------------------------------------------------------------------
  
-diff -up linux-5.6-rc1/usr/Kconfig.7~ linux-5.6-rc1/usr/Kconfig
---- linux-5.6-rc1/usr/Kconfig.7~	2020-02-10 02:17:53.555990232 +0100
-+++ linux-5.6-rc1/usr/Kconfig	2020-02-10 02:19:50.333982586 +0100
+diff -up linux-5.6-rc7/usr/Kconfig.7~ linux-5.6-rc7/usr/Kconfig
+--- linux-5.6-rc7/usr/Kconfig.7~	2020-03-23 02:31:56.000000000 +0100
++++ linux-5.6-rc7/usr/Kconfig	2020-03-23 14:50:40.573656232 +0100
 @@ -100,6 +100,15 @@ config RD_LZ4
  	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
  	  If unsure, say N.
@@ -677,7 +677,7 @@ diff -up linux-5.6-rc1/usr/Kconfig.7~ linux-5.6-rc1/usr/Kconfig
  choice
  	prompt "Built-in initramfs compression mode"
  	depends on INITRAMFS_SOURCE != ""
-@@ -207,4 +216,15 @@ config INITRAMFS_COMPRESSION_LZ4
+@@ -196,6 +205,17 @@ config INITRAMFS_COMPRESSION_LZ4
  	  If you choose this, keep in mind that most distros don't provide lz4
  	  by default which could cause a build failure.
  
@@ -692,4 +692,6 @@ diff -up linux-5.6-rc1/usr/Kconfig.7~ linux-5.6-rc1/usr/Kconfig
 +	  If you choose this, keep in mind that you may need to install the zstd
 +	  tool to be able to compress the initram.
 +
- endchoice
+ config INITRAMFS_COMPRESSION_NONE
+ 	bool "None"
+ 	help
