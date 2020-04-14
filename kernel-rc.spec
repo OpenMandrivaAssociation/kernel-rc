@@ -4,11 +4,8 @@
 #end
 %define _disable_ld_no_undefined 1
 
-# (tpg) try to speed up things
-%global optflags %(echo %{optflags} -O3 |sed -e 's/-flto//')
-
-# While perf comes with python2 scripts
-%define _python_bytecompile_build 0
+## STOP: Adding weird and unsupported upstream kernel C/LD flags of any sort
+## yes , including ftlo . O3 and whatever else
 
 # (crazy) , well that new way of doing buil-id symlinks
 # does not seems to work, see:
@@ -20,20 +17,20 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	6
+%define patchlevel	7
 %define sublevel	0
-%define relc		7
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
 %define buildrel	%{kversion}-%{buildrpmrel}
-%define rpmtag	%{disttag}
+%define rpmtag		%{disttag}
 
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
 %define rpmrel		0.rc%{relc}.1
-%define tar_ver   	%{kernelversion}.%{patchlevel}-rc%{relc}
+%define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
 %define tar_ver		%{kernelversion}.%{patchlevel}
@@ -67,13 +64,21 @@
 
 # Build defines
 %bcond_with build_doc
-# uksm is not usually released for -rc builds
+%ifarch %{ix86} %{x86_64}
 %bcond_with uksm
+%else
+%bcond_with uksm
+%endif
 %bcond_without build_source
 %bcond_without build_devel
 %bcond_with build_debug
 %bcond_with clang
-%bcond_with bootsplash
+## enabled it runs dracut -f --regenerate-all
+## we *should* enable that, is bc we keep or can keep lots
+## kernel around and the initrd is created using sys libs, sys configs,
+## *systemd* service & apps etc. IOW, a old initrd may have old files, libs, etc
+## changed since last rebuild and may result in either broken boot, or very hard to debug bugs.
+%bcond_with dracut_all_initrd
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
 %if %mdvver > 3000000
@@ -120,7 +125,6 @@
 # unfortunately kmod does not support Zstandard for now, so kernel modules
 # compressed with zstd will not bo loaded and system will fail
 # https://github.com/facebook/zstd/issues/1121
-# Currently only supported on x86
 %ifarch %{ix86} %{x86_64}
 %bcond_without build_modzstd
 # compress modules with XZ
@@ -222,58 +226,15 @@ Source51:	cpupower.config
 %if 0%{sublevel}
 Source90:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -f1).x/patch-%{version}.xz
 %endif
+Patch1:		linux-5.6-fix-disassembler-4args-detection.patch
 Patch2:		die-floppy-die.patch
 Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch4:		linux-4.7-intel-dvi-duallink.patch
-Patch5:		linux-4.8.1-buildfix.patch
 Patch6:		linux-5.2.9-riscv-compile.patch
 # Work around rpm dependency generator screaming about
 # error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
 # caused by aacraid versioning ("1.2.1[50983]-custom")
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
-
-%if %{with clang}
-# https://github.com/ClangBuiltLinux/linux/issues/700
-Patch900:       ARM-xor-neon-Replace-__GNUC__-checks-with-CONFIG_CC_IS_GCC.patch
-# https://github.com/ClangBuiltLinux/linux/issues/579
-Patch902:       ix86-cant-create-dynamic-relocation-R_386_32-with-LLD.patch
-# https://github.com/ClangBuiltLinux/linux/issues/3
-Patch903:       i386-percpu.patch
-Patch904:	5.6-rc2-i915-clang.patch
-%endif
-
-# Bootsplash system
-# (tpg) disable it for now 2018-11-07
-%if %{with bootsplash}
-# https://lkml.org/lkml/2017/10/25/346
-# https://patchwork.kernel.org/patch/10172665/, rebased
-Patch100:	RFC-v3-01-13-bootsplash-Initial-implementation-showing-black-screen.patch
-# https://patchwork.kernel.org/patch/10172669/
-Patch101:	RFC-v3-02-13-bootsplash-Add-file-reading-and-picture-rendering.patch
-# https://patchwork.kernel.org/patch/10172715/
-Patch102:	RFC-v3-03-13-bootsplash-Flush-framebuffer-after-drawing.patch
-# https://patchwork.kernel.org/patch/10172699/
-Patch103:	RFC-v3-04-13-bootsplash-Add-corner-positioning.patch
-# https://patchwork.kernel.org/patch/10172667/
-Patch104:	RFC-v3-05-13-bootsplash-Add-animation-support.patch
-# https://patchwork.kernel.org/patch/10172605/, rebased
-Patch105:	RFC-v3-06-13-vt-Redraw-bootsplash-fully-on-console_unblank.patch
-# https://patchwork.kernel.org/patch/10172599/
-Patch106:	RFC-v3-07-13-vt-Add-keyboard-hook-to-disable-bootsplash.patch
-# https://patchwork.kernel.org/patch/10172603/
-Patch107:	RFC-v3-08-13-sysrq-Disable-bootsplash-on-SAK.patch
-# https://patchwork.kernel.org/patch/10172601/
-Patch108:	RFC-v3-09-13-fbcon-Disable-bootsplash-on-oops.patch
-# https://patchwork.kernel.org/patch/10172663/
-Patch109:	RFC-v3-10-13-Documentation-Add-bootsplash-main-documentation.patch
-# https://patchwork.kernel.org/patch/10172685/
-Patch110:	RFC-v3-11-13-bootsplash-sysfs-entries-to-load-and-unload-files.patch
-# https://patchwork.kernel.org/patch/10172597/
-Patch111:	RFC-v3-12-13-tools-bootsplash-Add-a-basic-splash-file-creation-tool.patch
-# https://patchwork.kernel.org/patch/10172661/
-# Contains git binary patch -- needs to be applied with git apply instead of autopatch -p1
-Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-file.patch
-%endif
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
@@ -282,20 +243,16 @@ Source112:	RFC-v3-13-13-tools-bootsplash-Add-script-and-data-to-create-sample-fi
 # (tpg) The Ultra Kernel Same Page Deduplication
 # (tpg) http://kerneldedup.org/en/projects/uksm/download/
 # (tpg) sources can be found here https://github.com/dolohow/uksm
+# (crazy) each new patch has to be checked for GPL violation on ksm.h
+#  it cannot be re-licensed to GPL3 by random patches.
 %if %{with uksm}
 # brokes armx builds
-Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.4.patch
-# Sometimes other people are ahead of upstream porting to new releases...
-# No UKSM for 5.2-rc yet...
-#Patch120:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/uksm-pf/0001-uksm-5.1-initial-submission.patch
-#Patch121:	https://github.com/sirlucjan/kernel-patches/raw/master/5.1/uksm-pf-fix/0001-uksm-5.1-apply-52d1e606ee733.patch
+Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.6.patch
 %endif
 
 %if %{with build_modzstd}
-# https://patchwork.kernel.org/patch/10003007/
-Patch126:	v2-1-2-lib-Add-support-for-ZSTD-compressed-kernel.patch
-# https://patchwork.kernel.org/patch/10003011/
-Patch127:	v2-2-2-x86-Add-support-for-ZSTD-compressed-kernel.patch
+# v4 -> https://lkml.org/lkml/2020/4/1/29
+Patch126: https://gitweb.frugalware.org/frugalware-current/raw/master/source/base/kernel/support-kernel-and-ramfs-comp-and-decomp-with-zstd.patch
 %endif
 
 ### Additional hardware support
@@ -321,8 +278,8 @@ Patch148:	saa716x-5.4.patch
 # cd linux
 # tar cf extra-wifi-drivers-`date +%Y%m%d`.tar drivers/net/wireless/rtl8*
 # zstd -19 extra-wifi-drivers*.tar
-Source200:      extra-wifi-drivers-20200301.tar.zst
-Patch201:       extra-wifi-drivers-compile.patch
+Source200:	extra-wifi-drivers-20200301.tar.zst
+Patch201:	extra-wifi-drivers-compile.patch
 Patch202:	extra-wifi-drivers-port-to-5.6.patch
 
 # Lima driver for ARM Mali graphics chips
@@ -330,17 +287,11 @@ Patch202:	extra-wifi-drivers-port-to-5.6.patch
 # using git diff v5.1..lima/lima-5.1
 # Currently no patch necessary
 
-# NOT YET
-#Patch250:	4.14-C11.patch
-
-# VirtualBox shared folders support
-# https://patchwork.kernel.org/patch/10906949/
-# For newer versions, check
-# https://patchwork.kernel.org/project/linux-fsdevel/list/?submitter=582
-Source300:	virtualbox-kernel-5.3.patch
+# VirtualBox patches -- added as Source: rather than Patch:
+# because they need to be applied after stuff from the
+# virtualbox-kernel-module-sources package is copied around
+Source300:	vbox-kernel-5.6.patch
 Source301:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source302:	vbox-kernel-5.6.patch
-Source303:	vbox-6.1.2-clang.patch
 
 # Better support for newer x86 processors
 # Original patch:
@@ -349,17 +300,10 @@ Source303:	vbox-6.1.2-clang.patch
 Patch310:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
 
 # Assorted fixes
-## Intel Core2Duo got always unstable tsc , with changes in 4.18
-## some models cannot boot anymore , they are stuck in a endless loop.
-## see: https://lkml.org/lkml/2018/8/30/341
-##      https://bugzilla.kernel.org/show_bug.cgi?id=200957
 
 # Modular binder and ashmem -- let's try to make anbox happy
 Patch340:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
-
-# Fix build
-Patch350:	linux-5.5-compile.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -374,6 +318,7 @@ Patch401:	0103-Increase-the-ext4-default-commit-age.patch
 Patch403:	0105-pci-pme-wakeups.patch
 # Incompatible with UKSM
 #Patch404:	0106-ksm-wakeups.patch
+Patch405:	0107-intel_idle-tweak-cpuidle-cstates.patch
 # Not necessarily a good idea -- not all CPU cores are
 # guaranteed to be the same (e.g. big.LITTLE)
 %ifarch %{ix86} %{x86_64}
@@ -395,11 +340,6 @@ Patch800:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
 # Restore ACPI loglevels to sane values
 Patch801:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
 Patch802:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
-# (tpg) enable MuQSS CPU scheduler
-# FIXME re-enable when ported to 5.6
-#Patch803:	http://ck.kolivas.org/patches/muqss/5.0/5.5/0001-MultiQueue-Skiplist-Scheduler-v0.198.patch
-# (bero) And make it compatible with modular binder
-#Patch804:	MuQSS-export-can_nice-for-binder.patch
 # (crazy) need to know what function() breaks on nvme failures
 Patch809:	nvme-pci-more-info.patch
 # ( crazy ) this one is adding be_silent mod parameter to acer-wmi
@@ -408,7 +348,8 @@ Patch809:	nvme-pci-more-info.patch
 # Folks reported these upstream can load the model with be_silent=1 to stop the dmesg flood,
 # until is implemented / fixed.
 #Patch810:  acer-wmi-silence-unknow-functions-messages.patch
-Patch812:       linux-5.5-corsair-strafe-quirks.patch
+Patch810:	linux-5.4.5-fix-build.patch
+Patch812:	linux-5.5-corsair-strafe-quirks.patch
 Patch814:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
 # Defines for the things that are needed for all the kernels
@@ -456,12 +397,9 @@ BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	binutils
 BuildRequires:	hostname
-%if %{with clang}
-BuildRequires:	clang llvm lld
-%else
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
-%endif
+BuildRequires:  pkgconfig(libcap)
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
 # For git apply
@@ -479,6 +417,10 @@ BuildRequires:	numa-devel
 BuildRequires:	pkgconfig(libpci)
 %endif
 
+%if %{with build_turbostat}
+BuildRequires:  pkgconfig(libpcap)
+%endif
+
 # for docs
 %if %{with build_doc}
 BuildRequires:	xmlto
@@ -493,17 +435,15 @@ BuildRequires:	asciidoc
 BuildRequires:	pkgconfig(audit)
 BuildRequires:	binutils-devel
 BuildRequires:	bison
-# BuildRequires:	docbook-style-xsl
 BuildRequires:	flex
-# BuildRequires:	gettext
-# BuildRequires:	gtk2-devel
 BuildRequires:	pkgconfig(libunwind)
 BuildRequires:	pkgconfig(libnewt)
 BuildRequires:	perl-devel
-# BuildRequires:	perl(ExtUtils::Embed)
 BuildRequires:	pkgconfig(gtk+-2.0)
-BuildRequires:	pkgconfig(python2)
+BuildRequires:	pkgconfig(python)
 BuildRequires:	pkgconfig(zlib)
+# (tpg) needed for bfd
+BuildRequires:	binutils-devel
 %endif
 
 %ifarch %{arm}
@@ -546,7 +486,7 @@ Requires(pre):	%requires3 %requires4			\
 Requires:	%requires5				\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
-Conflicts:	%kconflicts4 %kconflicts5		\
+Conflicts:	%kconflicts4 %kconflicts5 \
 Conflicts:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
 Obsoletes:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
 Provides:	installonlypkg(kernel)			\
@@ -577,6 +517,7 @@ Release:	%{rpmrel}				\
 Requires:	glibc-devel				\
 Requires:	ncurses-devel				\
 Requires:	make					\
+Requires:	gcc >= 7.2.1_2017.11-3			\
 Requires:	perl					\
 %ifarch %{x86_64}					\
 Requires:	pkgconfig(libelf)			\
@@ -629,7 +570,6 @@ needs debugging info from the kernel, this package may help. \
 							\
 %post -n %{kname}-%{1} -f kernel_files.%{1}-post 	\
 %posttrans -n %{kname}-%{1} -f kernel_files.%{1}-posttrans \
-%preun -n %{kname}-%{1} -f kernel_files.%{1}-preun 	\
 %postun -n %{kname}-%{1} -f kernel_files.%{1}-postun 	\
 							\
 %if %{with build_devel}					\
@@ -671,7 +611,7 @@ voluntary preempt, CFS cpu scheduler and BFQ i/o scheduler, ONDEMAND governor.
 %define summary_server Linux Kernel for server use with i686 & 64GB RAM
 %define info_server This kernel is compiled for server use, single or \
 multiple i686 processor(s)/core(s) and up to 64GB RAM using PAE, using \
-no preempt, HZ_100, CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
+no preempt, HZ_300, CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
 %else
 %define summary_server Linux Kernel for server use with %{_arch}
 %define info_server This kernel is compiled for server use, single or \
@@ -773,15 +713,6 @@ Conflicts:	%{_lib}cpufreq-devel
 This package contains the development files for cpupower.
 %endif
 
-%package -n bootsplash-packer
-Summary:	Tool for packing bootsplash images
-Group:		System/Kernel and hardware
-Version:	%{kversion}
-Release:	%{rpmrel}
-
-%description -n bootsplash-packer
-Tool for packing bootsplash images.
-
 %if %{with build_x86_energy_perf_policy}
 %package -n x86_energy_perf_policy
 Version:	%{kversion}
@@ -803,6 +734,34 @@ Group:		System/Kernel and hardware
 %description -n turbostat
 Tool to report processor frequency and idle statistics.
 %endif
+
+%define bpf_major 0
+%define libbpf %mklibname bpf %{bpf_major}
+%define libbpfdevel %mklibname bpf -d
+
+%package -n bpftool
+Summary:	Inspection and simple manipulation of eBPF programs and maps
+Group:		System/Kernel and hardware
+
+%description -n bpftool
+This package contains the bpftool, which allows inspection and simple
+manipulation of eBPF programs and maps.
+
+%package -n %{libbpf}
+Summary:	The bpf library from kernel source
+Group:		System/Libraries
+
+%description -n %{libbpf}
+This package contains the kernel source bpf library.
+
+%package -n %{libbpfdevel}
+Summary:	Developement files for the bpf library from kernel source
+Group:		Development/Kernel
+Requires:	%{libbpf} = %{EVRD}
+
+%description -n %{libbpfdevel}
+This package includes libraries and header files needed for development
+of applications which use bpf library from kernel sour
 
 %package headers
 Version:	%{kversion}
@@ -874,10 +833,7 @@ rm -rf .git
 %if %mdvver > 3000000
 %autopatch -p1
 %else
-%apply_patches
-%endif
-%if %{with bootsplash}
-git apply %{SOURCE112}
+%autopatch -p1
 %endif
 
 # merge SAA716x DVB driver from extra tarball
@@ -961,10 +917,8 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-#patch -p1 -z .300a~ -b <%{S:300}
+patch -p1 -z .300a~ -b <%{S:300}
 patch -p1 -z .301a~ -b <%{S:301}
-patch -p1 -z .302a~ -b <%{S:302}
-patch -p1 -z .303a~ -b <%{S:303}
 %endif
 %endif
 
@@ -983,7 +937,6 @@ chmod 755 tools/objtool/sync-check.sh
 ############################################################
 # Make sure we don't use gold
 export LD="%{_target_platform}-ld.bfd"
-export PYTHON=%{__python2}
 
 ############################################################
 ###  Linker end2 > Check point to build for omv or rosa ###
@@ -1004,18 +957,6 @@ CreateConfig() {
 	arch="$1"
 	type="$2"
 	rm -f .config
-
-%if %{with clang}
-	CLANG_EXTRAS=clang-workarounds
-	CC=clang
-	CXX=clang++
-	LLVM_TOOLS='OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar'
-%else
-	CLANG_EXTRAS=""
-	CC=gcc
-	CXX=g++
-	LLVM_TOOLS=""
-%endif
 
 %if %{with build_modxz}
 sed -i -e "s/^# CONFIG_KERNEL_XZ is not set/CONFIG_KERNEL_XZ=y/g" kernel/configs/common.config
@@ -1038,7 +979,7 @@ sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/com
 		;;
 	esac
 
-	for i in common common-${type} ${arch}-common ${arch}-${type} $CLANG_EXTRAS; do
+	for i in common common-${type} ${arch}-common ${arch}-${type}; do
 		[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
 	done
 	if [ "$arch" = "znver1" ]; then
@@ -1049,7 +990,7 @@ sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/com
 		arch=x86
 	fi
 
-	make ARCH="${arch}" CC="$CC" HOSTCC="$CC" HOSTCXX="$CXX" CXX="$CXX" HOSTCFLAGS="%{optflags}" $LLVM_TOOLS $CONFIGS
+	make ARCH="${arch}" $CONFIGS
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 }
 
@@ -1074,13 +1015,13 @@ BuildKernel() {
 # (tpg) build with gcc, as kernel is not yet ready for LLVM/clang
 %ifarch %{x86_64}
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS"
 %else
     %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
 %else
 %if %{with clang}
-    %kmake all CC=clang CXX=clang++ HOSTCC=clang HOSTCXX=clang++ CFLAGS="$CFLAGS" LDFLAGS="%{ldflags}" HOSTCFLAGS="$CFLAGS" OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar
+    %kmake all CC=clang CXX=clang++ CFLAGS="$CFLAGS"
 %else
     %kmake all CC=gcc CXX=g++ CFLAGS="$CFLAGS"
 %endif
@@ -1180,9 +1121,6 @@ SaveDevel() {
 # Needed for external dvb tree (#41418)
     cp -fR drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
 
-# add acpica header files, needed for fglrx build
-    cp -fR drivers/acpi/acpica/*.h $TempDevelRoot/drivers/acpi/acpica/
-
 # orc unwinder needs theese
     cp -fR tools/build/Build{,.include} $TempDevelRoot/tools/build
     cp -fR tools/build/fixdep.c $TempDevelRoot/tools/build
@@ -1191,7 +1129,7 @@ SaveDevel() {
     cp -fR tools/objtool/* $TempDevelRoot/tools/objtool
     cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
 
-# include statements in the Makefiles barf, and there's nothing relevant to -devel
+# Make clean fails on the include statements in the Makefiles - and the drivers aren't relevant for -devel
     rm -rf $TempDevelRoot/drivers/net/wireless/rtl8*
     sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
 
@@ -1351,54 +1289,19 @@ cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 ### Create kernel Post script
 cat > $kernel_files-post <<EOF
 
-# create initrd/grub.cfg for installed kernel first.
+%if %{with dracut_all_initrd}
+[ -x /sbin/dracut ] && /sbin/dracut -f --regenerate-all
+%endif
 
 /sbin/depmod -a %{kversion}-$kernel_flavour-%{buildrpmrel}
-/usr/bin/dracut -f --kver %{kversion}-$kernel_flavour-%{buildrpmrel}
+[ -x /sbin/dracut ] && /sbin/dracut -f --kver %{kversion}-$kernel_flavour-%{buildrpmrel}
 
-# try rebuild all other initrd's , however that may take a while with lots
-# kernels installed
-cd /boot > /dev/null
-
-for i in $(ls vmlinuz-[0-9]*| sed 's/.*vmlinuz-//g')
-do
-	if [[ vmlinuz-$i =~ vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ]]; then
-		# we just create this
-		continue
-	fi
-	if [[ -e "initrd-$i.img" ]]; then
-		## if exist ignore
-		continue
-	fi
-	/sbin/depmod -a "$i"
-	/usr/bin/dracut -f --kver "$i"
-done
 
 ## cleanup some werid symlinks we never used anyway
 rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 
 # run update-grub2
-/usr/sbin/update-grub2
-
-# (crazy) only half the story , need grub patches , OM scripts ( including ARM ) removed suport for systemd-boot
-# and so on .. we hit a limit here with lots kernels installed.
-# also half of that is not used bc missing grub part support. Also we produce ofc broken symlinks and ducplicate
-# 'wath-should-be-machine-id' too. I cannot see why we need that anyway.
-
-#/usr/bin/kernel-install add %{kversion}-$kernel_flavour-%{buildrpmrel} /boot/vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel}
-#cd /boot > /dev/null
-#if [ -L vmlinuz-$kernel_flavour ]; then
-#    rm -f vmlinuz-$kernel_flavour
-#fi
-#ln -sf vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} vmlinuz-$kernel_flavour
-#if [ -L initrd-$kernel_flavour.img ]; then
-#    rm -f initrd-$kernel_flavour.img
-#fi
-#ln -sf initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img initrd-$kernel_flavour.img
-#if [ -e initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img ]; then
-#    ln -sf vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} vmlinuz
-#    ln -sf initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img initrd.img
-#fi
+[ -x /usr/sbin/update-grub2 ] && /usr/sbin/update-grub2
 
 cd - > /dev/null
 %if %{with build_devel}
@@ -1413,11 +1316,11 @@ EOF
 
 ### Create kernel Posttrans script
 cat > $kernel_files-posttrans <<EOF
-if [ -x /usr/sbin/dkms_autoinstaller -a -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
+if [ -x /usr/sbin/dkms_autoinstaller ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
     /usr/sbin/dkms_autoinstaller start %{kversion}-$kernel_flavour-%{buildrpmrel}
 fi
 
-if [ -x %{_sbindir}/dkms -a -e %{_unitdir}/dkms.service -a -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
+if [ -x %{_sbindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
     /bin/systemctl --quiet restart dkms.service
     /bin/systemctl --quiet try-restart fedora-loadmodules.service
     %{_sbindir}/dkms autoinstall --verbose --kernelver %{kversion}-$kernel_flavour-%{buildrpmrel}
@@ -1425,10 +1328,10 @@ fi
 
 EOF
 
-### Create kernel Preun script on the fly
-cat > $kernel_files-preun <<EOF
+### Create kernel Postun script on the fly
+cat > $kernel_files-postun <<EOF
 
-rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}}
+rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
 cd /boot > /dev/null
 
 if [ -e vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
@@ -1436,26 +1339,20 @@ if [ -e vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
 fi
 
 if [ -e initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img ]; then
-        rm -rf initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
+	rm -rf initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
 fi
 
 
-#/usr/bin/kernel-install remove %{kversion}-$kernel_flavour-%{buildrpmrel}
-#cd /boot > /dev/null
-## (crazy) we dont use ( nor have support in grub to look ) for initrd-fooname or vmlinuz-fooname
-## so that never worked anyway.
-#if [ -L vmlinuz-$kernel_flavour ]; then
-#    if [ "$(readlink vmlinuz-$kernel_flavour)" = "vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel}" ]; then
-#	rm -f vmlinuz-$kernel_flavour
-#    fi
-#fi
-#if [ -L initrd-$kernel_flavour.img ]; then
-#    if [ "$(readlink initrd-$kernel_flavour.img)" = "initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img" ]; then
-#	rm -f initrd-$kernel_flavour.img
-#    fi
-#fi
-
 cd - > /dev/null
+
+rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel} >/dev/null
+if [ -d /var/lib/dkms ]; then
+    rm -f /var/lib/dkms/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+    rm -f /var/lib/dkms-binary/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms-binary/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+fi
+
 %if %{with build_devel}
 if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build ]; then
     rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
@@ -1465,18 +1362,6 @@ if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source ]; then
 fi
 %endif
 exit 0
-EOF
-
-### Create kernel Postun script on the fly
-cat > $kernel_files-postun <<EOF
-rm -f /boot/initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
-rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel} >/dev/null
-if [ -d /var/lib/dkms ]; then
-    rm -f /var/lib/dkms/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
-    rm -f /var/lib/dkms-binary/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms-binary/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
-fi
 EOF
 }
 
@@ -1574,29 +1459,30 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 ### Linker start3 > Check point to build for omv or rosa ###
 ############################################################
 %if %{with build_perf}
-%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} PYTHON=%{__python2} WERROR=0 prefix=%{_prefix} all
-%{smake} -C tools/perf -s CC=%{__cc} prefix=%{_prefix} PYTHON=%{__python2} man
+%{smake} -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} WERROR=0 prefix=%{_prefix} all
+%{smake} -C tools/perf -s CC=%{__cc} prefix=%{_prefix} man
 %endif
 
 %if %{with build_cpupower}
 # make sure version-gen.sh is executable.
 chmod +x tools/power/cpupower/utils/version-gen.sh
-%kmake -C tools/power/cpupower CPUFREQ_BENCH=false LDFLAGS="%{optflags}"
-%endif
-
-%if %{with bootsplash}
-%kmake -C tools/bootsplash LDFLAGS="%{optflags}"
+%kmake -C tools/power/cpupower CPUFREQ_BENCH=false
 %endif
 
 %ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
-%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="%{optflags} -Wl,--build-id=none"
+%kmake -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--build-id=none"
 %endif
 
 %if %{with build_turbostat}
 %kmake -C tools/power/x86/turbostat CC=clang
 %endif
 %endif
+
+%kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so.0.0.8
+cd tools/bpf/bpftool
+make CC=clang bpftool
+cd -
 
 ############################################################
 ###  Linker end3 > Check point to build for omv or rosa  ###
@@ -1663,17 +1549,17 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 %if %{with build_perf}
 
 # perf tool binary and supporting scripts/binaries
-make -C tools/perf -s CC=%{__cc} V=1 DESTDIR=%{buildroot} WERROR=0 PYTHON=%{__python2} HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install
+make -C tools/perf -s CC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install
 
 # perf man pages (note: implicit rpm magic compresses them later)
-make -C tools/perf  -s CC=%{__cc} V=1 DESTDIR=%{buildroot} WERROR=0 PYTHON=%{__python2} HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install-man
+make -C tools/perf  -s CC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install-man
 %endif
 
 ############################################################
 ### Linker start4 > Check point to build for omv or rosa ###
 ############################################################
 %if %{with build_cpupower}
-%{make_build} -C tools/power/cpupower DESTDIR=%{buildroot} libdir=%{_libdir} mandir=%{_mandir} CPUFREQ_BENCH=false CC=%{__cc} LDFLAGS="%{optflags}" install
+%make_install -C tools/power/cpupower DESTDIR=%{buildroot} libdir=%{_libdir} mandir=%{_mandir} CPUFREQ_BENCH=false CC=%{__cc} install
 
 rm -f %{buildroot}%{_libdir}/*.{a,la}
 %find_lang cpupower
@@ -1683,21 +1569,20 @@ install -m644 %{SOURCE50} %{buildroot}%{_unitdir}/cpupower.service
 install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %endif
 
-%if %{with bootsplash}
-mkdir -p %{buildroot}%{_bindir}
-install -m755 tools/bootsplash/bootsplash-packer %{buildroot}%{_bindir}/
-%endif
-
 %ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
-%kmake -C tools/power/x86/x86_energy_perf_policy install DESTDIR="%{buildroot}"
+%make_install -C tools/power/x86/x86_energy_perf_policy install DESTDIR="%{buildroot}"
 %endif
 %if %{with build_turbostat}
 mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
-%kmake -C tools/power/x86/turbostat install DESTDIR="%{buildroot}"
+%make_install -C tools/power/x86/turbostat install DESTDIR="%{buildroot}"
 %endif
 %endif
+
+# install bpftool and libbpf
+%make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir}
+%make_install -C tools/bpf/bpftool install DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 
 # Create directories infastructure
 %if %{with build_source}
@@ -1856,11 +1741,6 @@ cd -
 %{_includedir}/cpufreq.h
 %endif
 
-%if %{with bootsplash}
-%files -n bootsplash-packer
-%{_bindir}/bootsplash-packer
-%endif
-
 %ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 %files -n x86_energy_perf_policy
@@ -1874,3 +1754,17 @@ cd -
 %{_mandir}/man8/turbostat.8*
 %endif
 %endif
+
+%files -n bpftool
+%{_sbindir}/bpftool
+%{_sysconfdir}/bash_completion.d/bpftool
+
+%files -n %{libbpf}
+%{_libdir}/libbpf.so.%{bpf_major}*
+
+%files -n %{libbpfdevel}
+%{_libdir}/libbpf.a
+%{_libdir}/libbpf.so
+%{_libdir}/pkgconfig/*.pc
+%dir %{_includedir}/bpf
+%{_includedir}/bpf/*.h

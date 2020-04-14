@@ -1,11 +1,10 @@
-diff -up linux-5.5-rc1/drivers/nvme/host/core.c.31~ linux-5.5-rc1/drivers/nvme/host/core.c
---- linux-5.5-rc1/drivers/nvme/host/core.c.31~	2019-12-10 17:05:25.900326366 +0100
-+++ linux-5.5-rc1/drivers/nvme/host/core.c	2019-12-10 17:09:52.110338105 +0100
-@@ -2412,7 +2412,16 @@ static const struct nvme_core_quirk_entr
+diff -up linux-5.4/drivers/nvme/host/core.c.35~ linux-5.4/drivers/nvme/host/core.c
+--- linux-5.4/drivers/nvme/host/core.c.35~	2019-12-18 20:23:29.167152525 +0100
++++ linux-5.4/drivers/nvme/host/core.c	2019-12-18 20:34:05.573121649 +0100
+@@ -2406,6 +2406,15 @@ static const struct nvme_core_quirk_entr
  		.vid = 0x14a4,
  		.fr = "22301111",
  		.quirks = NVME_QUIRK_SIMPLE_SUSPEND,
--	}
 +	},
 +        {
 +		/* https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -15,7 +14,6 @@ diff -up linux-5.5-rc1/drivers/nvme/host/core.c.31~ linux-5.5-rc1/drivers/nvme/h
 +		.vid = 0x1c5c,
 +		.mn = "HFM128GDHTNG-8310B",
 +		.quirks = NVME_QUIRK_NO_APST,
-+ 	}
+ 	}
  };
  
- /* match is null-terminated but idstr is space-padded. */
