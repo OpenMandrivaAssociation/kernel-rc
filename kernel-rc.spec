@@ -19,7 +19,7 @@
 %define kernelversion	5
 %define patchlevel	7
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -81,11 +81,7 @@
 %bcond_with dracut_all_initrd
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
-%if %mdvver > 3000000
 %bcond_without cross_headers
-%else
-%bcond_with cross_headers
-%endif
 
 %global cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android
 %global long_cross_header_archs %(
@@ -235,6 +231,8 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 # error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
 # caused by aacraid versioning ("1.2.1[50983]-custom")
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
+# https://lore.kernel.org/lkml/87d08e1dlh.fsf@mail.parknet.co.jp/raw
+Patch8:		PATCH-resend-fat-Improve-the-readahead-for-FAT-entries.txt
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
@@ -456,11 +454,9 @@ Suggests:	microcode-intel
 # Let's pull in some of the most commonly used DKMS modules
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
-%if %mdvver >= 3000000
 %ifarch %{x86_64}
 BuildRequires:	virtualbox-kernel-module-sources
 BuildRequires:	virtualbox-guest-kernel-module-sources
-%endif
 %endif
 
 %description
@@ -830,11 +826,7 @@ cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
 xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
 %endif
-%if %mdvver > 3000000
 %autopatch -p1
-%else
-%autopatch -p1
-%endif
 
 # merge SAA716x DVB driver from extra tarball
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
@@ -859,7 +851,6 @@ cd -
 LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 
 # Pull in some externally maintained modules
-%if %mdvver >= 3000000
 %ifarch %{x86_64}
 # === VirtualBox guest additions ===
 %define use_internal_vboxvideo 0
@@ -888,7 +879,6 @@ config DRM_VBOXVIDEO
 EOF
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/staging/vboxvideo/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/staging/vboxvideo/Makefile*
-%endif
 
 # 800x600 is too small to be useful -- even calamares doesn't
 # fit into that anymore (this fix is needed for both the in-kernel
@@ -917,7 +907,7 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-patch -p1 -z .300a~ -b <%{S:300}
+#patch -p1 -z .300a~ -b <%{S:300}
 patch -p1 -z .301a~ -b <%{S:301}
 %endif
 %endif
