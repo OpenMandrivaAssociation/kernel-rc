@@ -233,6 +233,7 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
 # https://lore.kernel.org/lkml/87d08e1dlh.fsf@mail.parknet.co.jp/raw
 Patch8:		PATCH-resend-fat-Improve-the-readahead-for-FAT-entries.txt
+Patch9:		kvm-gcc10.patch
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
