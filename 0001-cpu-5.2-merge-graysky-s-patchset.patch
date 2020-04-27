@@ -1,6 +1,6 @@
-diff -up linux-5.5-rc1/arch/x86/include/asm/module.h.17~ linux-5.5-rc1/arch/x86/include/asm/module.h
---- linux-5.5-rc1/arch/x86/include/asm/module.h.17~	2019-12-08 23:57:55.000000000 +0100
-+++ linux-5.5-rc1/arch/x86/include/asm/module.h	2019-12-10 17:00:36.851313621 +0100
+diff -up linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~ linux-5.5-rc1/arch/x86/include/asm/vermagic.h
+--- linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~	2019-12-08 23:57:55.000000000 +0100
++++ linux-5.5-rc1/arch/x86/include/asm/vermagic.h	2019-12-10 17:00:36.851313621 +0100
 @@ -27,6 +27,30 @@ struct mod_arch_specific {
  #define MODULE_PROC_FAMILY "586MMX "
  #elif defined CONFIG_MCORE2
