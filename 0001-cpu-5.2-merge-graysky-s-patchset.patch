@@ -1,7 +1,7 @@
-diff -up linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~ linux-5.5-rc1/arch/x86/include/asm/vermagic.h
---- linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~	2019-12-08 23:57:55.000000000 +0100
-+++ linux-5.5-rc1/arch/x86/include/asm/vermagic.h	2019-12-10 17:00:36.851313621 +0100
-@@ -27,6 +27,30 @@ struct mod_arch_specific {
+diff -up linux-5.8-rc1/arch/x86/include/asm/vermagic.h.19~ linux-5.8-rc1/arch/x86/include/asm/vermagic.h
+--- linux-5.8-rc1/arch/x86/include/asm/vermagic.h.19~	2020-06-14 21:45:04.000000000 +0200
++++ linux-5.8-rc1/arch/x86/include/asm/vermagic.h	2020-06-16 21:52:41.132824421 +0200
+@@ -17,6 +17,30 @@
  #define MODULE_PROC_FAMILY "586MMX "
  #elif defined CONFIG_MCORE2
  #define MODULE_PROC_FAMILY "CORE2 "
@@ -32,7 +32,7 @@ diff -up linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~ linux-5.5-rc1/arch/x8
  #elif defined CONFIG_MATOM
  #define MODULE_PROC_FAMILY "ATOM "
  #elif defined CONFIG_M686
-@@ -45,6 +69,26 @@ struct mod_arch_specific {
+@@ -35,6 +59,26 @@
  #define MODULE_PROC_FAMILY "K7 "
  #elif defined CONFIG_MK8
  #define MODULE_PROC_FAMILY "K8 "
@@ -59,44 +59,42 @@ diff -up linux-5.5-rc1/arch/x86/include/asm/vermagic.h.17~ linux-5.5-rc1/arch/x8
  #elif defined CONFIG_MELAN
  #define MODULE_PROC_FAMILY "ELAN "
  #elif defined CONFIG_MCRUSOE
-diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.cpu
---- linux-5.5-rc1/arch/x86/Kconfig.cpu.17~	2019-12-08 23:57:55.000000000 +0100
-+++ linux-5.5-rc1/arch/x86/Kconfig.cpu	2019-12-10 17:02:11.581317798 +0100
+diff -up linux-5.8-rc1/arch/x86/Kconfig.cpu.19~ linux-5.8-rc1/arch/x86/Kconfig.cpu
+--- linux-5.8-rc1/arch/x86/Kconfig.cpu.19~	2020-06-14 21:45:04.000000000 +0200
++++ linux-5.8-rc1/arch/x86/Kconfig.cpu	2020-06-16 22:03:50.575913298 +0200
 @@ -123,6 +123,7 @@ config MPENTIUMM
  config MPENTIUM4
  	bool "Pentium-4/Celeron(P4-based)/Pentium-4 M/older Xeon"
  	depends on X86_32
 +	select X86_P6_NOP
- 	---help---
+ 	help
  	  Select this for Intel Pentium 4 chips.  This includes the
  	  Pentium 4, Pentium D, P4-based Celeron and Xeon, and
-@@ -155,9 +156,8 @@ config MPENTIUM4
- 		-Paxville
- 		-Dempsey
+@@ -157,7 +158,7 @@ config MPENTIUM4
  
--
+ 
  config MK6
 -	bool "K6/K6-II/K6-III"
 +	bool "AMD K6/K6-II/K6-III"
  	depends on X86_32
- 	---help---
+ 	help
  	  Select this for an AMD K6-family processor.  Enables use of
-@@ -165,7 +165,7 @@ config MK6
+@@ -165,7 +166,7 @@ config MK6
  	  flags to GCC.
  
  config MK7
 -	bool "Athlon/Duron/K7"
 +	bool "AMD Athlon/Duron/K7"
  	depends on X86_32
- 	---help---
+ 	help
  	  Select this for an AMD Athlon K7-family processor.  Enables use of
-@@ -173,12 +173,83 @@ config MK7
+@@ -173,12 +174,83 @@ config MK7
  	  flags to GCC.
  
  config MK8
 -	bool "Opteron/Athlon64/Hammer/K8"
 +	bool "AMD Opteron/Athlon64/Hammer/K8"
- 	---help---
+ 	help
  	  Select this for an AMD Opteron or Athlon64 Hammer-family processor.
  	  Enables use of some extended instructions, and passes appropriate
  	  optimization flags to GCC.
@@ -175,15 +173,15 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  config MCRUSOE
  	bool "Crusoe"
  	depends on X86_32
-@@ -260,6 +331,7 @@ config MVIAC7
+@@ -260,6 +332,7 @@ config MVIAC7
  
  config MPSC
  	bool "Intel P4 / older Netburst based Xeon"
 +	select X86_P6_NOP
  	depends on X86_64
- 	---help---
+ 	help
  	  Optimize for Intel Pentium 4, Pentium D and older Nocona/Dempsey
-@@ -269,8 +341,19 @@ config MPSC
+@@ -269,8 +342,19 @@ config MPSC
  	  using the cpu family field
  	  in /proc/cpuinfo. Family 15 is an older Xeon, Family 6 a newer one.
  
@@ -201,26 +199,27 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
 -	bool "Core 2/newer Xeon"
 +	bool "Intel Core 2"
 +	select X86_P6_NOP
- 	---help---
+ 	help
  
  	  Select this for Intel Core 2 and newer Core 2 Xeons (Xeon 51xx and
-@@ -278,14 +361,106 @@ config MCORE2
+@@ -278,14 +362,106 @@ config MCORE2
  	  family in /proc/cpuinfo. Newer ones have 6 and older ones 15
  	  (not a typo)
  
 -config MATOM
 -	bool "Intel Atom"
+-	help
 +	  Enables -march=core2
-+
-+config MNEHALEM
-+	bool "Intel Nehalem"
-+	select X86_P6_NOP
- 	---help---
  
 -	  Select this for the Intel Atom platform. Intel Atom CPUs have an
 -	  in-order pipelining architecture and thus can benefit from
 -	  accordingly optimized code. Use a recent GCC with specific Atom
 -	  support in order to fully benefit from selecting this option.
++config MNEHALEM
++	bool "Intel Nehalem"
++	select X86_P6_NOP
++	---help---
++
 +	  Select this for 1st Gen Core processors in the Nehalem family.
 +
 +	  Enables -march=nehalem
@@ -317,7 +316,7 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  
  config GENERIC_CPU
  	bool "Generic-x86-64"
-@@ -294,6 +469,19 @@ config GENERIC_CPU
+@@ -294,6 +470,19 @@ config GENERIC_CPU
  	  Generic x86-64 CPU.
  	  Run equally well on all x86-64 CPUs.
  
@@ -337,7 +336,7 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  endchoice
  
  config X86_GENERIC
-@@ -318,7 +506,7 @@ config X86_INTERNODE_CACHE_SHIFT
+@@ -318,7 +507,7 @@ config X86_INTERNODE_CACHE_SHIFT
  config X86_L1_CACHE_SHIFT
  	int
  	default "7" if MPENTIUM4 || MPSC
@@ -346,7 +345,7 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  	default "4" if MELAN || M486SX || M486 || MGEODEGX1
  	default "5" if MWINCHIP3D || MWINCHIPC6 || MCRUSOE || MEFFICEON || MCYRIXIII || MK6 || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODE_LX
  
-@@ -336,35 +524,36 @@ config X86_ALIGNMENT_16
+@@ -336,35 +525,36 @@ config X86_ALIGNMENT_16
  
  config X86_INTEL_USERCOPY
  	def_bool y
@@ -400,7 +399,7 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  
  config X86_CMPXCHG64
  	def_bool y
-@@ -374,7 +563,7 @@ config X86_CMPXCHG64
+@@ -374,7 +564,7 @@ config X86_CMPXCHG64
  # generates cmov.
  config X86_CMOV
  	def_bool y
@@ -409,9 +408,9 @@ diff -up linux-5.5-rc1/arch/x86/Kconfig.cpu.17~ linux-5.5-rc1/arch/x86/Kconfig.c
  
  config X86_MINIMUM_CPU_FAMILY
  	int
-diff -up linux-5.5-rc1/arch/x86/Makefile.17~ linux-5.5-rc1/arch/x86/Makefile
---- linux-5.5-rc1/arch/x86/Makefile.17~	2019-12-08 23:57:55.000000000 +0100
-+++ linux-5.5-rc1/arch/x86/Makefile	2019-12-10 17:00:36.851313621 +0100
+diff -up linux-5.8-rc1/arch/x86/Makefile.19~ linux-5.8-rc1/arch/x86/Makefile
+--- linux-5.8-rc1/arch/x86/Makefile.19~	2020-06-14 21:45:04.000000000 +0200
++++ linux-5.8-rc1/arch/x86/Makefile	2020-06-16 21:52:41.132824421 +0200
 @@ -119,13 +119,46 @@ else
  	KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
  
@@ -462,9 +461,9 @@ diff -up linux-5.5-rc1/arch/x86/Makefile.17~ linux-5.5-rc1/arch/x86/Makefile
          cflags-$(CONFIG_GENERIC_CPU) += $(call cc-option,-mtune=generic)
          KBUILD_CFLAGS += $(cflags-y)
  
-diff -up linux-5.5-rc1/arch/x86/Makefile_32.cpu.17~ linux-5.5-rc1/arch/x86/Makefile_32.cpu
---- linux-5.5-rc1/arch/x86/Makefile_32.cpu.17~	2019-12-08 23:57:55.000000000 +0100
-+++ linux-5.5-rc1/arch/x86/Makefile_32.cpu	2019-12-10 17:00:36.851313621 +0100
+diff -up linux-5.8-rc1/arch/x86/Makefile_32.cpu.19~ linux-5.8-rc1/arch/x86/Makefile_32.cpu
+--- linux-5.8-rc1/arch/x86/Makefile_32.cpu.19~	2020-06-14 21:45:04.000000000 +0200
++++ linux-5.8-rc1/arch/x86/Makefile_32.cpu	2020-06-16 21:52:41.133824431 +0200
 @@ -24,7 +24,18 @@ cflags-$(CONFIG_MK6)		+= -march=k6
  # Please note, that patches that add -march=athlon-xp and friends are pointless.
  # They make zero difference whatsosever to performance at this time.

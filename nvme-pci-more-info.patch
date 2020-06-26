@@ -1,8 +1,8 @@
-diff -Naur linux-5.3.1/drivers/nvme/host/pci.c linux-5.3.1-p/drivers/nvme/host/pci.c
---- linux-5.3.1/drivers/nvme/host/pci.c	2019-09-21 07:19:47.000000000 +0200
-+++ linux-5.3.1-p/drivers/nvme/host/pci.c	2019-09-27 14:46:38.567818352 +0200
-@@ -2524,8 +2524,11 @@
- 	}
+diff -up linux-5.8-rc1/drivers/nvme/host/pci.c.36~ linux-5.8-rc1/drivers/nvme/host/pci.c
+--- linux-5.8-rc1/drivers/nvme/host/pci.c.36~	2020-06-14 21:45:04.000000000 +0200
++++ linux-5.8-rc1/drivers/nvme/host/pci.c	2020-06-16 22:07:57.763065097 +0200
+@@ -2580,8 +2580,11 @@ static void nvme_reset_work(struct work_
+ 	dev->ctrl.max_integrity_segments = 1;
  
  	result = nvme_init_identify(&dev->ctrl);
 -	if (result)
@@ -14,7 +14,7 @@ diff -Naur linux-5.3.1/drivers/nvme/host/pci.c linux-5.3.1-p/drivers/nvme/host/p
  
  	if (dev->ctrl.oacs & NVME_CTRL_OACS_SEC_SUPP) {
  		if (!dev->ctrl.opal_dev)
-@@ -2547,13 +2550,19 @@
+@@ -2603,13 +2606,19 @@ static void nvme_reset_work(struct work_
  
  	if (dev->ctrl.hmpre) {
  		result = nvme_setup_host_mem(dev);

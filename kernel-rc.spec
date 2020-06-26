@@ -17,9 +17,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	7
+%define patchlevel	8
 %define sublevel	0
-%define relc		7
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -82,6 +82,8 @@
 # (tpg) enable patches from ClearLinux
 %bcond_without clr
 %bcond_without cross_headers
+%bcond_with saa716x
+%bcond_with rtl8821ce
 
 %global cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android
 %global long_cross_header_archs %(
@@ -231,8 +233,6 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 # error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
 # caused by aacraid versioning ("1.2.1[50983]-custom")
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
-# https://lore.kernel.org/lkml/87d08e1dlh.fsf@mail.parknet.co.jp/raw
-Patch8:		PATCH-resend-fat-Improve-the-readahead-for-FAT-entries.txt
 Patch9:		kvm-gcc10.patch
 
 # Patches to VirtualBox and other external modules are
@@ -277,9 +277,10 @@ Patch148:	saa716x-5.4.patch
 # cd linux
 # tar cf extra-wifi-drivers-`date +%Y%m%d`.tar drivers/net/wireless/rtl8*
 # zstd -19 extra-wifi-drivers*.tar
-Source200:	extra-wifi-drivers-20200301.tar.zst
-Patch201:	extra-wifi-drivers-compile.patch
-Patch202:	extra-wifi-drivers-port-to-5.6.patch
+# FIXME temporarily removed because of incompatibilities with 5.8-rc1 changes
+#Source200:	extra-wifi-drivers-20200301.tar.zst
+#Patch201:	extra-wifi-drivers-compile.patch
+#Patch202:	extra-wifi-drivers-port-to-5.6.patch
 
 # Lima driver for ARM Mali graphics chips
 # Generated from https://gitlab.freedesktop.org/lima/linux.git
@@ -291,6 +292,10 @@ Patch202:	extra-wifi-drivers-port-to-5.6.patch
 # virtualbox-kernel-module-sources package is copied around
 Source300:	vbox-kernel-5.6.patch
 Source301:	vbox-6.1-fix-build-on-znver1-hosts.patch
+Source302:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_mm_struct.patch
+Source303:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_changes_in_cpu_tlbstate.patch
+Source304:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_module_memory.patch
+Source305:	https://www.virtualbox.org/raw-attachment/ticket/19644/local_patches
 
 # Better support for newer x86 processors
 # Original patch:
@@ -820,7 +825,7 @@ done
 # End packages - here begins build stage
 #
 %prep
-%setup -q -n linux-%{tar_ver} -a 140 -a 200
+%setup -q -n linux-%{tar_ver} -a 140
 cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
 %if 0%{sublevel}
 [ -e .git ] || git init
@@ -829,11 +834,14 @@ rm -rf .git
 %endif
 %autopatch -p1
 
+%if %{with saa716x}
 # merge SAA716x DVB driver from extra tarball
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
 sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/Makefile
 find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" |xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
+%endif
 
+%if %{with rtl8821ce}
 # Merge RTL8723DE and RTL8821CE drivers
 cd drivers/net/wireless
 sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8821ce/Kconfig' Kconfig
@@ -841,6 +849,7 @@ sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8723de/Kconfig' 
 sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8821CE) += rtl8821ce/' Makefile
 sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8723DE) += rtl8723de/' Makefile
 cd -
+%endif
 
 %if %{with build_debug}
 %define debug --debug
@@ -910,6 +919,10 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 #patch -p1 -z .300a~ -b <%{S:300}
 patch -p1 -z .301a~ -b <%{S:301}
+patch -p1 -z .302a~ -b <%{S:302}
+patch -p1 -z .303a~ -b <%{S:303}
+patch -p1 -z .304a~ -b <%{S:304}
+patch -p1 -z .305a~ -b <%{S:305}
 %endif
 %endif
 
@@ -1470,7 +1483,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 %endif
 %endif
 
-%kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so.0.0.8
+%kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so.0.0.9
 cd tools/bpf/bpftool
 make CC=clang bpftool
 cd -
