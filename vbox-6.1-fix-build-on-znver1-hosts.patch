@@ -36,9 +36,9 @@ diff -up linux-5.4/drivers/pci/vboxpci/Makefile-header.gmk.omv~ linux-5.4/driver
   BUILD_TARGET_ARCH_DEF := amd64
  else
   BUILD_TARGET_ARCH_DEF := x86
-diff -up linux-5.4/drivers/staging/vboxvideo/Makefile-header.gmk.omv~ linux-5.4/drivers/staging/vboxvideo/Makefile-header.gmk
---- linux-5.4/drivers/staging/vboxvideo/Makefile-header.gmk.omv~	2020-01-10 05:06:12.900953886 +0100
-+++ linux-5.4/drivers/staging/vboxvideo/Makefile-header.gmk	2020-01-10 05:06:19.168965103 +0100
+diff -up linux-5.4/drivers/gpu/drm/vboxvideo/Makefile-header.gmk.omv~ linux-5.4/drivers/gpu/drm/vboxvideo/Makefile-header.gmk
+--- linux-5.4/drivers/gpu/drm/vboxvideo/Makefile-header.gmk.omv~	2020-01-10 05:06:12.900953886 +0100
++++ linux-5.4/drivers/gpu/drm/vboxvideo/Makefile-header.gmk	2020-01-10 05:06:19.168965103 +0100
 @@ -45,7 +45,7 @@
  # (We have to support basic cross building (ARCH=i386|x86_64).)
  # While at it, warn about BUILD_* vars found to help with user problems.

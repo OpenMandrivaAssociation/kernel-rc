@@ -19,7 +19,7 @@
 %define kernelversion	5
 %define patchlevel	8
 %define sublevel	0
-%define relc		5
+%define relc		6
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -868,9 +868,9 @@ LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 # There is an in-kernel version of vboxvideo -- unfortunately
 # it doesn't seem to work properly with vbox just yet
 # Let's replace it with the one that comes with VB for now
-rm -rf drivers/staging/vboxvideo
-cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/staging
-cat >drivers/staging/vboxvideo/Kconfig <<'EOF'
+rm -rf drivers/gpu/drm/vboxvideo
+cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/gpu/drm
+cat >drivers/gpu/drm/vboxvideo/Kconfig <<'EOF'
 config DRM_VBOXVIDEO
 	tristate "Virtual Box Graphics Card"
 	depends on DRM && X86 && PCI
@@ -887,13 +887,13 @@ config DRM_VBOXVIDEO
 	  driver as a module and add support for these devices via drm/kms
 	  interfaces.
 EOF
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/staging/vboxvideo/Makefile*
-sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/staging/vboxvideo/Makefile*
+sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
+sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile*
 
 # 800x600 is too small to be useful -- even calamares doesn't
 # fit into that anymore (this fix is needed for both the in-kernel
 # version and the vbox version of the driver)
-sed -i -e 's|800, 600|1024, 768|g' drivers/staging/vboxvideo/vbox_mode.c
+sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 # VirtualBox shared folders now come in through patch 300
 
 # === VirtualBox host modules ===
