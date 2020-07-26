@@ -1,0 +1,72 @@
+commit bb14834cef399ae99771f0f33fe6b57a68165370
+Author: Bernhard Rosenkränzer <bero@lindev.ch>
+Date:   Tue Jul 21 15:45:49 2020 +0200
+
+    nouveau: avoid write-combine mappings for VRAM and IO space
+    
+    NOUPSTREAM
+    
+    Author: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+    Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+    Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+    Signed-off-by: Bernhard Rosenkränzer <bero@lindev.ch>
+    [daniel.thompson@linaro.org:
+      Updated to undo changes to the bar2 mapping in v4.15-rc1, see
+      dfcbd5506817 ("drm/nouveau/imem/nv50: map bar2 write-combined")
+      and b807270cbd87 ("drm/nouveau/imem/nv40: map bar2
+      write-combined") for more details]
+    Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index c40f127de3d0b2..525b2dc1ed91af 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -662,9 +662,14 @@ nouveau_bo_init_mem_type(struct ttm_bo_device *bdev, uint32_t type,
+ 	case TTM_PL_VRAM:
+ 		man->flags = TTM_MEMTYPE_FLAG_FIXED |
+ 			     TTM_MEMTYPE_FLAG_MAPPABLE;
++#ifdef CONFIG_X86
+ 		man->available_caching = TTM_PL_FLAG_UNCACHED |
+ 					 TTM_PL_FLAG_WC;
+ 		man->default_caching = TTM_PL_FLAG_WC;
++#else
++		man->available_caching = TTM_PL_FLAG_UNCACHED;
++		man->default_caching = TTM_PL_FLAG_UNCACHED;
++#endif
+ 
+ 		if (drm->client.device.info.family >= NV_DEVICE_INFO_V0_TESLA) {
+ 			/* Some BARs do not support being ioremapped WC */
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c
+index 086c118488ef5f..d7e4c0e325afb1 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c
+@@ -253,8 +253,13 @@ nv40_instmem_new(struct nvkm_device *device, int index,
+ 	else
+ 		bar = 3;
+ 
++#ifdef CONFIG_X86
+	imem->iomem = ioremap_wc(device->func->resource_addr(device, bar),
+				 device->func->resource_size(device, bar));
++#else
++	imem->iomem = ioremap(device->func->resource_addr(device, bar),
++			      device->func->resource_size(device, bar));
++#endif
+ 	if (!imem->iomem) {
+ 		nvkm_error(&imem->base.subdev, "unable to map PRAMIN BAR\n");
+ 		return -EFAULT;
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c
+index 02c4eb28cef44d..80a28164c15041 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c
+@@ -171,7 +171,11 @@ nv50_instobj_kmap(struct nv50_instobj *iobj, struct nvkm_vmm *vmm)
+ 
+ 	/* Make the mapping visible to the host. */
+ 	iobj->bar = bar;
++#ifdef CONFIG_X86
+ 	iobj->map = ioremap_wc(device->func->resource_addr(device, 3) +
++#else
++	iobj->map = ioremap(device->func->resource_addr(device, 3) +
++#endif
+ 			       (u32)iobj->bar->addr, size);
+ 	if (!iobj->map) {
+ 		nvkm_warn(subdev, "PRAMIN ioremap failed\n");

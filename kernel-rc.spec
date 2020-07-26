@@ -233,7 +233,10 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 # error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
 # caused by aacraid versioning ("1.2.1[50983]-custom")
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
+# Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
+Patch8:		kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch9:		kvm-gcc10.patch
+Patch10:	kernel-5.7-fewer-conditions-for-ARM64_PTR_AUTH.patch
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
@@ -1485,7 +1488,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 
 %kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so.0.0.9
 cd tools/bpf/bpftool
-make CC=clang bpftool
+%kmake CC=clang bpftool
 cd -
 
 ############################################################
