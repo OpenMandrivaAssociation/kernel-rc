@@ -29,7 +29,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.1
+%define rpmrel		0.rc%{relc}.2
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
@@ -237,6 +237,14 @@ Patch7:		aacraid-dont-freak-out-dependency-generator.patch
 Patch8:		kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch9:		kvm-gcc10.patch
 Patch10:	kernel-5.7-fewer-conditions-for-ARM64_PTR_AUTH.patch
+
+# FIXME git bisect shows upstream commit
+# 7a8b64d17e35810dc3176fe61208b45c15d25402 breaks
+# booting SynQuacer from USB flash drives.
+# 9d55bebd9816903b821a403a69a94190442ac043 builds on
+# 7a8b64d17e35810dc3176fe61208b45c15d25402.
+Source100:	7a8b64d17e35810dc3176fe61208b45c15d25402.patch
+Source101:	9d55bebd9816903b821a403a69a94190442ac043.patch
 
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
@@ -836,6 +844,12 @@ xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
 rm -rf .git
 %endif
 %autopatch -p1
+
+%ifarch %{aarch64}
+# FIXME SynQuacer workaround
+patch -p1 -R <%{S:101}
+patch -p1 -R <%{S:100}
+%endif
 
 %if %{with saa716x}
 # merge SAA716x DVB driver from extra tarball
