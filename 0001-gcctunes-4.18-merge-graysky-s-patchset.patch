@@ -20,7 +20,7 @@ index 638411f22267..160924412d6a 100644
  	bool "Pentium-4/Celeron(P4-based)/Pentium-4 M/older Xeon"
  	depends on X86_32
 +	select X86_P6_NOP
- 	---help---
+ 	help
  	  Select this for Intel Pentium 4 chips.  This includes the
  	  Pentium 4, Pentium D, P4-based Celeron and Xeon, and
 @@ -148,9 +149,8 @@ config MPENTIUM4
@@ -32,7 +32,7 @@ index 638411f22267..160924412d6a 100644
 -	bool "K6/K6-II/K6-III"
 +	bool "AMD K6/K6-II/K6-III"
  	depends on X86_32
- 	---help---
+ 	help
  	  Select this for an AMD K6-family processor.  Enables use of
 @@ -158,7 +158,7 @@ config MK6
  	  flags to GCC.
@@ -41,7 +41,7 @@ index 638411f22267..160924412d6a 100644
 -	bool "Athlon/Duron/K7"
 +	bool "AMD Athlon/Duron/K7"
  	depends on X86_32
- 	---help---
+ 	help
  	  Select this for an AMD Athlon K7-family processor.  Enables use of
 @@ -166,12 +166,83 @@ config MK7
  	  flags to GCC.
@@ -49,21 +49,21 @@ index 638411f22267..160924412d6a 100644
  config MK8
 -	bool "Opteron/Athlon64/Hammer/K8"
 +	bool "AMD Opteron/Athlon64/Hammer/K8"
- 	---help---
+ 	help
  	  Select this for an AMD Opteron or Athlon64 Hammer-family processor.
  	  Enables use of some extended instructions, and passes appropriate
  	  optimization flags to GCC.
  
 +config MK8SSE3
 +	bool "AMD Opteron/Athlon64/Hammer/K8 with SSE3"
-+	---help---
++	help
 +	  Select this for improved AMD Opteron or Athlon64 Hammer-family processors.
 +	  Enables use of some extended instructions, and passes appropriate
 +	  optimization flags to GCC.
 +
 +config MK10
 +	bool "AMD 61xx/7x50/PhenomX3/X4/II/K10"
-+	---help---
++	help
 +	  Select this for an AMD 61xx Eight-Core Magny-Cours, Athlon X2 7x50,
 +		Phenom X3/X4/II, Athlon II X2/X3/X4, or Turion II-family processor.
 +	  Enables use of some extended instructions, and passes appropriate
@@ -71,56 +71,56 @@ index 638411f22267..160924412d6a 100644
 +
 +config MBARCELONA
 +	bool "AMD Barcelona"
-+	---help---
++	help
 +	  Select this for AMD Family 10h Barcelona processors.
 +
 +	  Enables -march=barcelona
 +
 +config MBOBCAT
 +	bool "AMD Bobcat"
-+	---help---
++	help
 +	  Select this for AMD Family 14h Bobcat processors.
 +
 +	  Enables -march=btver1
 +
 +config MJAGUAR
 +	bool "AMD Jaguar"
-+	---help---
++	help
 +	  Select this for AMD Family 16h Jaguar processors.
 +
 +	  Enables -march=btver2
 +
 +config MBULLDOZER
 +	bool "AMD Bulldozer"
-+	---help---
++	help
 +	  Select this for AMD Family 15h Bulldozer processors.
 +
 +	  Enables -march=bdver1
 +
 +config MPILEDRIVER
 +	bool "AMD Piledriver"
-+	---help---
++	help
 +	  Select this for AMD Family 15h Piledriver processors.
 +
 +	  Enables -march=bdver2
 +
 +config MSTEAMROLLER
 +	bool "AMD Steamroller"
-+	---help---
++	help
 +	  Select this for AMD Family 15h Steamroller processors.
 +
 +	  Enables -march=bdver3
 +
 +config MEXCAVATOR
 +	bool "AMD Excavator"
-+	---help---
++	help
 +	  Select this for AMD Family 15h Excavator processors.
 +
 +	  Enables -march=bdver4
 +
 +config MZEN
 +	bool "AMD Zen"
-+	---help---
++	help
 +	  Select this for AMD Family 17h Zen processors.
 +
 +	  Enables -march=znver1
@@ -134,7 +134,7 @@ index 638411f22267..160924412d6a 100644
  	bool "Intel P4 / older Netburst based Xeon"
 +	select X86_P6_NOP
  	depends on X86_64
- 	---help---
+ 	help
  	  Optimize for Intel Pentium 4, Pentium D and older Nocona/Dempsey
 @@ -262,8 +334,19 @@ config MPSC
  	  using the cpu family field
@@ -143,7 +143,7 @@ index 638411f22267..160924412d6a 100644
 +config MATOM
 +	bool "Intel Atom"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for the Intel Atom platform. Intel Atom CPUs have an
 +	  in-order pipelining architecture and thus can benefit from
@@ -154,7 +154,7 @@ index 638411f22267..160924412d6a 100644
 -	bool "Core 2/newer Xeon"
 +	bool "Intel Core 2"
 +	select X86_P6_NOP
- 	---help---
+ 	help
  
  	  Select this for Intel Core 2 and newer Core 2 Xeons (Xeon 51xx and
 @@ -271,14 +354,106 @@ config MCORE2
@@ -168,7 +168,7 @@ index 638411f22267..160924412d6a 100644
 +config MNEHALEM
 +	bool "Intel Nehalem"
 +	select X86_P6_NOP
- 	---help---
+ 	help
  
 -	  Select this for the Intel Atom platform. Intel Atom CPUs have an
 -	  in-order pipelining architecture and thus can benefit from
@@ -181,7 +181,7 @@ index 638411f22267..160924412d6a 100644
 +config MWESTMERE
 +	bool "Intel Westmere"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for the Intel Westmere formerly Nehalem-C family.
 +
@@ -190,7 +190,7 @@ index 638411f22267..160924412d6a 100644
 +config MSILVERMONT
 +	bool "Intel Silvermont"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for the Intel Silvermont platform.
 +
@@ -199,7 +199,7 @@ index 638411f22267..160924412d6a 100644
 +config MSANDYBRIDGE
 +	bool "Intel Sandy Bridge"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 2nd Gen Core processors in the Sandy Bridge family.
 +
@@ -208,7 +208,7 @@ index 638411f22267..160924412d6a 100644
 +config MIVYBRIDGE
 +	bool "Intel Ivy Bridge"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 3rd Gen Core processors in the Ivy Bridge family.
 +
@@ -217,7 +217,7 @@ index 638411f22267..160924412d6a 100644
 +config MHASWELL
 +	bool "Intel Haswell"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 4th Gen Core processors in the Haswell family.
 +
@@ -226,7 +226,7 @@ index 638411f22267..160924412d6a 100644
 +config MBROADWELL
 +	bool "Intel Broadwell"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 5th Gen Core processors in the Broadwell family.
 +
@@ -235,7 +235,7 @@ index 638411f22267..160924412d6a 100644
 +config MSKYLAKE
 +	bool "Intel Skylake"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 6th Gen Core processors in the Skylake family.
 +
@@ -244,7 +244,7 @@ index 638411f22267..160924412d6a 100644
 +config MSKYLAKEX
 +	bool "Intel Skylake X"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 6th Gen Core processors in the Skylake X family.
 +
@@ -253,7 +253,7 @@ index 638411f22267..160924412d6a 100644
 +config MCANNONLAKE
 +	bool "Intel Cannon Lake"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 8th Gen Core processors.
 +
@@ -262,7 +262,7 @@ index 638411f22267..160924412d6a 100644
 +config MICELAKE
 +	bool "Intel Ice Lake"
 +	select X86_P6_NOP
-+	---help---
++	help
 +
 +	  Select this for 8th Gen Core processors in the Ice Lake family.
 +
@@ -276,7 +276,7 @@ index 638411f22267..160924412d6a 100644
  
 +config MNATIVE
 + bool "Native optimizations autodetected by GCC"
-+ ---help---
++ help
 +
 +   GCC 4.2 and above support -march=native, which automatically detects
 +   the optimum settings to use based on your processor. -march=native
@@ -333,7 +333,7 @@ index 638411f22267..160924412d6a 100644
 +	default n
 +	bool "Support for P6_NOPs on Intel chips"
 +	depends on (MCORE2 || MPENTIUM4 || MPSC || MATOM || MNEHALEM || MWESTMERE || MSILVERMONT  || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE)
-+	---help---
++	help
 +	P6_NOPs are a relatively minor optimization that require a family >=
 +	6 processor, except that it is broken on certain VIA chips.
 +	Furthermore, AMD chips prefer a totally different sequence of NOPs

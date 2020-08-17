@@ -126,13 +126,13 @@ index a4a8914bf7a4..299a6861fb90 100644
 --- a/block/Kconfig.iosched
 +++ b/block/Kconfig.iosched
 @@ -40,6 +40,26 @@ config CFQ_GROUP_IOSCHED
- 	---help---
+ 	help
  	  Enable group IO scheduling in CFQ.
  
 +config IOSCHED_BFQ_SQ
 +	tristate "BFQ-SQ I/O scheduler"
 +	default n
-+	---help---
++	help
 +	The BFQ-SQ I/O scheduler (for legacy blk: SQ stands for
 +	SingleQueue) distributes bandwidth among all processes
 +	according to their weights, regardless of the device
@@ -144,7 +144,7 @@ index a4a8914bf7a4..299a6861fb90 100644
 +	bool "BFQ-SQ hierarchical scheduling support"
 +	depends on IOSCHED_BFQ_SQ && BLK_CGROUP
 +	default n
-+	---help---
++	help
 +
 +	Enable hierarchical scheduling in BFQ-SQ, using the blkio
 +	(cgroups-v1) or io (cgroups-v2) controller.
@@ -179,7 +179,7 @@ index a4a8914bf7a4..299a6861fb90 100644
 +config MQ_IOSCHED_BFQ
 +	tristate "BFQ-MQ I/O Scheduler"
 +	default y
-+	---help---
++	help
 +	BFQ I/O scheduler for BLK-MQ. BFQ-MQ distributes bandwidth
 +	among all processes according to their weights, regardless of
 +	the device parameters and with any workload. It also
@@ -190,7 +190,7 @@ index a4a8914bf7a4..299a6861fb90 100644
 +	bool "BFQ-MQ hierarchical scheduling support"
 +	depends on MQ_IOSCHED_BFQ && BLK_CGROUP
 +	default n
-+	---help---
++	help
 +
 +	Enable hierarchical scheduling in BFQ-MQ, using the blkio
 +	(cgroups-v1) or io (cgroups-v2) controller.

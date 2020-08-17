@@ -12219,7 +12219,7 @@
 +	select DVB_SI2168B if MEDIA_SUBDRV_AUTOSELECT
  	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
 +	select MEDIA_TUNER_SILABS_TERCAB if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
+ 	help
  	  This is a video4linux driver for NXP SAA7164 based
  	  TV cards.
 --- linux-4.15/drivers/media/pci/saa7164/saa7164-api.c.0140~	2018-01-28 22:20:33.000000000 +0100
@@ -22541,7 +22541,7 @@
  	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
  	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
 ++	select MEDIA_TUNER_SILABS_TERCAB if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
+ 	help
  	  This option enables a DVB interface for the pvrusb2 driver.
  	  If your device does not support digital television, this
 --- linux-4.15/drivers/media/usb/pvrusb2/pvrusb2-cx2584x-v4l.c.0140~	2018-01-28 22:20:33.000000000 +0100

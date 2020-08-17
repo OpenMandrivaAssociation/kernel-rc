@@ -1,0 +1,173 @@
+diff -up linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_drv.c
+--- linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~	2020-08-17 18:01:40.115873843 +0200
++++ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_drv.c	2020-08-17 18:02:49.392688501 +0200
+@@ -258,7 +258,7 @@ static const struct file_operations vbox
+ 	.read = drm_read,
+ };
+ 
+-static int vbox_master_set(struct drm_device *dev,
++static void vbox_master_set(struct drm_device *dev,
+ 			   struct drm_file *file_priv, bool from_open)
+ {
+ 	struct vbox_private *vbox = dev->dev_private;
+@@ -276,8 +276,6 @@ static int vbox_master_set(struct drm_de
+ 	vbox->need_refresh_timer = true;
+ 	schedule_delayed_work(&vbox->refresh_work, VBOX_REFRESH_PERIOD);
+ 	mutex_unlock(&vbox->hw_mutex);
+-
+-	return 0;
+ }
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0) && !defined(RHEL_74)
+diff -up linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c
+--- linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~	2020-08-17 18:07:03.284697227 +0200
++++ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c	2020-08-17 18:07:08.483759143 +0200
+@@ -400,7 +400,7 @@ void vbox_fbdev_fini(struct drm_device *
+ 				vbox_bo_unpin(bo);
+ 			vbox_bo_unreserve(bo);
+ 		}
+-		drm_gem_object_put_unlocked(afb->obj);
++		drm_gem_object_put(afb->obj);
+ 		afb->obj = NULL;
+ 	}
+ 	drm_fb_helper_fini(&fbdev->helper);
+diff -up linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_main.c.omv~ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_main.c
+--- linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_main.c.omv~	2020-08-17 18:07:15.871847147 +0200
++++ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_main.c	2020-08-17 18:07:33.782060570 +0200
+@@ -41,7 +41,7 @@ static void vbox_user_framebuffer_destro
+ 	struct vbox_framebuffer *vbox_fb = to_vbox_framebuffer(fb);
+ 
+ 	if (vbox_fb->obj)
+-		drm_gem_object_put_unlocked(vbox_fb->obj);
++		drm_gem_object_put(vbox_fb->obj);
+ 
+ 	drm_framebuffer_cleanup(fb);
+ 	kfree(fb);
+@@ -216,7 +216,7 @@ static struct drm_framebuffer *vbox_user
+ err_free_vbox_fb:
+ 	kfree(vbox_fb);
+ err_unref_obj:
+-	drm_gem_object_put_unlocked(obj);
++	drm_gem_object_put(obj);
+ 	return ERR_PTR(ret);
+ }
+ 
+@@ -583,7 +583,7 @@ int vbox_dumb_create(struct drm_file *fi
+ 		return ret;
+ 
+ 	ret = drm_gem_handle_create(file, gobj, &handle);
+-	drm_gem_object_put_unlocked(gobj);
++	drm_gem_object_put(gobj);
+ 	if (ret)
+ 		return ret;
+ 
+diff -up linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c.omv~ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c
+--- linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c.omv~	2020-08-17 18:06:47.354507576 +0200
++++ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c	2020-08-17 18:06:56.808620116 +0200
+@@ -882,7 +882,7 @@ out_unmap_bo:
+ out_unreserve_bo:
+ 	vbox_bo_unreserve(bo);
+ out_unref_obj:
+-	drm_gem_object_put_unlocked(obj);
++	drm_gem_object_put(obj);
+ 
+ 	return ret;
+ }
+diff -up linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_ttm.c.omv~ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_ttm.c
+--- linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_ttm.c.omv~	2020-08-17 18:08:25.053672163 +0200
++++ linux-5.9-rc1/drivers/gpu/drm/vboxvideo/vbox_ttm.c	2020-08-17 18:16:02.201155069 +0200
+@@ -448,7 +448,7 @@ err_free_vboxbo:
+ 
+ static inline u64 vbox_bo_gpu_offset(struct vbox_bo *bo)
+ {
+-	return bo->bo.offset;
++	return bo->bo.mem.start << PAGE_SHIFT;
+ }
+ 
+ int vbox_bo_pin(struct vbox_bo *bo, u32 pl_flag, u64 *gpu_addr)
+diff -up linux-5.9-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~ linux-5.9-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h
+--- linux-5.9-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~	2020-08-17 18:17:01.772872291 +0200
++++ linux-5.9-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h	2020-08-17 18:25:46.530204073 +0200
+@@ -137,7 +137,10 @@
+ #include <linux/interrupt.h>
+ #include <linux/completion.h>
+ #include <linux/compiler.h>
+-#ifndef HAVE_UNLOCKED_IOCTL /* linux/fs.h defines this */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
++#define HAVE_UNLOCKED_IOCTL 1 /* used to be defined in linux/fs.h */
++#endif
++#ifndef HAVE_UNLOCKED_IOCTL
+ # include <linux/smp_lock.h>
+ #endif
+ /* For the shared folders module */
+diff -up linux-5.9-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~ linux-5.9-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h
+--- linux-5.9-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~	2020-08-17 18:17:52.577484296 +0200
++++ linux-5.9-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h	2020-08-17 18:25:13.475804722 +0200
+@@ -137,7 +137,10 @@
+ #include <linux/interrupt.h>
+ #include <linux/completion.h>
+ #include <linux/compiler.h>
+-#ifndef HAVE_UNLOCKED_IOCTL /* linux/fs.h defines this */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
++#define HAVE_UNLOCKED_IOCTL 1 /* used to be defined in linux/fs.h */
++#endif
++#ifndef HAVE_UNLOCKED_IOCTL
+ # include <linux/smp_lock.h>
+ #endif
+ /* For the shared folders module */
+diff -up linux-5.9-rc1/drivers/pci/vboxpci/r0drv/linux/the-linux-kernel.h.omv~ linux-5.9-rc1/drivers/pci/vboxpci/r0drv/linux/the-linux-kernel.h
+--- linux-5.9-rc1/drivers/pci/vboxpci/r0drv/linux/the-linux-kernel.h.omv~	2020-08-17 17:53:12.208943159 +0200
++++ linux-5.9-rc1/drivers/pci/vboxpci/r0drv/linux/the-linux-kernel.h	2020-08-17 18:26:45.549917240 +0200
+@@ -137,7 +137,10 @@
+ #include <linux/interrupt.h>
+ #include <linux/completion.h>
+ #include <linux/compiler.h>
+-#ifndef HAVE_UNLOCKED_IOCTL /* linux/fs.h defines this */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
++#define HAVE_UNLOCKED_IOCTL 1 /* used to be defined in linux/fs.h */
++#endif
++#ifndef HAVE_UNLOCKED_IOCTL
+ # include <linux/smp_lock.h>
+ #endif
+ /* For the shared folders module */
+diff -up linux-5.9-rc1/drivers/virt/vboxdrv/linux/SUPDrv-linux.c.omv~ linux-5.9-rc1/drivers/virt/vboxdrv/linux/SUPDrv-linux.c
+diff -up linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~ linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c
+--- linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~	2020-08-17 18:32:53.809407127 +0200
++++ linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c	2020-08-17 18:34:49.250818202 +0200
+@@ -1146,7 +1146,9 @@ DECLHIDDEN(int) rtR0MemObjNativeLockUser
+          */
+         else
+             rc = get_user_pages_remote(
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
+                                 pTask,                  /* Task for fault accounting. */
++#endif
+                                 pTask->mm,              /* Whose pages. */
+                                 R3Ptr,                  /* Where from. */
+                                 cPages,                 /* How many pages. */
+diff -up linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~ linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h
+--- linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~	2020-08-17 18:19:23.780583632 +0200
++++ linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h	2020-08-17 18:26:25.667676977 +0200
+@@ -137,7 +137,10 @@
+ #include <linux/interrupt.h>
+ #include <linux/completion.h>
+ #include <linux/compiler.h>
+-#ifndef HAVE_UNLOCKED_IOCTL /* linux/fs.h defines this */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
++#define HAVE_UNLOCKED_IOCTL 1 /* used to be defined in linux/fs.h */
++#endif
++#ifndef HAVE_UNLOCKED_IOCTL
+ # include <linux/smp_lock.h>
+ #endif
+ /* For the shared folders module */
+diff -up linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/thread2-r0drv-linux.c.omv~ linux-5.9-rc1/drivers/virt/vboxdrv/r0drv/linux/thread2-r0drv-linux.c
+diff -up linux-5.9-rc1/kernel/sched/core.c.omv~ linux-5.9-rc1/kernel/sched/core.c
+--- linux-5.9-rc1/kernel/sched/core.c.omv~	2020-08-17 18:39:45.131425463 +0200
++++ linux-5.9-rc1/kernel/sched/core.c	2020-08-17 18:40:18.724834384 +0200
+@@ -5508,6 +5508,7 @@ int sched_setscheduler(struct task_struc
+ {
+ 	return _sched_setscheduler(p, policy, param, true);
+ }
++EXPORT_SYMBOL_GPL(sched_setscheduler); /* for VirtualBox */
+ 
+ int sched_setattr(struct task_struct *p, const struct sched_attr *attr)
+ {

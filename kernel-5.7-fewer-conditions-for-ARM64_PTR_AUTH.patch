@@ -1,21 +1,10 @@
-This is wrong and should never go upstream.
-
-It is needed nevertheless: Without this patch, the config builder doesn't emit
-any value for ARM64_PTR_AUTH because the preconditions aren't met.
-Then on "real" make, it knows more about the toolchain, sees it can be
-enabled, and "make syncconfig" hangs prompting for the value.
-
-Given our toolchain is known good (we'll always have binutils >= 2.33.1 and
-current versions of gcc and clang), inside our package disabling those
-preconditions doesn't do any harm.
-
-diff -up linux-5.8-rc6/arch/arm64/Kconfig.9~ linux-5.8-rc6/arch/arm64/Kconfig
---- linux-5.8-rc6/arch/arm64/Kconfig.9~	2020-07-26 17:23:47.979426682 +0200
-+++ linux-5.8-rc6/arch/arm64/Kconfig	2020-07-26 17:25:15.024771232 +0200
-@@ -1517,12 +1517,6 @@ config ARM64_PTR_AUTH
+diff -up linux-5.9-rc1/arch/arm64/Kconfig.9~ linux-5.9-rc1/arch/arm64/Kconfig
+--- linux-5.9-rc1/arch/arm64/Kconfig.9~	2020-08-17 16:53:41.533689669 +0200
++++ linux-5.9-rc1/arch/arm64/Kconfig	2020-08-17 16:54:37.673486596 +0200
+@@ -1504,12 +1504,6 @@ menu "ARMv8.3 architectural features"
+ config ARM64_PTR_AUTH
  	bool "Enable support for pointer authentication"
  	default y
- 	depends on !KVM || ARM64_VHE
 -	depends on (CC_HAS_SIGN_RETURN_ADDRESS || CC_HAS_BRANCH_PROT_PAC_RET) && AS_HAS_PAC
 -	# Modern compilers insert a .note.gnu.property section note for PAC
 -	# which is only understood by binutils starting with version 2.33.1.

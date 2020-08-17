@@ -8,7 +8,7 @@ diff -up linux-4.18/drivers/video/console/Kconfig.0100~ linux-4.18/drivers/video
 +config BOOTSPLASH
 +	bool "Bootup splash screen"
 +	depends on FRAMEBUFFER_CONSOLE
-+	---help---
++	help
 +	  This option enables the Linux bootsplash screen.
 +
 +	  The bootsplash is a full-screen logo or animation indicating a

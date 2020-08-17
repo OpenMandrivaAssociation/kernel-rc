@@ -973,7 +973,7 @@ index 8ef85139553f..7299015f6252 100644
 +	bool "SMT (Hyperthreading) aware nice priority and policy support"
 +	depends on SCHED_MUQSS && SCHED_SMT
 +	default y
-+	---help---
++	help
 +	  Enabling Hyperthreading on Intel CPUs decreases the effectiveness
 +	  of the use of 'nice' levels and different scheduling policies
 +	  (e.g. realtime) due to sharing of CPU power between hyperthreads.
@@ -1303,7 +1303,7 @@ index b4daad2bac23..da90d33ba4b3 100644
 +config SCHED_MUQSS
 +	bool "MuQSS cpu scheduler"
 +	select HIGH_RES_TIMERS
-+	---help---
++	help
 +	  The Multiple Queue Skiplist Scheduler for excellent interactivity and
 +	  responsiveness on the desktop and highly scalable deterministic
 +	  low latency on any hardware.

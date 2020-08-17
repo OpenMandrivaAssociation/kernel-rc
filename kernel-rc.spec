@@ -17,9 +17,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	8
+%define patchlevel	9
 %define sublevel	0
-%define relc		7
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -234,7 +234,7 @@ Patch6:		linux-5.2.9-riscv-compile.patch
 # caused by aacraid versioning ("1.2.1[50983]-custom")
 Patch7:		aacraid-dont-freak-out-dependency-generator.patch
 # Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
-Patch8:		kernel-5.8-nouveau-write-combining-only-on-x86.patch
+Patch8:		kernel-5.9-nouveau-write-combining-only-on-x86.patch
 Patch9:		kvm-gcc10.patch
 Patch10:	kernel-5.7-fewer-conditions-for-ARM64_PTR_AUTH.patch
 
@@ -258,11 +258,6 @@ Source101:	9d55bebd9816903b821a403a69a94190442ac043.patch
 %if %{with uksm}
 # brokes armx builds
 Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.6.patch
-%endif
-
-%if %{with build_modzstd}
-# v4 -> https://lkml.org/lkml/2020/4/1/29
-Patch126: https://gitweb.frugalware.org/frugalware-current/raw/master/source/base/kernel/support-kernel-and-ramfs-comp-and-decomp-with-zstd.patch
 %endif
 
 ### Additional hardware support
@@ -307,6 +302,7 @@ Source302:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_mm_s
 Source303:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_changes_in_cpu_tlbstate.patch
 Source304:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_module_memory.patch
 Source305:	https://www.virtualbox.org/raw-attachment/ticket/19644/local_patches
+Source306:	vbox-kernel-5.9.patch
 
 # Better support for newer x86 processors
 # Original patch:
@@ -940,6 +936,7 @@ patch -p1 -z .302a~ -b <%{S:302}
 patch -p1 -z .303a~ -b <%{S:303}
 patch -p1 -z .304a~ -b <%{S:304}
 patch -p1 -z .305a~ -b <%{S:305}
+patch -p1 -z .306a~ -b <%{S:306}
 %endif
 %endif
 
@@ -1500,7 +1497,7 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 %endif
 %endif
 
-%kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so.0.0.9
+%kmake -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so
 cd tools/bpf/bpftool
 %kmake CC=clang bpftool
 cd -
