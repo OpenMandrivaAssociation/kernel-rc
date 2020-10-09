@@ -1,0 +1,20 @@
+diff -up linux-5.8/crypto/aegis128-neon-inner.c.omv~ linux-5.8/crypto/aegis128-neon-inner.c
+--- linux-5.8/crypto/aegis128-neon-inner.c.omv~	2020-08-15 19:03:20.471769367 +0000
++++ linux-5.8/crypto/aegis128-neon-inner.c	2020-08-15 19:08:13.868446240 +0000
+@@ -144,12 +144,14 @@ void crypto_aegis128_init_neon(void *sta
+ 	};
+ 	uint8x16_t k = vld1q_u8(key);
+ 	uint8x16_t kiv = k ^ vld1q_u8(iv);
++	const uint8x16_t c0 = k ^ vld1q_u8(const0);
++	const uint8x16_t c1 = k ^ vld1q_u8(const1);
+ 	struct aegis128_state st = {{
+ 		kiv,
+ 		vld1q_u8(const1),
+ 		vld1q_u8(const0),
+-		k ^ vld1q_u8(const0),
+-		k ^ vld1q_u8(const1),
++		c0,
++		c1,
+ 	}};
+ 	int i;
+ 

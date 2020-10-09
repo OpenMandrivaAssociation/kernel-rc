@@ -1,0 +1,49 @@
+diff -Naur linux-5.8.5/init/Kconfig linux-5.8.5-p/init/Kconfig
+--- linux-5.8.5/init/Kconfig	2020-08-27 09:31:49.000000000 +0200
++++ linux-5.8.5-p/init/Kconfig	2020-08-29 04:06:33.201442464 +0200
+@@ -2173,10 +2173,10 @@
+ 	bool "Compress modules on installation"
+ 	help
+ 
+-	  Compresses kernel modules when 'make modules_install' is run; gzip or
+-	  xz depending on "Compression algorithm" below.
++	  Compresses kernel modules when 'make modules_install' is run; gzip,
++	  xz or zstd depending on "Compression algorithm" below.
+ 
+-	  module-init-tools MAY support gzip, and kmod MAY support gzip and xz.
++	  module-init-tools MAY support gzip, and kmod MAY support gzip, xz and zstd.
+ 
+ 	  Out-of-tree kernel modules installed using Kbuild will also be
+ 	  compressed upon installation.
+@@ -2196,7 +2196,7 @@
+ 	  This determines which sort of compression will be used during
+ 	  'make modules_install'.
+ 
+-	  GZIP (default) and XZ are supported.
++	  GZIP (default), XZ and ZSTD are supported.
+ 
+ config MODULE_COMPRESS_GZIP
+ 	bool "GZIP"
+@@ -2204,6 +2204,9 @@
+ config MODULE_COMPRESS_XZ
+ 	bool "XZ"
+ 
++config MODULE_COMPRESS_ZSTD
++	bool "ZSTD"
++
+ endchoice
+ 
+ config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
+diff -Naur linux-5.8.5/Makefile linux-5.8.5-p/Makefile
+--- linux-5.8.5/Makefile	2020-08-27 09:31:49.000000000 +0200
++++ linux-5.8.5-p/Makefile	2020-08-29 04:06:33.201442464 +0200
+@@ -1039,6 +1039,9 @@
+   ifdef CONFIG_MODULE_COMPRESS_XZ
+     mod_compress_cmd = $(XZ) -f
+   endif # CONFIG_MODULE_COMPRESS_XZ
++  ifdef CONFIG_MODULE_COMPRESS_ZSTD
++    mod_compress_cmd = zstd -T0 -19 -q --rm -f
++  endif # CONFIG_MODULE_COMPRESS_ZSTD
+ endif # CONFIG_MODULE_COMPRESS
+ export mod_compress_cmd
+ 

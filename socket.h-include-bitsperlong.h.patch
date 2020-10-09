@@ -1,0 +1,11 @@
+diff -up linux-5.7/include/uapi/asm-generic/socket.h.omv~ linux-5.7/include/uapi/asm-generic/socket.h
+--- linux-5.7/include/uapi/asm-generic/socket.h.omv~	2020-06-21 14:40:19.478327294 +0200
++++ linux-5.7/include/uapi/asm-generic/socket.h	2020-06-21 14:41:14.638889566 +0200
+@@ -3,6 +3,7 @@
+ #define __ASM_GENERIC_SOCKET_H
+ 
+ #include <linux/posix_types.h>
++#include <asm/bitsperlong.h>
+ #include <asm/sockios.h>
+ 
+ /* For setsockopt(2) */

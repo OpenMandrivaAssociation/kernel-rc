@@ -1,6 +1,3 @@
-%bcond_without gcc
-%bcond_without clang
-
 # utils/cpuidle-info.c:193: error: undefined reference to 'cpufreq_cpu_exists'
 # investigate aarch64
 %define _binaries_in_noarch_packages_terminate_build   0
@@ -16,13 +13,17 @@
 # let us try *old* way for kernel package(s)
 %global _build_id_links alldebug
 
+
+%bcond_without gcc
+%bcond_without clang
+
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
 %define patchlevel	9
 %define sublevel	0
-%define relc		2
+%define relc		8
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -32,7 +33,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
@@ -68,26 +69,31 @@
 # Build defines
 %bcond_with build_doc
 %ifarch %{ix86} %{x86_64}
-%bcond_with uksm
+%bcond_without uksm
 %else
 %bcond_with uksm
 %endif
+
 %bcond_without build_source
 %bcond_without build_devel
-%bcond_with build_debug
-## enabled it runs dracut -f --regenerate-all
-## we *should* enable that, is bc we keep or can keep lots
-## kernel around and the initrd is created using sys libs, sys configs,
-## *systemd* service & apps etc. IOW, a old initrd may have old files, libs, etc
-## changed since last rebuild and may result in either broken boot, or very hard to debug bugs.
-%bcond_with dracut_all_initrd
-# (tpg) enable patches from ClearLinux
-%bcond_without clr
 %bcond_without cross_headers
+
+%if %{with clang}
+## lld is broken now or the kernel doesn't like it
+%bcond_without ld_workaround
+%endif
+
+
+%bcond_without lazy_developer
+%bcond_with build_debug
+%bcond_with dracut_all_initrd
+%bcond_with clr
+%bcond_with vbox_orig_mods
+# FIXME re-enable by default when the patches have been adapted to 5.8
 %bcond_with saa716x
 %bcond_with rtl8821ce
 
-%global cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android
+%global cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux
 %global long_cross_header_archs %(
 	for i in %{cross_header_archs}; do
 		CPU=$(echo $i |cut -d- -f1)
@@ -121,20 +127,6 @@
 %bcond_with build_cpupower
 %endif
 
-# (default) Enable support for Zstandard and compress modules with XZ
-# unfortunately kmod does not support Zstandard for now, so kernel modules
-# compressed with zstd will not bo loaded and system will fail
-# https://github.com/facebook/zstd/issues/1121
-%ifarch %{ix86} %{x86_64}
-%bcond_without build_modzstd
-# compress modules with XZ
-%bcond_with build_modxz
-%else
-%bcond_with build_modzstd
-# compress modules with XZ
-%bcond_without build_modxz
-%endif
-
 # ARM builds
 %ifarch %{armx}
 %bcond_with build_desktop
@@ -156,10 +148,9 @@
 ###################################################
 # Parallelize xargs invocations on smp machines
 %define kxargs xargs %([ -z "$RPM_BUILD_NCPUS" ] \\\
-	&& RPM_BUILD_NCPUS="`/usr/bin/getconf _NPROCESSORS_ONLN`"; \\\
+	&& RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
 	[ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
 
-# Sparc arch wants sparc64 kernels
 %define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/')
 
 #
@@ -191,69 +182,113 @@ Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{tar_
 NoSource:	0
 %endif
 
-Source4:	README.kernel-sources
-Source5:	%{name}.rpmlintrc
-# Global configs
-Source6:	common.config
-Source8:	common-desktop.config
-Source9:	common-server.config
+Source3:	README.kernel-sources
+Source4:	%{name}.rpmlintrc
+## all in one configs for each kernel
+Source5:	x86_64-desktop-clang-omv-defconfig
+Source6:	x86_64-desktop-gcc-omv-defconfig
+Source7:	x86_64-server-clang-omv-defconfig
+Source8:	x86_64-server-gcc-omv-defconfig
+Source9:	x86_64-znver-desktop-clang-omv-defconfig
+Source10:	x86_64-znver-desktop-gcc-omv-defconfig
+Source11:	x86_64-znver-server-clang-omv-defconfig
+Source12:	x86_64-znver-server-gcc-omv-defconfig
+Source13:	i686-desktop-clang-omv-defconfig
+Source14:	i686-desktop-gcc-omv-defconfig
+Source15:	i686-server-clang-omv-defconfig
+Source16:	i686-server-gcc-omv-defconfig
+Source17:	armv7hnl-desktop-omv-defconfig
+
+# to be removed soon
+Source20:	common.config
+Source21:	common-desktop.config
+Source22:	common-server.config
 # Architecture specific configs
-Source7:	x86_64-common.config
-Source10:	i386-common.config
-Source11:	arm64-common.config
-Source12:	arm-common.config
-Source13:	znver1-common.config
-Source14:	powerpc-common.config
+Source23:	arm64-common.config
+Source24:	arm-common.config
+Source25:	powerpc-common.config
 # Files called $ARCH-$FLAVOR.config are merged as well,
 # currently there's no need to have specific overloads there.
 
 # config and systemd service file from fedora
-Source50:	cpupower.service
-Source51:	cpupower.config
+Source30:	cpupower.service
+Source31:	cpupower.config
 
 # Patches
 # Numbers 0 to 9 are reserved for upstream patches
 # (-stable patch, -rc, ...)
 # Added as a Source rather that Patch because it needs to be
 # applied with "git apply" -- may contain binary patches.
+
+# Patches to VirtualBox and other external modules are
+# pulled in as Source: rather than Patch: because it's arch specific
+# and can't be applied by %%autopatch -p1
+
 %if 0%{sublevel}
-Source90:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -f1).x/patch-%{version}.xz
+# The big upstream patch is added as source rather than patch
+# because "git apply" is needed to handle binary patches it
+# frequently contains (firmware updates etc.)
+Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -f1).x/patch-%{version}.xz
 %endif
-Patch1:		linux-5.6-fix-disassembler-4args-detection.patch
-Patch2:		die-floppy-die.patch
-Patch3:		0001-Add-support-for-Acer-Predator-macro-keys.patch
-Patch4:		linux-4.7-intel-dvi-duallink.patch
-Patch6:		linux-5.2.9-riscv-compile.patch
-# Work around rpm dependency generator screaming about
-# error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
-# caused by aacraid versioning ("1.2.1[50983]-custom")
-Patch7:		aacraid-dont-freak-out-dependency-generator.patch
-# Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
-Patch8:		kernel-5.9-nouveau-write-combining-only-on-x86.patch
-Patch9:		kvm-gcc10.patch
-Patch10:	kernel-5.7-fewer-conditions-for-ARM64_PTR_AUTH.patch
 
 # FIXME git bisect shows upstream commit
 # 7a8b64d17e35810dc3176fe61208b45c15d25402 breaks
 # booting SynQuacer from USB flash drives.
 # 9d55bebd9816903b821a403a69a94190442ac043 builds on
 # 7a8b64d17e35810dc3176fe61208b45c15d25402.
-Source100:	7a8b64d17e35810dc3176fe61208b45c15d25402.patch
-Source101:	9d55bebd9816903b821a403a69a94190442ac043.patch
+Source1001:     7a8b64d17e35810dc3176fe61208b45c15d25402.patch
+Source1002:     9d55bebd9816903b821a403a69a94190442ac043.patch
 
-# Patches to VirtualBox and other external modules are
-# pulled in as Source: rather than Patch: because it's arch specific
-# and can't be applied by %%autopatch -p1
+# (crazy) WARNING do NOT drop rediff
+# we default to ZSTD
+Patch1:		compress-modules-zstd.patch
+# (crazy) That is always a error on Ryzen platform, which is not fatal
+# just different, lower to info since it breaks the splash
+Patch2:		amd_iommu_init_info.patch
+# (crazy) while not perfect on all Ryzen platforms better that nothing
+Patch3: 	enable-new-amd-energy-driver-for-all-ryzen.patch
+# (crazy) I really need to send that upstream soon
+Patch10:	iwlwifi-fix-5e003982b07ae.patch
+Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
+Patch31:	die-floppy-die.patch
+Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
+Patch33:	linux-4.7-intel-dvi-duallink.patch
+Patch34:	kernel-5.6-kvm-gcc10.patch
+Patch35:	linux-5.2.9-riscv-compile.patch
+# Work around rpm dependency generator screaming about
+# error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
+# caused by aacraid versioning ("1.2.1[50983]-custom")
+Patch36:	aacraid-dont-freak-out-dependency-generator.patch
+# Make uClibc-ng happy
+Patch37:	socket.h-include-bitsperlong.h.patch
+# Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
+Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
+Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
+# FIXME hardening the module loader breaks it when
+# using binutils 2.35, https://sourceware.org/bugzilla/show_bug.cgi?id=26378
+# Let's revert it for now until there's a good fix.
+Patch41:	workaround-aarch64-module-loader.patch
 
-# (tpg) The Ultra Kernel Same Page Deduplication
-# (tpg) http://kerneldedup.org/en/projects/uksm/download/
-# (tpg) sources can be found here https://github.com/dolohow/uksm
-# (crazy) each new patch has to be checked for GPL violation on ksm.h
-#  it cannot be re-licensed to GPL3 by random patches.
+# (tpg)
+# The Ultra Kernel Same Page Deduplication
+# http://kerneldedup.org/en/projects/uksm/download/
+# sources can be found here https://github.com/dolohow/uksm
 %if %{with uksm}
 # brokes armx builds
-Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.6.patch
+#Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.8.patch
 %endif
+
+# (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
+Patch44:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
+# Restore ACPI loglevels to sane values
+Patch45:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
+Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
+# (crazy) need to know what function() breaks on nvme failures
+Patch47:	nvme-pci-more-info.patch
+Patch48:	linux-5.4.5-fix-build.patch
+Patch50:	iwlwifi-use-debug-for-debug-infos.patch
+Patch51:	linux-5.5-corsair-strafe-quirks.patch
+Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -263,53 +298,43 @@ Patch120:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.6.pa
 # tar cJf saa716x-driver.tar.xz drivers/media/pci/saa716x drivers/media/dvb-frontends/tas2101* drivers/media/dvb-frontends/isl6422* drivers/media/dvb-frontends/stv091x.h drivers/media/tuners/av201x* drivers/media/tuners/stv6120*
 # Patches 141 to 145 are a minimal set of patches to the DVB stack to make
 # the added driver work.
-Source140:	saa716x-driver.tar.xz
-Patch141:	0023-tda18212-Added-2-extra-options.-Based-on-CrazyCat-re.patch
-Patch142:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
-Patch143:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
-Patch144:	0124-Extend-FEC-enum.patch
-Patch145:	saa716x-driver-integration.patch
-Patch146:	saa716x-4.15.patch
-Patch147:	saa716x-linux-4.19.patch
-Patch148:	saa716x-5.4.patch
+Source1003:	saa716x-driver.tar.xz
+Patch200:	0023-tda18212-Added-2-extra-options.-Based-on-CrazyCat-re.patch
+Patch201:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
+Patch202:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
+Patch203:	0124-Extend-FEC-enum.patch
+Patch204:	saa716x-driver-integration.patch
+Patch205:	saa716x-4.15.patch
+Patch206:	saa716x-linux-4.19.patch
+Patch207:	saa716x-5.4.patch
 
 # Additional WiFi drivers taken from the Endless kernel
 # git clone https://github.com/endlessm/linux.git
 # cd linux
 # tar cf extra-wifi-drivers-`date +%Y%m%d`.tar drivers/net/wireless/rtl8*
 # zstd -19 extra-wifi-drivers*.tar
-# FIXME temporarily removed because of incompatibilities with 5.8-rc1 changes
-#Source200:	extra-wifi-drivers-20200301.tar.zst
-#Patch201:	extra-wifi-drivers-compile.patch
-#Patch202:	extra-wifi-drivers-port-to-5.6.patch
-
-# Lima driver for ARM Mali graphics chips
-# Generated from https://gitlab.freedesktop.org/lima/linux.git
-# using git diff v5.1..lima/lima-5.1
-# Currently no patch necessary
+Source1004:	extra-wifi-drivers-20200301.tar.zst
+Patch208:	extra-wifi-drivers-compile.patch
+Patch209:	extra-wifi-drivers-port-to-5.6.patch
 
 # VirtualBox patches -- added as Source: rather than Patch:
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
-Source300:	vbox-kernel-5.6.patch
-Source301:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source302:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_mm_struct.patch
-Source303:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_changes_in_cpu_tlbstate.patch
-Source304:	https://www.virtualbox.org/raw-attachment/ticket/19644/fixes_for_module_memory.patch
-Source305:	https://www.virtualbox.org/raw-attachment/ticket/19644/local_patches
-Source306:	vbox-kernel-5.9.patch
+Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
+# Re-export a few symbols vbox wants
+Patch210:	https://gitweb.frugalware.org/wip_kernel/raw/9d0e99ff5fef596388913549a8418c07d367a940/source/base/kernel/fix_virtualbox.patch
+Source1006:	vbox-6.1.12-kernel-5.8.patch
+Source1007:	vbox-kernel-5.9.patch
 
 # Better support for newer x86 processors
-# Original patch:
-#Patch310:	https://raw.githubusercontent.com/graysky2/kernel_gcc_patch/master/enable_additional_cpu_optimizations_for_gcc_v8.1%2B_kernel_v4.13%2B.patch
 # More actively maintained for newer kernels
-Patch310:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
+Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
 
 # Assorted fixes
 
 # Modular binder and ashmem -- let's try to make anbox happy
-Patch340:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
-Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
+Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
+Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -319,44 +344,18 @@ Patch341:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 %if %{with clr}
 # (tpg) some patches from ClearLinux
 # https://github.com/clearlinux-pkgs/linux/
-Patch400:	0101-i8042-decrease-debug-message-level-to-info.patch
-Patch401:	0103-Increase-the-ext4-default-commit-age.patch
-Patch403:	0105-pci-pme-wakeups.patch
-# Incompatible with UKSM
-#Patch404:	0106-ksm-wakeups.patch
-Patch405:	0107-intel_idle-tweak-cpuidle-cstates.patch
-# Not necessarily a good idea -- not all CPU cores are
-# guaranteed to be the same (e.g. big.LITTLE)
-%ifarch %{ix86} %{x86_64}
-Patch407:	0114-smpboot-reuse-timer-calibration.patch
-%endif
-Patch408:	0116-Initialize-ata-before-graphics.patch
-Patch410:	0119-e1000e-change-default-policy.patch
-Patch411:	0112-give-rdrand-some-credit.patch
-Patch412:	0120-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
-Patch415:	0124-kernel-time-reduce-ntp-wakeups.patch
-Patch416:	0125-init-wait-for-partition-and-retry-scan.patch
+Patch900:	0101-i8042-decrease-debug-message-level-to-info.patch
+Patch901:	0103-Increase-the-ext4-default-commit-age.patch
+Patch902:	0105-pci-pme-wakeups.patch
+Patch903:	0107-intel_idle-tweak-cpuidle-cstates.patch
+Patch904:	0116-Initialize-ata-before-graphics.patch
+Patch905:	0119-e1000e-change-default-policy.patch
+Patch906:	0112-give-rdrand-some-credit.patch
+Patch907:	0120-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
+Patch908:	0124-kernel-time-reduce-ntp-wakeups.patch
+Patch909:	0125-init-wait-for-partition-and-retry-scan.patch
 %endif
 
-# (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
-# Not even sure what Vendor that one is .. However it seems be one of the ones random doing that
-# like some Toshibas and some Samsung ones , so disable APST for this one..
-# Seems to be a M.2 SSD SKhynix..
-Patch800:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
-# Restore ACPI loglevels to sane values
-Patch801:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
-Patch802:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
-# (crazy) need to know what function() breaks on nvme failures
-Patch809:	nvme-pci-more-info.patch
-# ( crazy ) this one is adding be_silent mod parameter to acer-wmi
-# When a Unknow function is detected ( aka new ACPI interface not yet impelmeted etc )
-# a message is printed in dmesg each time you use this , eg press some key , plug / unplug AC.
-# Folks reported these upstream can load the model with be_silent=1 to stop the dmesg flood,
-# until is implemented / fixed.
-#Patch810:  acer-wmi-silence-unknow-functions-messages.patch
-Patch810:	linux-5.4.5-fix-build.patch
-Patch812:	linux-5.5-corsair-strafe-quirks.patch
-Patch814:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
 # Defines for the things that are needed for all the kernels
 #
@@ -370,8 +369,10 @@ very current hardware.
 ### Global Requires/Provides
 # do not require dracut, please it bloats dockers and other minimal instllations
 # better solution needs to be figured out
-%define requires2	dracut >= 047
-%define requires3	kmod >= 25
+# (crazy) it needs dracut >= 050-4 bc ZSTD support
+%define requires2	dracut >= 050-4
+# (crazy) it needs kmod >= 27-3 bc ZSTD support
+%define requires3	kmod >= 27-3
 %define requires4	sysfsutils >=  2.1.0-12
 %define requires5	kernel-firmware
 
@@ -383,20 +384,15 @@ very current hardware.
 %define kobsoletes2	dkms-lzma <= 4.43-32
 %define kobsoletes3	dkms-psb <= 4.41.1-7
 
+## FIXME
 %define kconflicts1	dkms-broadcom-wl < 5.100.82.112-12
 %define kconflicts2	dkms-fglrx < 13.200.5-1
 %define kconflicts3	dkms-nvidia-current < 325.15-1
 %define kconflicts4	dkms-nvidia-long-lived < 319.49-1
 %define kconflicts5	dkms-nvidia304 < 304.108-1
-# nvidia173 does not support this kernel
 
 Autoreqprov:	no
-%if %{with build_modzstd}
 BuildRequires:	zstd
-%endif
-%if %{with build_modxz}
-BuildRequires:	xz
-%endif
 BuildRequires:	findutils
 BuildRequires:	bc
 BuildRequires:	flex
@@ -406,7 +402,9 @@ BuildRequires:	hostname
 %if %{with clang}
 BuildRequires:	clang
 BuildRequires:	llvm
+%if %{without ld_workaround}
 BuildRequires:	lld
+%endif
 %endif
 %if %{with gcc}
 BuildRequires:	gcc
@@ -442,6 +440,9 @@ BuildRequires:	xmlto
 # for ORC unwinder and perf
 BuildRequires:	pkgconfig(libelf)
 
+# for bpftool
+BuildRequires:	pahole
+
 # for perf
 %if %{with build_perf}
 BuildRequires:	asciidoc
@@ -470,8 +471,10 @@ Suggests:	microcode-intel
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{x86_64}
-BuildRequires:	virtualbox-kernel-module-sources
-BuildRequires:	virtualbox-guest-kernel-module-sources
+BuildRequires:	virtualbox-kernel-module-sources >= 6.1.10
+%if %{with vbox_orig_mods}
+BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.10
+%endif
 %endif
 
 %description
@@ -621,7 +624,7 @@ voluntary preempt, CFS cpu scheduler and BFQ i/o scheduler, ONDEMAND governor.
 %endif
 %endif
 
-#
+
 %if %{with build_server}
 %ifarch %{ix86}
 %define summary_server Linux Kernel for server use with i686 & 64GB RAM
@@ -846,19 +849,19 @@ done
 # End packages - here begins build stage
 #
 %prep
-%setup -q -n linux-%{tar_ver} -a 140
-cp %{S:6} %{S:7} %{S:8} %{S:9} %{S:10} %{S:11} %{S:12} %{S:13} kernel/configs/
+%setup -q -n linux-%{tar_ver} -a 1003 -a 1004
+cp %{S:20} %{S:21} %{S:22} %{S:23} %{S:24} %{S:25}  kernel/configs/
 %if 0%{sublevel}
 [ -e .git ] || git init
-xzcat %{SOURCE90} |git apply - || git apply %{SOURCE90}
+xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
 %autopatch -p1
 
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
-patch -p1 -R <%{S:101}
-patch -p1 -R <%{S:100}
+patch -p1 -R <%{S:1002}
+patch -p1 -R <%{S:1001}
 %endif
 
 %if %{with saa716x}
@@ -890,13 +893,12 @@ LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
 # Pull in some externally maintained modules
 %ifarch %{x86_64}
 # === VirtualBox guest additions ===
-%define use_internal_vboxvideo 0
-%if ! 0%{use_internal_vboxvideo}
+%if %{with vbox_orig_mods}
 # There is an in-kernel version of vboxvideo -- unfortunately
 # it doesn't seem to work properly with vbox just yet
 # Let's replace it with the one that comes with VB for now
 rm -rf drivers/gpu/drm/vboxvideo
-cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/gpu/drm
+cp -a $(ls --sort=time -1d /usr/src/vboxadditions-*|head -n1)/vboxvideo drivers/gpu/drm/
 cat >drivers/gpu/drm/vboxvideo/Kconfig <<'EOF'
 config DRM_VBOXVIDEO
 	tristate "Virtual Box Graphics Card"
@@ -916,6 +918,7 @@ config DRM_VBOXVIDEO
 EOF
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile*
+%endif
 
 # 800x600 is too small to be useful -- even calamares doesn't
 # fit into that anymore (this fix is needed for both the in-kernel
@@ -923,6 +926,7 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile
 sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 # VirtualBox shared folders now come in through patch 300
 
+## NONE upstream this stuff will be here for a while
 # === VirtualBox host modules ===
 # VirtualBox
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
@@ -944,14 +948,9 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-#patch -p1 -z .300a~ -b <%{S:300}
-patch -p1 -z .301a~ -b <%{S:301}
-patch -p1 -z .302a~ -b <%{S:302}
-patch -p1 -z .303a~ -b <%{S:303}
-patch -p1 -z .304a~ -b <%{S:304}
-patch -p1 -z .305a~ -b <%{S:305}
-patch -p1 -z .306a~ -b <%{S:306}
-%endif
+patch -p1 -z .1005a~ -b <%{S:1005}
+patch -p1 -z .1006a~ -b <%{S:1006}
+patch -p1 -z .1007a~ -b <%{S:1007}
 %endif
 
 # get rid of unwanted files
@@ -980,38 +979,119 @@ chmod 755 tools/objtool/sync-check.sh
 %define temp_boot %{temp_root}%{_bootdir}
 %define temp_modules %{temp_root}%{_modulesdir}
 
+
+CheckConfig() {
+
+	if [ ! -e $(pwd)/.config ]; then
+		printf '%s\n' "Kernel config in $(pwd) missing, killing the build."
+		exit 1
+	fi
+}
+
 CreateConfig() {
 	arch="$1"
 	type="$2"
-	rm -f .config
+	config_dir=%{_sourcedir}
+	CONFIGS=""
+	rm -fv .config
+
 
 	if echo $type |grep -q clang; then
-		CLANG_EXTRAS=clang-workarounds
+		# (crazy) we could use LLVM=1 this will take care of all the clang stuff
+		# however on bugs where we have to change LD or some other tool we cannot do that
 		CC=clang
 		CXX=clang++
-		LLVM_TOOLS='OBJCOPY=llvm-objcopy AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJDUMP=llvm-objdump HOSTAR=llvm-ar'
+		%if %{with ld_workaround}
+		BUILD_LD="ld.bfd"
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		%else
+		BUILD_LD="ld.lld"
+		# bugs
+		BUILD_KBUILD_LDFLAGS="--icf=none --no-gc-sections"
+		%endif
+		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
 	else
-		CLANG_EXTRAS=''
 		CC=gcc
 		CXX=g++
-		LLVM_TOOLS=""
+		# force ld.bfd, Kbuild logic issues when ld is linked  to something else
+		BUILD_LD="%{_target_platform}-ld.bfd"
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		BUILD_TOOLS=""
 	fi
 
-%if %{with build_modxz}
-	sed -i -e "s/^# CONFIG_KERNEL_XZ is not set/CONFIG_KERNEL_XZ=y/g" kernel/configs/common.config
-%endif
-
-%if %{with build_modzstd}
-	sed -i -e "s/^# CONFIG_KERNEL_ZSTD is not set/CONFIG_KERNEL_ZSTD=y/g" kernel/configs/common.config
-	sed -i -e "s/^# CONFIG_RD_ZSTD is not set/CONFIG_RD_ZSTD=y/g" kernel/configs/common.config
-%endif
-
+	# (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
 	case ${arch} in
-	i?86|znver1_32)
-		CONFIGS=i386_defconfig
+	i?86)
+               case ${type} in
+               desktop)
+                       rm -rf .config
+                       cp -v ${config_dir}/i686-desktop-gcc-omv-defconfig .config
+                       ;;
+               desktop-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/i686-desktop-clang-omv-defconfig .config
+                       ;;
+               server)
+                       rm -rf .config
+                       cp -v ${config_dir}/i686-server-gcc-omv-defconfig .config
+                       ;;
+               server-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/i686-server-clang-omv-defconfig .config
+                       ;;
+               *)
+                       printf '%s\n' "ERROR: no such type ${type}"
+                       exit 1
+                       ;;
+               esac
 		;;
-	x86_64|znver1)
-		CONFIGS=x86_64_defconfig
+	x86_64|x86)
+               case ${type} in
+               desktop)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-desktop-gcc-omv-defconfig .config
+                       ;;
+               desktop-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-desktop-clang-omv-defconfig .config
+                       ;;
+               server)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-server-gcc-omv-defconfig .config
+                       ;;
+               server-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-server-clang-omv-defconfig .config
+                       ;;
+               *)
+                       printf '%s\n' "ERROR: no such type ${type}"
+                       exit 1
+                       ;;
+               esac
+		;;
+	znver1)
+               case ${type} in
+               desktop)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-znver-desktop-gcc-omv-defconfig .config
+                       ;;
+               desktop-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-znver-desktop-clang-omv-defconfig .config
+                       ;;
+               server)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-znver-server-gcc-omv-defconfig .config
+                       ;;
+               server-clang)
+                       rm -rf .config
+                       cp -v ${config_dir}/x86_64-znver-server-clang-omv-defconfig .config
+                       ;;
+               *)
+                       printf '%s\n' "ERROR: no such type ${type}"
+                       exit 1
+                       ;;
+               esac
 		;;
 	ppc64)
 		CONFIGS=pseries_defconfig
@@ -1024,27 +1104,39 @@ CreateConfig() {
 		;;
 	esac
 
-	for i in common common-${type} $CLANG_EXTRAS; do
-		[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
-	done
-	if [ "$arch" = "znver1" ]; then
-		# Since znver1 is a special case of x86_64, let's pull
-		# in x86_64 configs first (and znver1 configs on top
-		# later -- later configs overwrite earlier ones)
-		for i in x86_64-common x86_64-${type}; do
+	# ( crazy) remove along with the old configs once ARM* and ppc* is finished
+	if [[ -n ${CONFIGS} ]]; then
+		for i in common common-${type}; do
+			[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
+		done
+
+		for i in ${arch}-common ${arch}-${type}; do
 			[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
 		done
 	fi
-	for i in ${arch}-common ${arch}-${type}; do
-		[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
-	done
-	if [ "$arch" = "znver1" -o "$arch" = "x86_64" ]; then
+
+    if [ "$arch" = "znver1" -o "$arch" = "x86_64" ]; then
 		arch=x86
 	elif echo $arch |grep -q ^ppc; then
 		arch=powerpc
 	fi
 
-	make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCFLAGS="%{optflags}" $LLVM_TOOLS $CONFIGS
+	# ( crazy) remove along with the old configs once ARM* and ppc* is finished
+	if [[ -n ${CONFIGS} ]]; then
+		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 $CONFIGS
+	else
+		%if %{without lazy_developer}
+		## YES, intentionally, DIE on wrong config
+		CheckConfig
+		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 oldconfig
+		%else
+		printf '%s\n' "Lazy developer option is enabled!!. Don't be lazy!."
+		## that takes kernel defaults on missing or changed things
+		## olddefconfig is similar to yes ... but not that verbose
+		CheckConfig
+		yes "" | make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" oldconfig
+		%endif
+	fi
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 	# " <--- workaround for vim syntax highlighting bug, ignore
 }
@@ -1071,35 +1163,31 @@ BuildKernel() {
 	if echo $1 |grep -q clang; then
 		CC=clang
 		CXX=clang++
-		LD="ld.lld --icf=none --no-gc-sections"
+		%if %{with ld_workaround}
+		BUILD_LD="ld.bfd"
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		%else
+		BUILD_LD="ld.lld"
+		# bugs
+		BUILD_KBUILD_LDFLAGS="--icf=none --no-gc-sections"
+		%endif
+		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
 	else
 		CC=gcc
 		CXX=g++
-		LD="%{_target_platform}-ld.bfd"
-	fi
+		# force ld.bfd, Kbuild logic issues when ld is linked  to something else
+		BUILD_LD="%{_target_platform}-ld.bfd"
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		BUILD_TOOLS=""
+        fi
 
-	%make_build all ARCH=%{target_arch} LD="$LD" HOSTLD="$LD" CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS"
+	%make_build all ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS  KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1
 
 	# Start installing stuff
 	install -d %{temp_boot}
 	install -m 644 System.map %{temp_boot}/System.map-$KernelVer
 	install -m 644 .config %{temp_boot}/config-$KernelVer
 
-%if %{with build_modxz}
-%ifarch %{ix86} %{armx}
-	xz -5 -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.xz
-%else
-	xz -7 -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.xz
-%endif
-%endif
-
-%if %{with build_modzstd}
-%ifarch %{ix86} %{armx}
-	zstd -15 -q -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.zst
-%else
-	zstd -19 -q -T0 -c Module.symvers > %{temp_boot}/symvers-$KernelVer.zst
-%endif
-%endif
 
 %ifarch %{arm}
 	if [ -f arch/arm/boot/uImage ]; then
@@ -1117,8 +1205,8 @@ BuildKernel() {
 
 	# modules
 	install -d %{temp_modules}/$KernelVer
-	%make_build INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer INSTALL_MOD_STRIP=1 modules_install
- 
+	%make_build INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS  KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 INSTALL_MOD_STRIP=1 modules_install
+
 	# headers
 	%make_build INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
@@ -1165,15 +1253,15 @@ SaveDevel() {
 
 	# Needed for truecrypt build (Danny)
 	cp -fR drivers/md/dm.h $TempDevelRoot/drivers/md/
- 
+
 	# Needed for lirc_gpio (#39004)
 	cp -fR drivers/media/pci/bt8xx/bttv{,p}.h $TempDevelRoot/drivers/media/pci/bt8xx/
 	cp -fR drivers/media/pci/bt8xx/bt848.h $TempDevelRoot/drivers/media/pci/bt8xx/
 	cp -fR drivers/media/common/btcx-risc.h $TempDevelRoot/drivers/media/common/
- 
+
 	# Needed for external dvb tree (#41418)
 	cp -fR drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
- 
+
 	# orc unwinder needs theese
 	cp -fR tools/build/Build{,.include} $TempDevelRoot/tools/build
 	cp -fR tools/build/fixdep.c $TempDevelRoot/tools/build
@@ -1181,29 +1269,29 @@ SaveDevel() {
 	cp -fR tools/lib/subcmd/* $TempDevelRoot/tools/lib/subcmd
 	cp -fR tools/objtool/* $TempDevelRoot/tools/objtool
 	cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
- 
+
 	# Make clean fails on the include statements in the Makefiles - and the drivers aren't relevant for -devel
 	rm -rf $TempDevelRoot/drivers/net/wireless/rtl8*
 	sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
- 
+
 	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
- 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
+		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
 		rm -rf $TempDevelRoot/arch/$i
 	done
- 
+
 	# Clean the scripts tree, and make sure everything is ok (sanity check)
 	# running prepare+scripts (tree was already "prepared" in build)
 	cd $TempDevelRoot >/dev/null
 	%make_build ARCH=%{target_arch} clean
 	cd - >/dev/null
- 
+
 	rm -f $TempDevelRoot/.config.old
- 
+
 	# fix permissions
 	chmod -R a+rX $TempDevelRoot
- 
+
 	kernel_devel_files=kernel_devel_files.$devel_flavour
- 
+
 	### Create the kernel_devel_files.*
 	cat > $kernel_devel_files <<EOF
 %dir $DevelRoot
@@ -1306,7 +1394,7 @@ SaveDebug() {
 	echo "%{_bootdir}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}" >> $kernel_debug_files
 
 	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" | %kxargs -I '{}' sh -c 'cd `dirname {}`; objcopy --add-gnu-debuglink=`basename {}`.debug --strip-debug `basename {}`'
+	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
 
 	cd %{temp_modules}
 	find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" > debug_module_list
@@ -1324,7 +1412,6 @@ CreateFiles() {
 	### Create the kernel_files.*
 	cat > $kernel_files <<EOF
 %{_bootdir}/System.map-%{kversion}-$kernel_flavour-%{buildrpmrel}
-%{_bootdir}/symvers-%{kversion}-$kernel_flavour-%{buildrpmrel}.[gxz]*
 %{_bootdir}/config-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %{_bootdir}/$ker-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %dir %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/
@@ -1445,7 +1532,7 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 	for t in desktop server; do
 		CreateConfig $a $t
 		export ARCH=$a
-		[ "$ARCH" = "znver1" ] && export ARCH=x86
+        [ "$ARCH" = "znver1" ] && export ARCH=x86
 %if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
 			# While we have a kernel configured for it, let's package
@@ -1487,7 +1574,7 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 					[ "$a" != "$TripletArch" ] && continue
 					;;
 				esac
-				%make_build ARCH=${a} SRCARCH=${SARCH} KCFLAGS="$CFLAGS" INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
+				%make_build ARCH=${a} SRCARCH=${SARCH}  INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
 			done
 		fi
 %endif
@@ -1545,10 +1632,10 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 %endif
 %endif
 
-%make_build -C tools/lib/bpf CC=clang libbpf.a libbpf.pc libbpf.so
-cd tools/bpf/bpftool
-%make_build CC=clang bpftool
-cd -
+%make_build -C tools/lib/bpf CC=clang LD=ld.lld libbpf.a libbpf.pc libbpf.so -j1
+#cd tools/bpf/bpftool
+%make_build -C tools/bpf/bpftool CC=clang LD=ld.lld bpftool -j1
+#cd -
 
 ############################################################
 ###  Linker end3 > Check point to build for omv or rosa  ###
@@ -1564,8 +1651,6 @@ PrepareKernel "" %{buildrpmrel}custom
 ### install
 ###
 %install
-install -m 644 %{SOURCE4} .
-
 # Directories definition needed for installing
 %define target_source %{buildroot}%{_kerneldir}
 %define target_boot %{buildroot}%{_bootdir}
@@ -1574,18 +1659,6 @@ install -m 644 %{SOURCE4} .
 # We want to be able to test several times the install part
 rm -rf %{buildroot}
 cp -a %{temp_root} %{buildroot}
-
-# compressing modules with XZ, even when Zstandard is used
-# (tpg) enable it when kmod will support Zstandard compressed modules
-%if %{with build_modxz} || %{with build_modzstd}
-%ifarch %{ix86} %{armx}
-find %{target_modules} -name "*.ko" | %kxargs xz -5 -T0
-%else
-find %{target_modules} -name "*.ko" | %kxargs xz -7 -T0
-%endif
-%else
-find %{target_modules} -name "*.ko" | %kxargs gzip -9
-%endif
 
 # We used to have a copy of PrepareKernel here
 # Now, we make sure that the thing in the linux dir is what we want it to be
@@ -1631,8 +1704,8 @@ rm -f %{buildroot}%{_libdir}/*.{a,la}
 %find_lang cpupower
 chmod 0755 %{buildroot}%{_libdir}/libcpupower.so*
 mkdir -p %{buildroot}%{_unitdir} %{buildroot}%{_sysconfdir}/sysconfig
-install -m644 %{SOURCE50} %{buildroot}%{_unitdir}/cpupower.service
-install -m644 %{SOURCE51} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
+install -m644 %{SOURCE30} %{buildroot}%{_unitdir}/cpupower.service
+install -m644 %{SOURCE31} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
 %endif
 
 %ifarch %{ix86} %{x86_64}
@@ -1648,7 +1721,7 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 
 # install bpftool and libbpf
 %make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir}
-%make_install -C tools/bpf/bpftool install DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
+%make_install -C tools/bpf/bpftool install CC=clang CXX=clang++ LD=ld.lld DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 
 # Create directories infastructure
 %if %{with build_source}
@@ -1666,8 +1739,8 @@ rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
 # we remove all the source files that we don't ship
 # first architecture files
 for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
-		mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
-    rm -rf %{target_source}/arch/$i
+	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
+	rm -rf %{target_source}/arch/$i
 done
 
 # other misc files
@@ -1677,13 +1750,14 @@ rm -rf %{target_source}/.tmp_depmod/
 rm -rf %{buildroot}/usr/src/linux-*/uksm.txt
 
 # more cleaning
+rm -f %{target_source}/arch/x86_64/boot/bzImage
 cd %{target_source}
 # lots of gitignore files
 find -iname ".gitignore" -delete
 # clean tools tree
-%make_build -C tools clean
-%make_build -C tools/build clean
-%make_build -C tools/build/feature clean
+%make_build -C tools clean -j1
+%make_build -C tools/build clean -j1
+%make_build -C tools/build/feature clean -j1
 rm -f .cache.mk
 # Drop script binaries that can be rebuilt
 find tools scripts -executable |while read r; do

@@ -1,0 +1,19 @@
+diff -up kernel/kernel/module.c.omv~ kernel/kernel/module.c
+--- kernel/kernel/module.c.omv~	2020-08-13 19:19:40.637331924 +0200
++++ kernel/kernel/module.c	2020-08-13 19:25:10.954278113 +0200
+@@ -2048,6 +2048,7 @@ static void module_enable_nx(const struc
+ static int module_enforce_rwx_sections(Elf_Ehdr *hdr, Elf_Shdr *sechdrs,
+ 				       char *secstrings, struct module *mod)
+ {
++#if !defined(__aarch64__) // https://lore.kernel.org/lkml/20200403171303.GK20760@hirez.programming.kicks-ass.net/, https://sourceware.org/bugzilla/show_bug.cgi?id=26378
+ 	const unsigned long shf_wx = SHF_WRITE|SHF_EXECINSTR;
+ 	int i;
+ 
+@@ -2055,6 +2056,7 @@ static int module_enforce_rwx_sections(E
+ 		if ((sechdrs[i].sh_flags & shf_wx) == shf_wx)
+ 			return -ENOEXEC;
+ 	}
++#endif
+ 
+ 	return 0;
+ }

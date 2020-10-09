@@ -1,6 +1,6 @@
-diff -up linux-5.9-rc1/fs/file.c.20~ linux-5.9-rc1/fs/file.c
---- linux-5.9-rc1/fs/file.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/fs/file.c	2020-08-17 16:55:52.520535426 +0200
+diff -up linux-5.9-rc6/fs/file.c.37~ linux-5.9-rc6/fs/file.c
+--- linux-5.9-rc6/fs/file.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/fs/file.c	2020-09-25 18:31:34.829417630 +0200
 @@ -422,6 +422,7 @@ struct files_struct *get_files_struct(st
  
  	return files;
@@ -41,9 +41,9 @@ diff -up linux-5.9-rc1/fs/file.c.20~ linux-5.9-rc1/fs/file.c
  
  void do_close_on_exec(struct files_struct *files)
  {
-diff -up linux-5.9-rc1/kernel/fork.c.20~ linux-5.9-rc1/kernel/fork.c
---- linux-5.9-rc1/kernel/fork.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/kernel/fork.c	2020-08-17 16:55:26.733175712 +0200
+diff -up linux-5.9-rc6/kernel/fork.c.37~ linux-5.9-rc6/kernel/fork.c
+--- linux-5.9-rc6/kernel/fork.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/kernel/fork.c	2020-09-25 18:30:48.819433398 +0200
 @@ -1114,6 +1114,7 @@ void mmput_async(struct mm_struct *mm)
  		schedule_work(&mm->async_put_work);
  	}
@@ -52,9 +52,9 @@ diff -up linux-5.9-rc1/kernel/fork.c.20~ linux-5.9-rc1/kernel/fork.c
  #endif
  
  /**
-diff -up linux-5.9-rc1/kernel/sched/core.c.20~ linux-5.9-rc1/kernel/sched/core.c
---- linux-5.9-rc1/kernel/sched/core.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/kernel/sched/core.c	2020-08-17 16:55:26.734175726 +0200
+diff -up linux-5.9-rc6/kernel/sched/core.c.37~ linux-5.9-rc6/kernel/sched/core.c
+--- linux-5.9-rc6/kernel/sched/core.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/kernel/sched/core.c	2020-09-25 18:30:48.819433398 +0200
 @@ -5017,6 +5017,7 @@ int can_nice(const struct task_struct *p
  	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
  		capable(CAP_SYS_NICE));
@@ -63,9 +63,9 @@ diff -up linux-5.9-rc1/kernel/sched/core.c.20~ linux-5.9-rc1/kernel/sched/core.c
  
  #ifdef __ARCH_WANT_SYS_NICE
  
-diff -up linux-5.9-rc1/kernel/signal.c.20~ linux-5.9-rc1/kernel/signal.c
---- linux-5.9-rc1/kernel/signal.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/kernel/signal.c	2020-08-17 16:55:26.734175726 +0200
+diff -up linux-5.9-rc6/kernel/signal.c.37~ linux-5.9-rc6/kernel/signal.c
+--- linux-5.9-rc6/kernel/signal.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/kernel/signal.c	2020-09-25 18:30:48.819433398 +0200
 @@ -1396,6 +1396,7 @@ struct sighand_struct *__lock_task_sigha
  
  	return sighand;
@@ -74,9 +74,9 @@ diff -up linux-5.9-rc1/kernel/signal.c.20~ linux-5.9-rc1/kernel/signal.c
  
  /*
   * send signal info to all the members of a group
-diff -up linux-5.9-rc1/kernel/task_work.c.20~ linux-5.9-rc1/kernel/task_work.c
---- linux-5.9-rc1/kernel/task_work.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/kernel/task_work.c	2020-08-17 16:55:26.734175726 +0200
+diff -up linux-5.9-rc6/kernel/task_work.c.37~ linux-5.9-rc6/kernel/task_work.c
+--- linux-5.9-rc6/kernel/task_work.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/kernel/task_work.c	2020-09-25 18:30:48.819433398 +0200
 @@ -58,6 +58,7 @@ task_work_add(struct task_struct *task,
  
  	return 0;
@@ -85,10 +85,10 @@ diff -up linux-5.9-rc1/kernel/task_work.c.20~ linux-5.9-rc1/kernel/task_work.c
  
  /**
   * task_work_cancel - cancel a pending work added by task_work_add()
-diff -up linux-5.9-rc1/mm/memory.c.20~ linux-5.9-rc1/mm/memory.c
---- linux-5.9-rc1/mm/memory.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/mm/memory.c	2020-08-17 16:55:26.735175740 +0200
-@@ -1369,6 +1369,7 @@ void zap_page_range(struct vm_area_struc
+diff -up linux-5.9-rc6/mm/memory.c.37~ linux-5.9-rc6/mm/memory.c
+--- linux-5.9-rc6/mm/memory.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/mm/memory.c	2020-09-25 18:30:48.819433398 +0200
+@@ -1371,6 +1371,7 @@ void zap_page_range(struct vm_area_struc
  	mmu_notifier_invalidate_range_end(&range);
  	tlb_finish_mmu(&tlb, start, range.end);
  }
@@ -96,10 +96,10 @@ diff -up linux-5.9-rc1/mm/memory.c.20~ linux-5.9-rc1/mm/memory.c
  
  /**
   * zap_page_range_single - remove user pages in a given range
-diff -up linux-5.9-rc1/mm/shmem.c.20~ linux-5.9-rc1/mm/shmem.c
---- linux-5.9-rc1/mm/shmem.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/mm/shmem.c	2020-08-17 16:55:26.735175740 +0200
-@@ -4276,6 +4276,7 @@ int shmem_zero_setup(struct vm_area_stru
+diff -up linux-5.9-rc6/mm/shmem.c.37~ linux-5.9-rc6/mm/shmem.c
+--- linux-5.9-rc6/mm/shmem.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/mm/shmem.c	2020-09-25 18:30:48.822766730 +0200
+@@ -4278,6 +4278,7 @@ int shmem_zero_setup(struct vm_area_stru
  
  	return 0;
  }
@@ -107,10 +107,10 @@ diff -up linux-5.9-rc1/mm/shmem.c.20~ linux-5.9-rc1/mm/shmem.c
  
  /**
   * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
-diff -up linux-5.9-rc1/mm/vmalloc.c.20~ linux-5.9-rc1/mm/vmalloc.c
---- linux-5.9-rc1/mm/vmalloc.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/mm/vmalloc.c	2020-08-17 16:55:26.735175740 +0200
-@@ -316,6 +316,7 @@ int map_kernel_range_noflush(unsigned lo
+diff -up linux-5.9-rc6/mm/vmalloc.c.37~ linux-5.9-rc6/mm/vmalloc.c
+--- linux-5.9-rc6/mm/vmalloc.c.37~	2020-09-25 18:30:48.806100070 +0200
++++ linux-5.9-rc6/mm/vmalloc.c	2020-09-25 18:30:48.822766730 +0200
+@@ -318,6 +318,7 @@ int map_kernel_range_noflush(unsigned lo
  
  	return 0;
  }
@@ -118,7 +118,7 @@ diff -up linux-5.9-rc1/mm/vmalloc.c.20~ linux-5.9-rc1/mm/vmalloc.c
  
  int map_kernel_range(unsigned long start, unsigned long size, pgprot_t prot,
  		struct page **pages)
-@@ -2115,6 +2116,7 @@ struct vm_struct *get_vm_area(unsigned l
+@@ -2119,6 +2120,7 @@ struct vm_struct *get_vm_area(unsigned l
  				  NUMA_NO_NODE, GFP_KERNEL,
  				  __builtin_return_address(0));
  }
@@ -126,9 +126,9 @@ diff -up linux-5.9-rc1/mm/vmalloc.c.20~ linux-5.9-rc1/mm/vmalloc.c
  
  struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
  				const void *caller)
-diff -up linux-5.9-rc1/security/security.c.20~ linux-5.9-rc1/security/security.c
---- linux-5.9-rc1/security/security.c.20~	2020-08-16 22:04:57.000000000 +0200
-+++ linux-5.9-rc1/security/security.c	2020-08-17 16:55:26.735175740 +0200
+diff -up linux-5.9-rc6/security/security.c.37~ linux-5.9-rc6/security/security.c
+--- linux-5.9-rc6/security/security.c.37~	2020-09-21 01:33:55.000000000 +0200
++++ linux-5.9-rc6/security/security.c	2020-09-25 18:30:48.822766730 +0200
 @@ -725,24 +725,28 @@ int security_binder_set_context_mgr(stru
  {
  	return call_int_hook(binder_set_context_mgr, 0, mgr);
