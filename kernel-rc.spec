@@ -21,9 +21,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	9
+%define patchlevel	10
 %define sublevel	0
-%define relc		8
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -68,8 +68,9 @@
 
 # Build defines
 %bcond_with build_doc
+# UKSM disabled for 5.10-rc as it needs rebasing
 %ifarch %{ix86} %{x86_64}
-%bcond_without uksm
+%bcond_with uksm
 %else
 %bcond_with uksm
 %endif
@@ -80,11 +81,11 @@
 
 %if %{with clang}
 ## lld is broken now or the kernel doesn't like it
-%bcond_without ld_workaround
+%bcond_with ld_workaround
 %endif
 
 
-%bcond_without lazy_developer
+%bcond_with lazy_developer
 %bcond_with build_debug
 %bcond_with dracut_all_initrd
 %bcond_with clr
@@ -138,6 +139,17 @@
 %bcond_without build_desktop
 %bcond_with build_server
 %endif
+
+# FIXME figure out why bpftool won't build on aarch64
+# as of 5.9.1, error is:
+# ./tools/bpf/resolve_btfids/resolve_btfids vmlinux
+# FAILED: load BTF from vmlinux: Unknown error -2+ on_exit
+%ifarch %{aarch64}
+%bcond_with bpftool
+%else
+%bcond_without bpftool
+%endif
+
 # End of user definitions
 
 # For the .nosrc.rpm
@@ -185,19 +197,16 @@ NoSource:	0
 Source3:	README.kernel-sources
 Source4:	%{name}.rpmlintrc
 ## all in one configs for each kernel
-Source5:	x86_64-desktop-clang-omv-defconfig
-Source6:	x86_64-desktop-gcc-omv-defconfig
-Source7:	x86_64-server-clang-omv-defconfig
-Source8:	x86_64-server-gcc-omv-defconfig
-Source9:	x86_64-znver-desktop-clang-omv-defconfig
-Source10:	x86_64-znver-desktop-gcc-omv-defconfig
-Source11:	x86_64-znver-server-clang-omv-defconfig
-Source12:	x86_64-znver-server-gcc-omv-defconfig
-Source13:	i686-desktop-clang-omv-defconfig
+Source10:	x86_64-desktop-gcc-omv-defconfig
+Source11:	x86_64-server-gcc-omv-defconfig
+Source12:	x86_64-znver-desktop-gcc-omv-defconfig
+Source13:	x86_64-znver-server-gcc-omv-defconfig
 Source14:	i686-desktop-gcc-omv-defconfig
-Source15:	i686-server-clang-omv-defconfig
-Source16:	i686-server-gcc-omv-defconfig
-Source17:	armv7hnl-desktop-omv-defconfig
+Source15:	i686-server-gcc-omv-defconfig
+Source16:	armv7hnl-desktop-omv-defconfig
+Source17:	armv7hnl-server-omv-defconfig
+Source18:	aarch64-desktop-omv-defconfig
+Source19:	aarch64-server-omv-defconfig
 
 # to be removed soon
 Source20:	common.config
@@ -236,8 +245,8 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 # booting SynQuacer from USB flash drives.
 # 9d55bebd9816903b821a403a69a94190442ac043 builds on
 # 7a8b64d17e35810dc3176fe61208b45c15d25402.
-Source1001:     7a8b64d17e35810dc3176fe61208b45c15d25402.patch
-Source1002:     9d55bebd9816903b821a403a69a94190442ac043.patch
+Source1001:     revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
+Source1002:     revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
 # (crazy) WARNING do NOT drop rediff
 # we default to ZSTD
@@ -262,7 +271,8 @@ Patch36:	aacraid-dont-freak-out-dependency-generator.patch
 # Make uClibc-ng happy
 Patch37:	socket.h-include-bitsperlong.h.patch
 # Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
-Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
+# FIXME this may need porting, not sure where WC is set in 5.10
+#Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 # FIXME hardening the module loader breaks it when
 # using binutils 2.35, https://sourceware.org/bugzilla/show_bug.cgi?id=26378
@@ -275,7 +285,7 @@ Patch41:	workaround-aarch64-module-loader.patch
 # sources can be found here https://github.com/dolohow/uksm
 %if %{with uksm}
 # brokes armx builds
-#Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.8.patch
+Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.9.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -286,7 +296,6 @@ Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151
 # (crazy) need to know what function() breaks on nvme failures
 Patch47:	nvme-pci-more-info.patch
 Patch48:	linux-5.4.5-fix-build.patch
-Patch50:	iwlwifi-use-debug-for-debug-infos.patch
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
 Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 
@@ -325,6 +334,7 @@ Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Patch210:	https://gitweb.frugalware.org/wip_kernel/raw/9d0e99ff5fef596388913549a8418c07d367a940/source/base/kernel/fix_virtualbox.patch
 Source1006:	vbox-6.1.12-kernel-5.8.patch
 Source1007:	vbox-kernel-5.9.patch
+Source1008:	vbox-5.10.patch
 
 # Better support for newer x86 processors
 # More actively maintained for newer kernels
@@ -440,8 +450,10 @@ BuildRequires:	xmlto
 # for ORC unwinder and perf
 BuildRequires:	pkgconfig(libelf)
 
+%if %{with bpftool}
 # for bpftool
 BuildRequires:	pahole
+%endif
 
 # for perf
 %if %{with build_perf}
@@ -860,8 +872,8 @@ rm -rf .git
 
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
-patch -p1 -R <%{S:1002}
-patch -p1 -R <%{S:1001}
+patch -p1 -b -z .1002~ <%{S:1002}
+patch -p1 -b -z .1001~ <%{S:1001}
 %endif
 
 %if %{with saa716x}
@@ -948,9 +960,10 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
-patch -p1 -z .1005a~ -b <%{S:1005}
-patch -p1 -z .1006a~ -b <%{S:1006}
-patch -p1 -z .1007a~ -b <%{S:1007}
+patch -p1 -z .1005~ -b <%{S:1005}
+patch -p1 -z .1006~ -b <%{S:1006}
+patch -p1 -z .1007~ -b <%{S:1007}
+patch -p1 -z .1008~ -b <%{S:1008}
 %endif
 
 # get rid of unwanted files
@@ -988,6 +1001,29 @@ CheckConfig() {
 	fi
 }
 
+clangify() {
+	sed -i \
+		-e '/^CONFIG_CC_VERSION_TEXT=/d' \
+		-e '/^CONFIG_CC_IS_GCC=/d' \
+		-e '/^CONFIG_CC_IS_CLANG=/d' \
+		-e '/^CONFIG_GCC_VERSION=/d' \
+		-e '/^CONFIG_CLANG_VERSION=/d' \
+		-e '/^CONFIG_LD_VERSION=/d' \
+		-e '/^CONFIG_LD_IS_LLD=/d' \
+		-e '/^CONFIG_GCC_PLUGINS=/d' \
+		"$1"
+	cat >>"$1" <<'EOF'
+CONFIG_CC_IS_CLANG=y
+CONFIG_CC_HAS_ASM_GOTO_OUTPUT=y
+
+CONFIG_INIT_STACK_NONE=y
+# CONFIG_INIT_STACK_ALL_PATTERN is not set
+# CONFIG_INIT_STACK_ALL_ZERO is not set
+
+# CONFIG_KCSAN is not set
+EOF
+}
+
 CreateConfig() {
 	arch="$1"
 	type="$2"
@@ -1007,7 +1043,7 @@ CreateConfig() {
 		%else
 		BUILD_LD="ld.lld"
 		# bugs
-		BUILD_KBUILD_LDFLAGS="--icf=none --no-gc-sections"
+		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
 		%endif
 		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
 	else
@@ -1022,76 +1058,94 @@ CreateConfig() {
 	# (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
 	case ${arch} in
 	i?86)
-               case ${type} in
-               desktop)
-                       rm -rf .config
-                       cp -v ${config_dir}/i686-desktop-gcc-omv-defconfig .config
-                       ;;
-               desktop-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/i686-desktop-clang-omv-defconfig .config
-                       ;;
-               server)
-                       rm -rf .config
-                       cp -v ${config_dir}/i686-server-gcc-omv-defconfig .config
-                       ;;
-               server-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/i686-server-clang-omv-defconfig .config
-                       ;;
-               *)
-                       printf '%s\n' "ERROR: no such type ${type}"
-                       exit 1
-                       ;;
-               esac
+		case ${type} in
+		desktop|desktop-clang)
+			rm -rf .config
+			cp -v ${config_dir}/i686-desktop-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		server|server-clang)
+			rm -rf .config
+			cp -v ${config_dir}/i686-server-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		*)
+			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
+			exit 1
+			;;
+		esac
 		;;
 	x86_64|x86)
-               case ${type} in
-               desktop)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-desktop-gcc-omv-defconfig .config
-                       ;;
-               desktop-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-desktop-clang-omv-defconfig .config
-                       ;;
-               server)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-server-gcc-omv-defconfig .config
-                       ;;
-               server-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-server-clang-omv-defconfig .config
-                       ;;
-               *)
-                       printf '%s\n' "ERROR: no such type ${type}"
-                       exit 1
-                       ;;
-               esac
+		case ${type} in
+		desktop|desktop-clang)
+			rm -rf .config
+			cp -v ${config_dir}/x86_64-desktop-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		server|server-clang)
+			rm -rf .config
+			cp -v ${config_dir}/x86_64-server-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		*)
+			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
+			exit 1
+			;;
+		esac
+		;;
+	arm)
+		case ${type} in
+		desktop|desktop-clang)
+			rm -rf .config
+			cp -v ${config_dir}/armv7hnl-desktop-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		server|server-clang)
+			rm -rf .config
+			cp -v ${config_dir}/armv7hnl-desktop-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		*)
+			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
+			exit 1
+			;;
+		esac
+		;;
+	arm64)
+		case ${type} in
+		desktop|desktop-clang)
+			rm -rf .config
+			cp -v ${config_dir}/aarch64-desktop-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		server|server-clang)
+			rm -rf .config
+			cp -v ${config_dir}/aarch64-server-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		*)
+			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
+			exit 1
+			;;
+		esac
 		;;
 	znver1)
-               case ${type} in
-               desktop)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-znver-desktop-gcc-omv-defconfig .config
-                       ;;
-               desktop-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-znver-desktop-clang-omv-defconfig .config
-                       ;;
-               server)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-znver-server-gcc-omv-defconfig .config
-                       ;;
-               server-clang)
-                       rm -rf .config
-                       cp -v ${config_dir}/x86_64-znver-server-clang-omv-defconfig .config
-                       ;;
-               *)
-                       printf '%s\n' "ERROR: no such type ${type}"
-                       exit 1
-                       ;;
-               esac
+		case ${type} in
+		desktop|desktop-clang)
+			rm -rf .config
+			cp -v ${config_dir}/x86_64-znver-desktop-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		server|server-clang)
+			rm -rf .config
+			cp -v ${config_dir}/x86_64-znver-server-gcc-omv-defconfig .config
+			echo ${type} |grep -q clang && clangify .config
+			;;
+		*)
+			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
+			exit 1
+			;;
+		esac
 		;;
 	ppc64)
 		CONFIGS=pseries_defconfig
@@ -1115,7 +1169,8 @@ CreateConfig() {
 		done
 	fi
 
-    if [ "$arch" = "znver1" -o "$arch" = "x86_64" ]; then
+	cfgarch=$arch
+	if [ "$arch" = "znver1" -o "$arch" = "x86_64" ]; then
 		arch=x86
 	elif echo $arch |grep -q ^ppc; then
 		arch=powerpc
@@ -1139,6 +1194,7 @@ CreateConfig() {
 	fi
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 	# " <--- workaround for vim syntax highlighting bug, ignore
+	cp .config kernel/configs/omv-${cfgarch}-${type}.config
 }
 
 PrepareKernel() {
@@ -1169,7 +1225,7 @@ BuildKernel() {
 		%else
 		BUILD_LD="ld.lld"
 		# bugs
-		BUILD_KBUILD_LDFLAGS="--icf=none --no-gc-sections"
+		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
 		%endif
 		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
 	else
@@ -1179,9 +1235,13 @@ BuildKernel() {
 		BUILD_LD="%{_target_platform}-ld.bfd"
 		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
 		BUILD_TOOLS=""
-        fi
+	fi
 
-	%make_build all ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS  KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1
+	TARGETS=all
+%ifarch %{aarch64}
+	TARGETS="$TARGETS dtbs"
+%endif
+	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 $TARGETS
 
 	# Start installing stuff
 	install -d %{temp_boot}
@@ -1196,7 +1256,7 @@ BuildKernel() {
 		cp -f arch/arm/boot/zImage %{temp_boot}/vmlinuz-$KernelVer
 	fi
 %else
-%ifarch aarch64
+%ifarch %{aarch64}
 	cp -f arch/arm64/boot/Image.gz %{temp_boot}/vmlinuz-$KernelVer
 %else
 	cp -f arch/%{target_arch}/boot/bzImage %{temp_boot}/vmlinuz-$KernelVer
@@ -1210,8 +1270,8 @@ BuildKernel() {
 	# headers
 	%make_build INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
-%ifarch %{armx}
-	%make_build ARCH=%{target_arch} V=1 dtbs INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
+%ifarch %{armx} %{ppc}
+	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
 %endif
 
 	# remove /lib/firmware, we use a separate kernel-firmware
@@ -1324,6 +1384,7 @@ $DevelRoot/include/kvm
 $DevelRoot/include/linux
 $DevelRoot/include/math-emu
 $DevelRoot/include/media
+$DevelRoot/include/memory
 $DevelRoot/include/misc
 $DevelRoot/include/net
 $DevelRoot/include/pcmcia
@@ -1532,7 +1593,7 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 	for t in desktop server; do
 		CreateConfig $a $t
 		export ARCH=$a
-        [ "$ARCH" = "znver1" ] && export ARCH=x86
+		[ "$ARCH" = "znver1" ] && export ARCH=x86
 %if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
 			# While we have a kernel configured for it, let's package
@@ -1632,10 +1693,12 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 %endif
 %endif
 
+%if %{with bpftool}
 %make_build -C tools/lib/bpf CC=clang LD=ld.lld libbpf.a libbpf.pc libbpf.so -j1
-#cd tools/bpf/bpftool
-%make_build -C tools/bpf/bpftool CC=clang LD=ld.lld bpftool -j1
-#cd -
+cd tools/bpf/bpftool
+%make_build CC=clang LD=ld.lld bpftool -j1
+cd -
+%endif
 
 ############################################################
 ###  Linker end3 > Check point to build for omv or rosa  ###
@@ -1719,9 +1782,11 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 %endif
 %endif
 
+%if %{with bpftool}
 # install bpftool and libbpf
 %make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir}
 %make_install -C tools/bpf/bpftool install CC=clang CXX=clang++ LD=ld.lld DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
+%endif
 
 # Create directories infastructure
 %if %{with build_source}
@@ -1808,6 +1873,7 @@ cd -
 %{_kerneldir}/include/linux
 %{_kerneldir}/include/math-emu
 %{_kerneldir}/include/media
+%{_kerneldir}/include/memory
 %{_kerneldir}/include/misc
 %{_kerneldir}/include/net
 %{_kerneldir}/include/pcmcia
@@ -1896,6 +1962,7 @@ cd -
 %endif
 %endif
 
+%if %{with bpftool}
 %files -n bpftool
 %{_sbindir}/bpftool
 %{_sysconfdir}/bash_completion.d/bpftool
@@ -1909,3 +1976,4 @@ cd -
 %{_libdir}/pkgconfig/*.pc
 %dir %{_includedir}/bpf
 %{_includedir}/bpf/*.h
+%endif

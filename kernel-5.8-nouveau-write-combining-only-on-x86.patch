@@ -1,6 +1,6 @@
-diff -up linux-5.9-rc6/drivers/gpu/drm/nouveau/nouveau_bo.c.13~ linux-5.9-rc6/drivers/gpu/drm/nouveau/nouveau_bo.c
---- linux-5.9-rc6/drivers/gpu/drm/nouveau/nouveau_bo.c.13~	2020-09-25 02:41:44.991215001 +0200
-+++ linux-5.9-rc6/drivers/gpu/drm/nouveau/nouveau_bo.c	2020-09-25 02:43:17.321265645 +0200
+diff -up linux-5.9/drivers/gpu/drm/nouveau/nouveau_bo.c.13~ linux-5.9/drivers/gpu/drm/nouveau/nouveau_bo.c
+--- linux-5.9/drivers/gpu/drm/nouveau/nouveau_bo.c.13~	2020-10-18 00:39:40.149707915 +0200
++++ linux-5.9/drivers/gpu/drm/nouveau/nouveau_bo.c	2020-10-18 00:41:02.704668803 +0200
 @@ -661,9 +661,14 @@ nouveau_bo_init_mem_type(struct ttm_bo_d
  		break;
  	case TTM_PL_VRAM:
@@ -16,9 +16,9 @@ diff -up linux-5.9-rc6/drivers/gpu/drm/nouveau/nouveau_bo.c.13~ linux-5.9-rc6/dr
  
  		if (drm->client.device.info.family >= NV_DEVICE_INFO_V0_TESLA) {
  			/* Some BARs do not support being ioremapped WC */
-diff -up linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c.13~ linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c
---- linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c.13~	2020-09-21 01:33:55.000000000 +0200
-+++ linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c	2020-09-25 02:41:44.991215001 +0200
+diff -up linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c.13~ linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c
+--- linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c.13~	2020-10-11 23:15:50.000000000 +0200
++++ linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c	2020-10-18 00:39:40.149707915 +0200
 @@ -253,8 +253,13 @@ nv40_instmem_new(struct nvkm_device *dev
  	else
  		bar = 3;
@@ -33,9 +33,9 @@ diff -up linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv40.c.13~ li
  	if (!imem->iomem) {
  		nvkm_error(&imem->base.subdev, "unable to map PRAMIN BAR\n");
  		return -EFAULT;
-diff -up linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c.13~ linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c
---- linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c.13~	2020-09-21 01:33:55.000000000 +0200
-+++ linux-5.9-rc6/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c	2020-09-25 02:41:44.991215001 +0200
+diff -up linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c.13~ linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c
+--- linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c.13~	2020-10-11 23:15:50.000000000 +0200
++++ linux-5.9/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/nv50.c	2020-10-18 00:39:40.149707915 +0200
 @@ -171,7 +171,11 @@ nv50_instobj_kmap(struct nv50_instobj *i
  
  	/* Make the mapping visible to the host. */
