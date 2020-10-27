@@ -80,8 +80,10 @@
 %bcond_without cross_headers
 
 %if %{with clang}
-## lld is broken now or the kernel doesn't like it
-%bcond_with ld_workaround
+# As of kernel 5.10-rc1, llvm 11, clang-built kernels linked with
+# lld result in "inconsistent ORC unwind table entries in file: vmlinux"
+# on x86_64
+%bcond_without ld_workaround
 %endif
 
 
