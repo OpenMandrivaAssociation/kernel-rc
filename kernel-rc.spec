@@ -332,11 +332,10 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
+Source1006:	vbox-6.1.16-compile.patch
+Source1007:	vbox-5.10.patch
 # Re-export a few symbols vbox wants
 Patch210:	https://gitweb.frugalware.org/wip_kernel/raw/9d0e99ff5fef596388913549a8418c07d367a940/source/base/kernel/fix_virtualbox.patch
-Source1006:	vbox-6.1.12-kernel-5.8.patch
-Source1007:	vbox-kernel-5.9.patch
-Source1008:	vbox-5.10.patch
 
 # Better support for newer x86 processors
 # More actively maintained for newer kernels
@@ -944,28 +943,27 @@ sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 # === VirtualBox host modules ===
 # VirtualBox
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/virt/vboxdrv,g' drivers/virt/vboxdrv/Makefile*
+sed -i -e 's,\$(VBOXDRV_DIR),drivers/virt/vboxdrv/,g' drivers/virt/vboxdrv/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/virt/vboxdrv/Makefile*
 echo 'obj-m += vboxdrv/' >>drivers/virt/Makefile
 # VirtualBox network adapter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetadp drivers/net/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/net/vboxnetadp,g' drivers/net/vboxnetadp/Makefile*
+sed -i -e 's,\$(VBOXNETADP_DIR),drivers/net/vboxnetadp/,g' drivers/net/vboxnetadp/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetadp/Makefile*
 echo 'obj-m += vboxnetadp/' >>drivers/net/Makefile
 # VirtualBox network filter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/net/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/net/vboxnetflt,g' drivers/net/vboxnetflt/Makefile*
+sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
 echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
 # VirtualBox PCI
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
-sed -i -e 's,\$(KBUILD_EXTMOD),drivers/pci/vboxpci,g' drivers/pci/vboxpci/Makefile*
+sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
-patch -p1 -z .1008~ -b <%{S:1008}
 %endif
 
 # get rid of unwanted files
