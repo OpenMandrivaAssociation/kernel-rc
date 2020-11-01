@@ -18,3 +18,15 @@ diff -up linux-5.10-rc1/drivers/pci/vboxpci/linux/VBoxPci-linux.c.omv~ linux-5.1
      if (ret < 0)
          printk(KERN_DEBUG "vboxPciFileWrite: error %d\n", ret);
  
+diff -up linux-5.10-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~ linux-5.10-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c
+--- linux-5.10-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~	2020-11-01 00:09:22.326400335 +0100
++++ linux-5.10-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c	2020-11-01 00:11:32.163328455 +0100
+@@ -56,7 +56,7 @@
+  * Whether we use alloc_vm_area (3.2+) for executable memory.
+  * This is a must for 5.8+, but we enable it all the way back to 3.2.x for
+  * better W^R compliance (fExecutable flag). */
+-#if RTLNX_VER_MIN(3,2,0) || defined(DOXYGEN_RUNNING)
++#if 0 && RTLNX_VER_MIN(3,2,0) || defined(DOXYGEN_RUNNING)
+ # define IPRT_USE_ALLOC_VM_AREA_FOR_EXEC
+ #endif
+ 
