@@ -23,7 +23,7 @@
 %define kernelversion	5
 %define patchlevel	10
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -209,17 +209,6 @@ Source16:	armv7hnl-desktop-omv-defconfig
 Source17:	armv7hnl-server-omv-defconfig
 Source18:	aarch64-desktop-omv-defconfig
 Source19:	aarch64-server-omv-defconfig
-
-# to be removed soon
-Source20:	common.config
-Source21:	common-desktop.config
-Source22:	common-server.config
-# Architecture specific configs
-Source23:	arm64-common.config
-Source24:	arm-common.config
-Source25:	powerpc-common.config
-# Files called $ARCH-$FLAVOR.config are merged as well,
-# currently there's no need to have specific overloads there.
 
 # config and systemd service file from fedora
 Source30:	cpupower.service
@@ -876,7 +865,6 @@ done
 #
 %prep
 %setup -q -n linux-%{tar_ver} -a 1003 -a 1004
-cp %{S:20} %{S:21} %{S:22} %{S:23} %{S:24} %{S:25}  kernel/configs/
 %if 0%{sublevel}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
