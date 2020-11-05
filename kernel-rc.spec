@@ -347,6 +347,7 @@ Patch305:	v11-06-10-fs-ntfs3-Add-compression.diff
 Patch306:	v11-07-10-fs-ntfs3-Add-NTFS-journal.diff
 Patch307:	v11-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.diff
 Patch308:	v11-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.diff
+Patch309:	v11-10-10-fs-ntfs3-Add-MAINTAINERS.diff
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
