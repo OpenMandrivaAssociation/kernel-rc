@@ -874,8 +874,8 @@ rm -rf .git
 
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
-patch -p1 -b -z .1002~ <%{S:1002}
-patch -p1 -b -z .1001~ <%{S:1001}
+#patch -p1 -b -z .1002~ <%{S:1002}
+#patch -p1 -b -z .1001~ <%{S:1001}
 %endif
 
 %if %{with saa716x}
@@ -1022,6 +1022,7 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_INIT_STACK_ALL_ZERO is not set
 
 # CONFIG_KCSAN is not set
+# CONFIG_SHADOW_CALL_STACK is not set
 EOF
 }
 
