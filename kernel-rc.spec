@@ -33,7 +33,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.2
+%define rpmrel		0.rc%{relc}.1
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
@@ -335,6 +335,8 @@ Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patche
 # Modular binder and ashmem -- let's try to make anbox happy
 Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
+
+Patch214:	5.10-rc7-bpf-clang-buildfix.patch
 
 # NTFS kernel patches
 # https://lore.kernel.org/lkml/20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com/
