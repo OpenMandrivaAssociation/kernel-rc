@@ -33,7 +33,7 @@
 # IMPORTANT
 # This is the place where you set release version %{version}-1omv2015
 %if 0%{relc}
-%define rpmrel		0.rc%{relc}.1
+%define rpmrel		0.rc%{relc}.2
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
 %define rpmrel		1
@@ -337,17 +337,17 @@ Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
 # NTFS kernel patches
-# https://lore.kernel.org/lkml/20201030150239.3957156-1-almaz.alexandrovich@paragon-software.com/
-Patch300:	v11-01-10-fs-ntfs3-Add-headers-and-misc-files.diff
-Patch301:	v11-02-10-fs-ntfs3-Add-initialization-of-super-block.diff
-Patch302:	v11-03-10-fs-ntfs3-Add-bitmap.diff
-Patch303:	v11-04-10-fs-ntfs3-Add-file-operations-and-implementation.diff
-Patch304:	v11-05-10-fs-ntfs3-Add-attrib-operations.diff
-Patch305:	v11-06-10-fs-ntfs3-Add-compression.diff
-Patch306:	v11-07-10-fs-ntfs3-Add-NTFS-journal.diff
-Patch307:	v11-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.diff
-Patch308:	v11-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.diff
-Patch309:	v11-10-10-fs-ntfs3-Add-MAINTAINERS.diff
+# https://lore.kernel.org/lkml/20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com/
+Patch300:	PATCH-v14-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
+Patch301:	PATCH-v14-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
+Patch302:	PATCH-v14-03-10-fs-ntfs3-Add-bitmap.patch
+Patch303:	PATCH-v14-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
+Patch304:	PATCH-v14-05-10-fs-ntfs3-Add-attrib-operations.patch
+Patch305:	PATCH-v14-06-10-fs-ntfs3-Add-compression.patch
+Patch306:	PATCH-v14-07-10-fs-ntfs3-Add-NTFS-journal.patch
+Patch307:	PATCH-v14-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
+Patch308:	PATCH-v14-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
+Patch309:	PATCH-v14-10-10-fs-ntfs3-Add-MAINTAINERS.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
