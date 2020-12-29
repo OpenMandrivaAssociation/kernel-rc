@@ -21,9 +21,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	10
+%define patchlevel	11
 %define sublevel	0
-%define relc		7
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -68,7 +68,7 @@
 
 # Build defines
 %bcond_with build_doc
-# UKSM disabled for 5.10-rc as it needs rebasing
+# UKSM disabled for 5.11-rc as it needs rebasing
 %ifarch %{ix86} %{x86_64}
 %bcond_with uksm
 %else
@@ -245,8 +245,6 @@ Patch1:		compress-modules-zstd.patch
 # (crazy) That is always a error on Ryzen platform, which is not fatal
 # just different, lower to info since it breaks the splash
 Patch2:		amd_iommu_init_info.patch
-# (crazy) while not perfect on all Ryzen platforms better that nothing
-Patch3: 	enable-new-amd-energy-driver-for-all-ryzen.patch
 # (crazy) I really need to send that upstream soon
 Patch10:	iwlwifi-fix-5e003982b07ae.patch
 Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
@@ -275,8 +273,8 @@ Patch41:	workaround-aarch64-module-loader.patch
 # http://kerneldedup.org/en/projects/uksm/download/
 # sources can be found here https://github.com/dolohow/uksm
 %if %{with uksm}
-# brokes armx builds
-Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.9.patch
+# breaks armx builds
+Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.10.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -321,8 +319,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	vbox-6.1.16-compile.patch
-Source1007:	vbox-5.10.patch
+Source1006:	vbox-5.10.patch
 # Re-export a few symbols vbox wants
 Patch210:	https://gitweb.frugalware.org/wip_kernel/raw/9d0e99ff5fef596388913549a8418c07d367a940/source/base/kernel/fix_virtualbox.patch
 
@@ -336,7 +333,13 @@ Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patche
 Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
-Patch214:	5.10-rc7-bpf-clang-buildfix.patch
+# k10temp fixes
+Patch221:	k10temp-ryzen-zen3.patch
+
+# Fix CPU frequency governor mess caused by recent Intel patches
+Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
+Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/revert-parts-of-a00ec3874e7d326ab2dffbed92faddf6a77a84e9-no-Intel-NO.patch
+
 
 # NTFS kernel patches
 # https://lore.kernel.org/lkml/20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com/
@@ -959,14 +962,18 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/ne
 sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
 echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
+%if 0
 # VirtualBox PCI
+# https://forums.gentoo.org/viewtopic-t-1105508-start-0.html -- not very
+# useful (yet), but a source of many errors.
+# Potentially re-enable if it ever gets fixed to support PCIE.
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
+%endif
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1006~ -b <%{S:1006}
-patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
 # get rid of unwanted files

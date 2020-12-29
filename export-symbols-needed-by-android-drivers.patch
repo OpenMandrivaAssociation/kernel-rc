@@ -1,50 +1,40 @@
-diff -up linux-5.9/fs/file.c.37~ linux-5.9/fs/file.c
---- linux-5.9/fs/file.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/fs/file.c	2020-10-18 01:23:45.892201533 +0200
-@@ -422,6 +422,7 @@ struct files_struct *get_files_struct(st
- 
- 	return files;
- }
-+EXPORT_SYMBOL_GPL(get_files_struct);
- 
- void put_files_struct(struct files_struct *files)
- {
-@@ -434,6 +435,7 @@ void put_files_struct(struct files_struc
- 		kmem_cache_free(files_cachep, files);
- 	}
- }
-+EXPORT_SYMBOL_GPL(put_files_struct);
- 
- void reset_files_struct(struct files_struct *files)
- {
-@@ -547,6 +549,7 @@ out:
- 	spin_unlock(&files->file_lock);
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(__alloc_fd);
- 
- static int alloc_fd(unsigned start, unsigned flags)
- {
-@@ -625,6 +628,7 @@ void __fd_install(struct files_struct *f
- 	rcu_assign_pointer(fdt->fd[fd], file);
- 	rcu_read_unlock_sched();
- }
-+EXPORT_SYMBOL_GPL(__fd_install);
- 
- /*
-  * This consumes the "file" refcount, so callers should treat it
-@@ -780,6 +784,7 @@ out_unlock:
+diff -up linux-5.11-rc1/fs/file.c.34~ linux-5.11-rc1/fs/file.c
+--- linux-5.11-rc1/fs/file.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/fs/file.c	2020-12-28 16:31:23.323340061 +0100
+@@ -763,6 +763,7 @@ out_unlock:
  	*res = NULL;
  	return -ENOENT;
  }
-+EXPORT_SYMBOL(__close_fd_get_file);
++EXPORT_SYMBOL(close_fd_get_file);
  
  void do_close_on_exec(struct files_struct *files)
  {
-diff -up linux-5.9/kernel/fork.c.37~ linux-5.9/kernel/fork.c
---- linux-5.9/kernel/fork.c.37~	2020-10-18 01:20:31.602662336 +0200
-+++ linux-5.9/kernel/fork.c	2020-10-18 01:20:31.625662638 +0200
-@@ -1115,6 +1115,7 @@ void mmput_async(struct mm_struct *mm)
+diff -up linux-5.11-rc1/ipc/msgutil.c.34~ linux-5.11-rc1/ipc/msgutil.c
+--- linux-5.11-rc1/ipc/msgutil.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/ipc/msgutil.c	2020-12-28 16:31:23.328339612 +0100
+@@ -33,6 +33,7 @@ struct ipc_namespace init_ipc_ns = {
+ 	.ns.ops = &ipcns_operations,
+ #endif
+ };
++EXPORT_SYMBOL_GPL(init_ipc_ns);
+ 
+ struct msg_msgseg {
+ 	struct msg_msgseg *next;
+diff -up linux-5.11-rc1/ipc/namespace.c.34~ linux-5.11-rc1/ipc/namespace.c
+--- linux-5.11-rc1/ipc/namespace.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/ipc/namespace.c	2020-12-28 16:31:23.328339612 +0100
+@@ -172,6 +172,7 @@ void put_ipc_ns(struct ipc_namespace *ns
+ 			schedule_work(&free_ipc_work);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(put_ipc_ns);
+ 
+ static inline struct ipc_namespace *to_ipc_ns(struct ns_common *ns)
+ {
+diff -up linux-5.11-rc1/kernel/fork.c.34~ linux-5.11-rc1/kernel/fork.c
+--- linux-5.11-rc1/kernel/fork.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/kernel/fork.c	2020-12-28 16:31:23.324339971 +0100
+@@ -1121,6 +1121,7 @@ void mmput_async(struct mm_struct *mm)
  		schedule_work(&mm->async_put_work);
  	}
  }
@@ -52,10 +42,10 @@ diff -up linux-5.9/kernel/fork.c.37~ linux-5.9/kernel/fork.c
  #endif
  
  /**
-diff -up linux-5.9/kernel/sched/core.c.37~ linux-5.9/kernel/sched/core.c
---- linux-5.9/kernel/sched/core.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/kernel/sched/core.c	2020-10-18 01:20:31.626662651 +0200
-@@ -5017,6 +5017,7 @@ int can_nice(const struct task_struct *p
+diff -up linux-5.11-rc1/kernel/sched/core.c.34~ linux-5.11-rc1/kernel/sched/core.c
+--- linux-5.11-rc1/kernel/sched/core.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/kernel/sched/core.c	2020-12-28 16:31:23.325339881 +0100
+@@ -5561,6 +5561,7 @@ int can_nice(const struct task_struct *p
  	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
  		capable(CAP_SYS_NICE));
  }
@@ -63,10 +53,10 @@ diff -up linux-5.9/kernel/sched/core.c.37~ linux-5.9/kernel/sched/core.c
  
  #ifdef __ARCH_WANT_SYS_NICE
  
-diff -up linux-5.9/kernel/signal.c.37~ linux-5.9/kernel/signal.c
---- linux-5.9/kernel/signal.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/kernel/signal.c	2020-10-18 01:20:31.626662651 +0200
-@@ -1396,6 +1396,7 @@ struct sighand_struct *__lock_task_sigha
+diff -up linux-5.11-rc1/kernel/signal.c.34~ linux-5.11-rc1/kernel/signal.c
+--- linux-5.11-rc1/kernel/signal.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/kernel/signal.c	2020-12-28 16:31:23.326339792 +0100
+@@ -1397,6 +1397,7 @@ struct sighand_struct *__lock_task_sigha
  
  	return sighand;
  }
@@ -74,10 +64,10 @@ diff -up linux-5.9/kernel/signal.c.37~ linux-5.9/kernel/signal.c
  
  /*
   * send signal info to all the members of a group
-diff -up linux-5.9/kernel/task_work.c.37~ linux-5.9/kernel/task_work.c
---- linux-5.9/kernel/task_work.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/kernel/task_work.c	2020-10-18 01:20:31.626662651 +0200
-@@ -58,6 +58,7 @@ task_work_add(struct task_struct *task,
+diff -up linux-5.11-rc1/kernel/task_work.c.34~ linux-5.11-rc1/kernel/task_work.c
+--- linux-5.11-rc1/kernel/task_work.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/kernel/task_work.c	2020-12-28 16:31:23.326339792 +0100
+@@ -57,6 +57,7 @@ int task_work_add(struct task_struct *ta
  
  	return 0;
  }
@@ -85,10 +75,10 @@ diff -up linux-5.9/kernel/task_work.c.37~ linux-5.9/kernel/task_work.c
  
  /**
   * task_work_cancel - cancel a pending work added by task_work_add()
-diff -up linux-5.9/mm/memory.c.37~ linux-5.9/mm/memory.c
---- linux-5.9/mm/memory.c.37~	2020-10-18 01:20:31.603662349 +0200
-+++ linux-5.9/mm/memory.c	2020-10-18 01:20:31.626662651 +0200
-@@ -1554,6 +1554,7 @@ void zap_page_range(struct vm_area_struc
+diff -up linux-5.11-rc1/mm/memory.c.34~ linux-5.11-rc1/mm/memory.c
+--- linux-5.11-rc1/mm/memory.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/mm/memory.c	2020-12-28 16:31:23.326339792 +0100
+@@ -1542,6 +1542,7 @@ void zap_page_range(struct vm_area_struc
  	mmu_notifier_invalidate_range_end(&range);
  	tlb_finish_mmu(&tlb, start, range.end);
  }
@@ -96,10 +86,10 @@ diff -up linux-5.9/mm/memory.c.37~ linux-5.9/mm/memory.c
  
  /**
   * zap_page_range_single - remove user pages in a given range
-diff -up linux-5.9/mm/shmem.c.37~ linux-5.9/mm/shmem.c
---- linux-5.9/mm/shmem.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/mm/shmem.c	2020-10-18 01:20:31.627662665 +0200
-@@ -4278,6 +4278,7 @@ int shmem_zero_setup(struct vm_area_stru
+diff -up linux-5.11-rc1/mm/shmem.c.34~ linux-5.11-rc1/mm/shmem.c
+--- linux-5.11-rc1/mm/shmem.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/mm/shmem.c	2020-12-28 16:31:23.327339702 +0100
+@@ -4287,6 +4287,7 @@ int shmem_zero_setup(struct vm_area_stru
  
  	return 0;
  }
@@ -107,10 +97,10 @@ diff -up linux-5.9/mm/shmem.c.37~ linux-5.9/mm/shmem.c
  
  /**
   * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
-diff -up linux-5.9/mm/vmalloc.c.37~ linux-5.9/mm/vmalloc.c
---- linux-5.9/mm/vmalloc.c.37~	2020-10-18 01:20:31.622662599 +0200
-+++ linux-5.9/mm/vmalloc.c	2020-10-18 01:20:31.627662665 +0200
-@@ -318,6 +318,7 @@ int map_kernel_range_noflush(unsigned lo
+diff -up linux-5.11-rc1/mm/vmalloc.c.34~ linux-5.11-rc1/mm/vmalloc.c
+--- linux-5.11-rc1/mm/vmalloc.c.34~	2020-12-28 16:31:23.318340509 +0100
++++ linux-5.11-rc1/mm/vmalloc.c	2020-12-28 16:31:23.327339702 +0100
+@@ -316,6 +316,7 @@ int map_kernel_range_noflush(unsigned lo
  
  	return 0;
  }
@@ -118,7 +108,7 @@ diff -up linux-5.9/mm/vmalloc.c.37~ linux-5.9/mm/vmalloc.c
  
  int map_kernel_range(unsigned long start, unsigned long size, pgprot_t prot,
  		struct page **pages)
-@@ -2119,6 +2120,7 @@ struct vm_struct *get_vm_area(unsigned l
+@@ -2133,6 +2134,7 @@ struct vm_struct *get_vm_area(unsigned l
  				  NUMA_NO_NODE, GFP_KERNEL,
  				  __builtin_return_address(0));
  }
@@ -126,10 +116,10 @@ diff -up linux-5.9/mm/vmalloc.c.37~ linux-5.9/mm/vmalloc.c
  
  struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
  				const void *caller)
-diff -up linux-5.9/security/security.c.37~ linux-5.9/security/security.c
---- linux-5.9/security/security.c.37~	2020-10-11 23:15:50.000000000 +0200
-+++ linux-5.9/security/security.c	2020-10-18 01:20:31.627662665 +0200
-@@ -725,24 +725,28 @@ int security_binder_set_context_mgr(stru
+diff -up linux-5.11-rc1/security/security.c.34~ linux-5.11-rc1/security/security.c
+--- linux-5.11-rc1/security/security.c.34~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/security/security.c	2020-12-28 16:31:23.327339702 +0100
+@@ -727,24 +727,28 @@ int security_binder_set_context_mgr(stru
  {
  	return call_int_hook(binder_set_context_mgr, 0, mgr);
  }

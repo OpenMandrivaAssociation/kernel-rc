@@ -1,6 +1,6 @@
-diff -up linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~ linux-5.2-rc3/drivers/platform/x86/acer-wmi.c
---- linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~	2019-06-02 22:55:33.000000000 +0200
-+++ linux-5.2-rc3/drivers/platform/x86/acer-wmi.c	2019-06-03 19:56:36.206188801 +0200
+diff -up linux-5.11-rc1/drivers/platform/x86/acer-wmi.c.6~ linux-5.11-rc1/drivers/platform/x86/acer-wmi.c
+--- linux-5.11-rc1/drivers/platform/x86/acer-wmi.c.6~	2020-12-28 00:30:22.000000000 +0100
++++ linux-5.11-rc1/drivers/platform/x86/acer-wmi.c	2020-12-28 16:28:23.581022032 +0100
 @@ -4,6 +4,9 @@
   *
   *  Copyright (C) 2007-2009	Carlos Corbacho <carlos@strangeworlds.co.uk>
@@ -11,15 +11,15 @@ diff -up linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~ linux-5.2-rc3/drivers/
   *  Based on acer_acpi:
   *    Copyright (C) 2005-2007	E.M. Smith
   *    Copyright (C) 2007-2008	Carlos Corbacho <cathectic@gmail.com>
-@@ -81,6 +84,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
+@@ -82,6 +85,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
  enum acer_wmi_event_ids {
  	WMID_HOTKEY_EVENT = 0x1,
- 	WMID_ACCEL_EVENT = 0x5,
+ 	WMID_ACCEL_OR_KBD_DOCK_EVENT = 0x5,
 +	WMID_MACROKEY_EVENT = 0x7,
  };
  
  static const struct key_entry acer_wmi_keymap[] __initconst = {
-@@ -117,6 +121,26 @@ static const struct key_entry acer_wmi_k
+@@ -119,6 +123,26 @@ static const struct key_entry acer_wmi_k
  	{KE_KEY, 0x85, {KEY_TOUCHPAD_TOGGLE} },
  	{KE_KEY, 0x86, {KEY_WLAN} },
  	{KE_KEY, 0x87, {KEY_POWER} },
@@ -46,7 +46,7 @@ diff -up linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~ linux-5.2-rc3/drivers/
  	{KE_END, 0}
  };
  
-@@ -239,6 +263,7 @@ static bool ec_raw_mode;
+@@ -243,6 +267,7 @@ static bool ec_raw_mode;
  static bool has_type_aa;
  static u16 commun_func_bitmap;
  static u8 commun_fn_key_number;
@@ -54,9 +54,9 @@ diff -up linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~ linux-5.2-rc3/drivers/
  
  module_param(mailled, int, 0444);
  module_param(brightness, int, 0444);
-@@ -1769,6 +1794,25 @@ static void acer_wmi_notify(u32 value, v
- 	case WMID_ACCEL_EVENT:
+@@ -1872,6 +1897,25 @@ static void acer_wmi_notify(u32 value, v
  		acer_gsensor_event();
+ 		acer_kbd_dock_event(&return_value);
  		break;
 +	case WMID_MACROKEY_EVENT:
 +		switch(return_value.key_num) {
@@ -73,7 +73,7 @@ diff -up linux-5.2-rc3/drivers/platform/x86/acer-wmi.c.2~ linux-5.2-rc3/drivers/
 +				pr_warn("acer_wmi: macro key %d pressed (only 1 to 5 are known)\n", return_value.device_state);
 +			break;
 +		default:
-+			pr_warn("Unknown macro key event: %d %d %d\n", return_value.key_num, return_value.device_state, return_value.reserved);
++			pr_warn("Unknown macro key event: %d %d\n", return_value.key_num, return_value.device_state);
 +			break;
 +		}
 +		break;

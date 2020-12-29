@@ -24,18 +24,6 @@ diff -up linux-5.4/drivers/net/vboxnetflt/Makefile-header.gmk.omv~ linux-5.4/dri
   BUILD_TARGET_ARCH_DEF := amd64
  else
   BUILD_TARGET_ARCH_DEF := x86
-diff -up linux-5.4/drivers/pci/vboxpci/Makefile-header.gmk.omv~ linux-5.4/drivers/pci/vboxpci/Makefile-header.gmk
---- linux-5.4/drivers/pci/vboxpci/Makefile-header.gmk.omv~	2020-01-10 05:06:38.683000037 +0100
-+++ linux-5.4/drivers/pci/vboxpci/Makefile-header.gmk	2020-01-10 05:06:44.727010858 +0100
-@@ -45,7 +45,7 @@
- # (We have to support basic cross building (ARCH=i386|x86_64).)
- # While at it, warn about BUILD_* vars found to help with user problems.
- #
--ifeq ($(filter-out x86_64 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
-+ifeq ($(filter-out x86_64 znver1 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
-  BUILD_TARGET_ARCH_DEF := amd64
- else
-  BUILD_TARGET_ARCH_DEF := x86
 diff -up linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk.omv~ linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk
 --- linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk.omv~	2020-01-10 05:06:25.343976157 +0100
 +++ linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk	2020-01-10 05:06:31.955987995 +0100
