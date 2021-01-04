@@ -23,7 +23,7 @@
 %define kernelversion	5
 %define patchlevel	11
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -342,17 +342,17 @@ Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871
 
 
 # NTFS kernel patches
-# https://lore.kernel.org/lkml/20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com/
-Patch300:	PATCH-v14-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
-Patch301:	PATCH-v14-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
-Patch302:	PATCH-v14-03-10-fs-ntfs3-Add-bitmap.patch
-Patch303:	PATCH-v14-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
-Patch304:	PATCH-v14-05-10-fs-ntfs3-Add-attrib-operations.patch
-Patch305:	PATCH-v14-06-10-fs-ntfs3-Add-compression.patch
-Patch306:	PATCH-v14-07-10-fs-ntfs3-Add-NTFS-journal.patch
-Patch307:	PATCH-v14-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
-Patch308:	PATCH-v14-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
-Patch309:	PATCH-v14-10-10-fs-ntfs3-Add-MAINTAINERS.patch
+# https://lore.kernel.org/lkml/20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com/
+Patch300:	PATCH-v16-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
+Patch301:	PATCH-v16-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
+Patch302:	PATCH-v16-03-10-fs-ntfs3-Add-bitmap.patch
+Patch303:	PATCH-v16-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
+Patch304:	PATCH-v16-05-10-fs-ntfs3-Add-attrib-operations.patch
+Patch305:	PATCH-v16-06-10-fs-ntfs3-Add-compression.patch
+Patch306:	PATCH-v16-07-10-fs-ntfs3-Add-NTFS-journal.patch
+Patch307:	PATCH-v16-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
+Patch308:	PATCH-v16-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
+Patch309:	PATCH-v16-10-10-fs-ntfs3-Add-MAINTAINERS.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules

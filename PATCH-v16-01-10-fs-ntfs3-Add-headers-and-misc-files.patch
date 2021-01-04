@@ -1,12 +1,78 @@
+From mboxrd@z Thu Jan  1 00:00:00 1970
+Return-Path: <linux-kernel-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2230C433E6
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:44 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id 9AC4A23331
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:44 +0000 (UTC)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1729275AbgLYNyc (ORCPT
+        <rfc822;linux-kernel@archiver.kernel.org>);
+        Fri, 25 Dec 2020 08:54:32 -0500
+Received: from relaydlg-01.paragon-software.com ([81.5.88.159]:50618 "EHLO
+        relaydlg-01.paragon-software.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726144AbgLYNyW (ORCPT
+        <rfc822;linux-kernel@vger.kernel.org>);
+        Fri, 25 Dec 2020 08:54:22 -0500
+Received: from dlg2.mail.paragon-software.com (vdlg-exch-02.paragon-software.com [172.30.1.105])
+        by relaydlg-01.paragon-software.com (Postfix) with ESMTPS id 93515808D7;
+        Fri, 25 Dec 2020 16:53:25 +0300 (MSK)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paragon-software.com; s=mail; t=1608904405;
+        bh=KjDa8GDaOX+4G1rQhTYHjgpfJ0JTjW5Qgv/7EaeXMK4=;
+        h=From:To:CC:Subject:Date:In-Reply-To:References;
+        b=UuDdhzPEV4QtgqyIPLb0dk3Umxn2sBzCB0/q1zBYxeZ2H+6+OLatvJhS6sDJS2b6X
+         zFB1t1I3KubTL8EYNy6OG7kMc6KEeTQQ52963L1ArEMjmmmrta890u2/5j7UTT37/R
+         zjb/5lVdwl+j0agPYqm5BD9xeAbwKuCb2lAcTz2I=
+Received: from fsd-lkpg.ufsd.paragon-software.com (172.30.114.105) by
+ vdlg-exch-02.paragon-software.com (172.30.1.105) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1847.3; Fri, 25 Dec 2020 16:53:25 +0300
+From:   Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+To:     <linux-fsdevel@vger.kernel.org>
+CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
+        <pali@kernel.org>, <dsterba@suse.cz>, <aaptel@suse.com>,
+        <willy@infradead.org>, <rdunlap@infradead.org>, <joe@perches.com>,
+        <mark@harmstone.com>, <nborisov@suse.com>,
+        <linux-ntfs-dev@lists.sourceforge.net>, <anton@tuxera.com>,
+        <dan.carpenter@oracle.com>, <hch@lst.de>, <ebiggers@kernel.org>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Subject: [PATCH v16 01/10] fs/ntfs3: Add headers and misc files
+Date:   Fri, 25 Dec 2020 16:51:10 +0300
+Message-ID: <20201225135119.3666763-2-almaz.alexandrovich@paragon-software.com>
+X-Mailer: git-send-email 2.25.4
+In-Reply-To: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
+References: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [172.30.114.105]
+X-ClientProxiedBy: vdlg-exch-02.paragon-software.com (172.30.1.105) To
+ vdlg-exch-02.paragon-software.com (172.30.1.105)
+Precedence: bulk
+List-ID: <linux-kernel.vger.kernel.org>
+X-Mailing-List: linux-kernel@vger.kernel.org
+Archived-At: <https://lore.kernel.org/lkml/20201225135119.3666763-2-almaz.alexandrovich@paragon-software.com/>
+List-Archive: <https://lore.kernel.org/lkml/>
+List-Post: <mailto:linux-kernel@vger.kernel.org>
+
 This adds headers and misc files
 
 Signed-off-by: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 ---
  fs/ntfs3/debug.h   |   61 +++
  fs/ntfs3/ntfs.h    | 1237 ++++++++++++++++++++++++++++++++++++++++++++
- fs/ntfs3/ntfs_fs.h | 1075 ++++++++++++++++++++++++++++++++++++++
+ fs/ntfs3/ntfs_fs.h | 1050 +++++++++++++++++++++++++++++++++++++
  fs/ntfs3/upcase.c  |   77 +++
- 4 files changed, 2450 insertions(+)
+ 4 files changed, 2425 insertions(+)
  create mode 100644 fs/ntfs3/debug.h
  create mode 100644 fs/ntfs3/ntfs.h
  create mode 100644 fs/ntfs3/ntfs_fs.h
@@ -1324,10 +1390,10 @@ index 000000000000..9b1a9be80529
 +// clang-format on
 diff --git a/fs/ntfs3/ntfs_fs.h b/fs/ntfs3/ntfs_fs.h
 new file mode 100644
-index 000000000000..402ba820f99d
+index 000000000000..6bdd2d35a1d7
 --- /dev/null
 +++ b/fs/ntfs3/ntfs_fs.h
-@@ -0,0 +1,1075 @@
+@@ -0,0 +1,1050 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/*
 + *
@@ -1589,14 +1655,12 @@ index 000000000000..402ba820f99d
 +	} objid;
 +
 +	struct {
-+		/*
-+		 * protect 'lznt/xpress/lzx'
-+		 * Should we use different spinlocks for each ctx?
-+		 */
-+		spinlock_t lock;
++		struct mutex mtx_lznt;
 +		struct lznt *lznt;
 +#ifdef CONFIG_NTFS3_LZX_XPRESS
++		struct mutex mtx_xpress;
 +		struct xpress_decompressor *xpress;
++		struct mutex mtx_lzx;
 +		struct lzx_decompressor *lzx;
 +#endif
 +	} compress;
@@ -1640,7 +1704,7 @@ index 000000000000..402ba820f99d
 +	 * Range [i_valid - inode->i_size) - contains 0
 +	 * Usually i_valid <= inode->i_size
 +	 */
-+	loff_t i_valid;
++	u64 i_valid;
 +	struct timespec64 i_crtime;
 +
 +	struct mutex ni_lock;
@@ -1729,6 +1793,8 @@ index 000000000000..402ba820f99d
 +			     CLST frame, CLST *clst_data);
 +int attr_allocate_frame(struct ntfs_inode *ni, CLST frame, size_t compr_size,
 +			u64 new_valid);
++int attr_collapse_range(struct ntfs_inode *ni, u64 vbo, u64 bytes);
++int attr_punch_hole(struct ntfs_inode *ni, u64 vbo, u64 bytes);
 +
 +/* functions from attrlist.c*/
 +void al_destroy(struct ntfs_inode *ni);
@@ -1778,8 +1844,7 @@ index 000000000000..402ba820f99d
 +void ntfs_sparse_cluster(struct inode *inode, struct page *page0, CLST vcn,
 +			 CLST len);
 +int ntfs_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync);
-+void ntfs_truncate_blocks(struct inode *inode, loff_t offset);
-+int ntfs_setattr(struct dentry *dentry, struct iattr *attr);
++int ntfs3_setattr(struct dentry *dentry, struct iattr *attr);
 +int ntfs_file_open(struct inode *inode, struct file *file);
 +int ntfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
 +		__u64 start, __u64 len);
@@ -1801,7 +1866,8 @@ index 000000000000..402ba820f99d
 +			    u8 name_len, const CLST *vcn,
 +			    struct mft_inode **mi);
 +struct ATTRIB *ni_enum_attr_ex(struct ntfs_inode *ni, struct ATTRIB *attr,
-+			       struct ATTR_LIST_ENTRY **le);
++			       struct ATTR_LIST_ENTRY **le,
++			       struct mft_inode **mi);
 +struct ATTRIB *ni_load_attr(struct ntfs_inode *ni, enum ATTR_TYPE type,
 +			    const __le16 *name, u8 name_len, CLST vcn,
 +			    struct mft_inode **pmi);
@@ -1829,7 +1895,6 @@ index 000000000000..402ba820f99d
 +				     struct ATTR_LIST_ENTRY **entry);
 +struct ATTR_FILE_NAME *ni_fname_type(struct ntfs_inode *ni, u8 name_type,
 +				     struct ATTR_LIST_ENTRY **entry);
-+u16 ni_fnames_count(struct ntfs_inode *ni);
 +int ni_new_attr_flags(struct ntfs_inode *ni, enum FILE_ATTRIBUTE new_fa);
 +enum REPARSE_SIGN ni_parse_reparse(struct ntfs_inode *ni, struct ATTRIB *attr,
 +				   void *buffer);
@@ -1951,7 +2016,7 @@ index 000000000000..402ba820f99d
 +int reset_log_file(struct inode *inode);
 +int ntfs_get_block(struct inode *inode, sector_t vbn,
 +		   struct buffer_head *bh_result, int create);
-+int ntfs_write_inode(struct inode *inode, struct writeback_control *wbc);
++int ntfs3_write_inode(struct inode *inode, struct writeback_control *wbc);
 +int ntfs_sync_inode(struct inode *inode);
 +int ntfs_flush_inodes(struct super_block *sb, struct inode *i1,
 +		      struct inode *i2);
@@ -1963,7 +2028,6 @@ index 000000000000..402ba820f99d
 +int ntfs_link_inode(struct inode *inode, struct dentry *dentry);
 +int ntfs_unlink_inode(struct inode *dir, const struct dentry *dentry);
 +void ntfs_evict_inode(struct inode *inode);
-+int ntfs_readpage(struct file *file, struct page *page);
 +extern const struct inode_operations ntfs_link_inode_operations;
 +extern const struct address_space_operations ntfs_aops;
 +extern const struct address_space_operations ntfs_aops_cmpr;
@@ -1971,7 +2035,7 @@ index 000000000000..402ba820f99d
 +/* globals from name_i.c*/
 +int fill_name_de(struct ntfs_sb_info *sbi, void *buf, const struct qstr *name,
 +		 const struct cpu_str *uni);
-+struct dentry *ntfs_get_parent(struct dentry *child);
++struct dentry *ntfs3_get_parent(struct dentry *child);
 +
 +extern const struct inode_operations ntfs_dir_inode_operations;
 +
@@ -2027,6 +2091,7 @@ index 000000000000..402ba820f99d
 +bool run_lookup(const struct runs_tree *run, CLST vcn, size_t *Index);
 +bool run_add_entry(struct runs_tree *run, CLST vcn, CLST lcn, CLST len,
 +		   bool is_mft);
++bool run_collapse_range(struct runs_tree *run, CLST vcn, CLST len);
 +bool run_get_entry(const struct runs_tree *run, size_t index, CLST *vcn,
 +		   CLST *lcn, CLST *len);
 +bool run_is_mapped_full(const struct runs_tree *run, CLST svcn, CLST evcn);
@@ -2058,13 +2123,11 @@ index 000000000000..402ba820f99d
 +{
 +	return wnd->total_zeroes;
 +}
-+void wnd_trace(struct wnd_bitmap *wnd);
-+void wnd_trace_tree(struct wnd_bitmap *wnd, u32 nExtents, const char *Hint);
-+int wnd_init(struct wnd_bitmap *wnd, struct super_block *sb, size_t nBits);
-+int wnd_set_free(struct wnd_bitmap *wnd, size_t FirstBit, size_t Bits);
-+int wnd_set_used(struct wnd_bitmap *wnd, size_t FirstBit, size_t Bits);
-+bool wnd_is_free(struct wnd_bitmap *wnd, size_t FirstBit, size_t Bits);
-+bool wnd_is_used(struct wnd_bitmap *wnd, size_t FirstBit, size_t Bits);
++int wnd_init(struct wnd_bitmap *wnd, struct super_block *sb, size_t nbits);
++int wnd_set_free(struct wnd_bitmap *wnd, size_t bit, size_t bits);
++int wnd_set_used(struct wnd_bitmap *wnd, size_t bit, size_t bits);
++bool wnd_is_free(struct wnd_bitmap *wnd, size_t bit, size_t bits);
++bool wnd_is_used(struct wnd_bitmap *wnd, size_t bit, size_t bits);
 +
 +/* Possible values for 'flags' 'wnd_find' */
 +#define BITMAP_FIND_MARK_AS_USED 0x01
@@ -2082,12 +2145,18 @@ index 000000000000..402ba820f99d
 +		       const u16 *upcase);
 +
 +/* globals from xattr.c */
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +struct posix_acl *ntfs_get_acl(struct inode *inode, int type);
 +int ntfs_set_acl(struct inode *inode, struct posix_acl *acl, int type);
++int ntfs_init_acl(struct inode *inode, struct inode *dir);
++#else
++#define ntfs_get_acl NULL
++#define ntfs_set_acl NULL
++#endif
++
 +int ntfs_acl_chmod(struct inode *inode);
 +int ntfs_permission(struct inode *inode, int mask);
 +ssize_t ntfs_listxattr(struct dentry *dentry, char *buffer, size_t size);
-+int ntfs_init_acl(struct inode *inode, struct inode *dir);
 +extern const struct xattr_handler *ntfs_xattr_handlers[];
 +
 +/* globals from lznt.c */
@@ -2243,15 +2312,6 @@ index 000000000000..402ba820f99d
 +	return (size + sb->s_blocksize - 1) >> sb->s_blocksize_bits;
 +}
 +
-+/* calculates ((bytes + frame_size - 1)/frame_size)*frame_size; */
-+static inline u64 ntfs_up_frame(const struct ntfs_sb_info *sbi, u64 bytes,
-+				u8 c_unit)
-+{
-+	u32 bytes_per_frame = 1u << (c_unit + sbi->cluster_bits);
-+
-+	return (bytes + bytes_per_frame - 1) & ~(u64)(bytes_per_frame - 1);
-+}
-+
 +static inline struct buffer_head *ntfs_bread(struct super_block *sb,
 +					     sector_t block)
 +{
@@ -2384,25 +2444,6 @@ index 000000000000..402ba820f99d
 +{
 +	*var = cpu_to_le64(le64_to_cpu(*var) - val);
 +}
-+
-+#ifdef CONFIG_NTFS3_LZX_XPRESS
-+/* globals from lib/decompress_xpress.c */
-+struct xpress_decompressor *xpress_allocate_decompressor(void);
-+void xpress_free_decompressor(struct xpress_decompressor *d);
-+int xpress_decompress(struct xpress_decompressor *__restrict d,
-+		      const void *__restrict compressed_data,
-+		      size_t compressed_size,
-+		      void *__restrict uncompressed_data,
-+		      size_t uncompressed_size);
-+
-+/* globals from lib/decompress_lzx.c */
-+struct lzx_decompressor *lzx_allocate_decompressor(size_t max_block_size);
-+void lzx_free_decompressor(struct lzx_decompressor *d);
-+int lzx_decompress(struct lzx_decompressor *__restrict d,
-+		   const void *__restrict compressed_data,
-+		   size_t compressed_size, void *__restrict uncompressed_data,
-+		   size_t uncompressed_size);
-+#endif
 diff --git a/fs/ntfs3/upcase.c b/fs/ntfs3/upcase.c
 new file mode 100644
 index 000000000000..87b65f9ccc16

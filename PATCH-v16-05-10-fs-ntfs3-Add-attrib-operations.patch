@@ -8,34 +8,34 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B14FC2BB3F
-	for <linux-kernel@archiver.kernel.org>; Fri,  4 Dec 2020 15:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3292DC43381
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74F5622C97
-	for <linux-kernel@archiver.kernel.org>; Fri,  4 Dec 2020 15:49:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DEFCB233E2
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730863AbgLDPtM (ORCPT
+        id S1727936AbgLYNyS (ORCPT
         <rfc822;linux-kernel@archiver.kernel.org>);
-        Fri, 4 Dec 2020 10:49:12 -0500
-Received: from relaydlg-01.paragon-software.com ([81.5.88.159]:37126 "EHLO
-        relaydlg-01.paragon-software.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730723AbgLDPtE (ORCPT
+        Fri, 25 Dec 2020 08:54:18 -0500
+Received: from relayfre-01.paragon-software.com ([176.12.100.13]:47292 "EHLO
+        relayfre-01.paragon-software.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726259AbgLYNyM (ORCPT
         <rfc822;linux-kernel@vger.kernel.org>);
-        Fri, 4 Dec 2020 10:49:04 -0500
+        Fri, 25 Dec 2020 08:54:12 -0500
 Received: from dlg2.mail.paragon-software.com (vdlg-exch-02.paragon-software.com [172.30.1.105])
-        by relaydlg-01.paragon-software.com (Postfix) with ESMTPS id C833282246;
-        Fri,  4 Dec 2020 18:48:07 +0300 (MSK)
+        by relayfre-01.paragon-software.com (Postfix) with ESMTPS id 6FA541D70;
+        Fri, 25 Dec 2020 16:53:27 +0300 (MSK)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paragon-software.com; s=mail; t=1607096887;
-        bh=Mb60JkeMavnyjfk/pXYtNu2SmXwwz9TqXJFhSIz0n0Y=;
+        d=paragon-software.com; s=mail; t=1608904407;
+        bh=kaFxxQCzpA7g331MwhWa15TjMkvMFdTnqdL+IrCqhn4=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=E0iRQ0qxFWDosE7qiO+Auaq12bFiWsu3dL65e4qcfHqxu4Z0PrulvN7CQhhMT8+V9
-         MjgDrOBU3UR3p7nBQ1jZ2hJ+eIdhI2PA5OgPahYWw1GrAL74FJP1LE0088U61mAikB
-         nzodw5epZltQfRgZnT/1B+eg1s4qgGG+YNfoXGrQ=
+        b=fn8U3Y1FFUHsu8vR0Elt5saEyqFJ6/YRZUg6HVm8v52eM6MAurJYCBK+2S5c0C3u7
+         FJt5JHuG3GfFth6/ujfNQa0JJ7fYgsi/NiRA2qS+j7JZEppIkyyuIIdswjxezL/V0X
+         T/Yg4AwS+wS7cc792Sh/NnBBQFCrjLJEAD9kLsSE=
 Received: from fsd-lkpg.ufsd.paragon-software.com (172.30.114.105) by
  vdlg-exch-02.paragon-software.com (172.30.1.105) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1847.3; Fri, 4 Dec 2020 18:48:07 +0300
+ 15.1.1847.3; Fri, 25 Dec 2020 16:53:26 +0300
 From:   Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 To:     <linux-fsdevel@vger.kernel.org>
 CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
@@ -45,12 +45,12 @@ CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
         <linux-ntfs-dev@lists.sourceforge.net>, <anton@tuxera.com>,
         <dan.carpenter@oracle.com>, <hch@lst.de>, <ebiggers@kernel.org>,
         Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Subject: [PATCH v14 05/10] fs/ntfs3: Add attrib operations
-Date:   Fri, 4 Dec 2020 18:45:55 +0300
-Message-ID: <20201204154600.1546096-6-almaz.alexandrovich@paragon-software.com>
+Subject: [PATCH v16 05/10] fs/ntfs3: Add attrib operations
+Date:   Fri, 25 Dec 2020 16:51:14 +0300
+Message-ID: <20201225135119.3666763-6-almaz.alexandrovich@paragon-software.com>
 X-Mailer: git-send-email 2.25.4
-In-Reply-To: <20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com>
-References: <20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com>
+In-Reply-To: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
+References: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -60,7 +60,7 @@ X-ClientProxiedBy: vdlg-exch-02.paragon-software.com (172.30.1.105) To
 Precedence: bulk
 List-ID: <linux-kernel.vger.kernel.org>
 X-Mailing-List: linux-kernel@vger.kernel.org
-Archived-At: <https://lore.kernel.org/lkml/20201204154600.1546096-6-almaz.alexandrovich@paragon-software.com/>
+Archived-At: <https://lore.kernel.org/lkml/20201225135119.3666763-6-almaz.alexandrovich@paragon-software.com/>
 List-Archive: <https://lore.kernel.org/lkml/>
 List-Post: <mailto:linux-kernel@vger.kernel.org>
 
@@ -68,20 +68,20 @@ This adds attrib operations
 
 Signed-off-by: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 ---
- fs/ntfs3/attrib.c   | 1682 +++++++++++++++++++++++++++++++++++++++++++
- fs/ntfs3/attrlist.c |  463 ++++++++++++
- fs/ntfs3/xattr.c    | 1073 +++++++++++++++++++++++++++
- 3 files changed, 3218 insertions(+)
+ fs/ntfs3/attrib.c   | 2080 +++++++++++++++++++++++++++++++++++++++++++
+ fs/ntfs3/attrlist.c |  463 ++++++++++
+ fs/ntfs3/xattr.c    | 1072 ++++++++++++++++++++++
+ 3 files changed, 3615 insertions(+)
  create mode 100644 fs/ntfs3/attrib.c
  create mode 100644 fs/ntfs3/attrlist.c
  create mode 100644 fs/ntfs3/xattr.c
 
 diff --git a/fs/ntfs3/attrib.c b/fs/ntfs3/attrib.c
 new file mode 100644
-index 000000000000..b6340181d68b
+index 000000000000..3f4c847c4962
 --- /dev/null
 +++ b/fs/ntfs3/attrib.c
-@@ -0,0 +1,1682 @@
+@@ -0,0 +1,2080 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
@@ -252,7 +252,7 @@ index 000000000000..b6340181d68b
 +
 +out:
 +	if (done)
-+		*done = dn;
++		*done += dn;
 +
 +	return err;
 +}
@@ -770,6 +770,7 @@ index 000000000000..b6340181d68b
 +		vcn = max(svcn, new_alen);
 +		new_alloc_tmp = (u64)vcn << cluster_bits;
 +
++		alen = 0;
 +		err = run_deallocate_ex(sbi, run, vcn, evcn - vcn + 1, &alen,
 +					true);
 +		if (err)
@@ -1764,6 +1765,403 @@ index 000000000000..b6340181d68b
 +
 +	return err;
 +}
++
++/* Collapse range in file */
++int attr_collapse_range(struct ntfs_inode *ni, u64 vbo, u64 bytes)
++{
++	int err = 0;
++	struct runs_tree *run = &ni->file.run;
++	struct ntfs_sb_info *sbi = ni->mi.sbi;
++	struct ATTRIB *attr, *attr_b;
++	struct ATTR_LIST_ENTRY *le, *le_b;
++	struct mft_inode *mi, *mi_b;
++	CLST svcn, evcn1, len, dealloc, alen;
++	CLST vcn, end;
++	u64 valid_size, data_size, alloc_size, total_size;
++	u32 mask;
++	__le16 a_flags;
++
++	if (!bytes)
++		return 0;
++
++	le_b = NULL;
++	attr_b = ni_find_attr(ni, NULL, &le_b, ATTR_DATA, NULL, 0, NULL, &mi_b);
++	if (!attr_b)
++		return -ENOENT;
++
++	if (!attr_b->non_res) {
++		/* Attribute is resident. Nothing to do? */
++		return 0;
++	}
++
++	data_size = le64_to_cpu(attr_b->nres.data_size);
++	valid_size = le64_to_cpu(attr_b->nres.valid_size);
++	alloc_size = le64_to_cpu(attr_b->nres.alloc_size);
++	a_flags = attr_b->flags;
++
++	if (is_attr_ext(attr_b)) {
++		total_size = le64_to_cpu(attr_b->nres.total_size);
++		mask = (1u << (attr_b->nres.c_unit + sbi->cluster_bits)) - 1;
++	} else {
++		total_size = alloc_size;
++		mask = sbi->cluster_mask;
++	}
++
++	if (vbo & mask)
++		return -EINVAL;
++
++	if (bytes & mask)
++		return -EINVAL;
++
++	if (vbo > data_size)
++		return -EINVAL;
++
++	down_write(&ni->file.run_lock);
++
++	if (vbo + bytes >= data_size) {
++		u64 new_valid = min(ni->i_valid, vbo);
++
++		/* Simple truncate file at 'vbo' */
++		truncate_setsize(&ni->vfs_inode, vbo);
++		err = attr_set_size(ni, ATTR_DATA, NULL, 0, &ni->file.run, vbo,
++				    &new_valid, true, NULL);
++
++		if (!err && new_valid < ni->i_valid)
++			ni->i_valid = new_valid;
++
++		goto out;
++	}
++
++	/*
++	 * Enumerate all attribute segments and collapse
++	 */
++	alen = alloc_size >> sbi->cluster_bits;
++	vcn = vbo >> sbi->cluster_bits;
++	len = bytes >> sbi->cluster_bits;
++	end = vcn + len;
++	dealloc = 0;
++
++	svcn = le64_to_cpu(attr_b->nres.svcn);
++	evcn1 = le64_to_cpu(attr_b->nres.evcn) + 1;
++
++	if (svcn <= vcn && vcn < evcn1) {
++		attr = attr_b;
++		le = le_b;
++		mi = mi_b;
++	} else if (!le_b) {
++		err = -EINVAL;
++		goto out;
++	} else {
++		le = le_b;
++		attr = ni_find_attr(ni, attr_b, &le, ATTR_DATA, NULL, 0, &vcn,
++				    &mi);
++		if (!attr) {
++			err = -EINVAL;
++			goto out;
++		}
++
++		svcn = le64_to_cpu(attr->nres.svcn);
++		evcn1 = le64_to_cpu(attr->nres.evcn) + 1;
++	}
++
++	for (;;) {
++		if (svcn >= end) {
++			/* shift vcn */
++			attr->nres.svcn = cpu_to_le64(svcn - len);
++			attr->nres.evcn = cpu_to_le64(evcn1 - 1 - len);
++			if (le) {
++				le->vcn = attr->nres.svcn;
++				ni->attr_list.dirty = true;
++			}
++			mi->dirty = true;
++		} else if (svcn < vcn || end < evcn1) {
++			CLST vcn1, eat, next_svcn;
++
++			/* collapse a part of this attribute segment */
++			err = attr_load_runs(attr, ni, run, &svcn);
++			if (err)
++				goto out;
++			vcn1 = max(vcn, svcn);
++			eat = min(end, evcn1) - vcn1;
++
++			err = run_deallocate_ex(sbi, run, vcn1, eat, &dealloc,
++						true);
++			if (err)
++				goto out;
++
++			if (!run_collapse_range(run, vcn1, eat)) {
++				err = -ENOMEM;
++				goto out;
++			}
++
++			if (svcn >= vcn) {
++				/* shift vcn */
++				attr->nres.svcn = cpu_to_le64(vcn);
++				if (le) {
++					le->vcn = attr->nres.svcn;
++					ni->attr_list.dirty = true;
++				}
++			}
++
++			err = mi_pack_runs(mi, attr, run, evcn1 - svcn - eat);
++			if (err)
++				goto out;
++
++			next_svcn = le64_to_cpu(attr->nres.evcn) + 1;
++			if (next_svcn + eat < evcn1) {
++				err = ni_insert_nonresident(
++					ni, ATTR_DATA, NULL, 0, run, next_svcn,
++					evcn1 - eat - next_svcn, a_flags, &attr,
++					&mi);
++				if (err)
++					goto out;
++
++				/* layout of records maybe changed */
++				attr_b = NULL;
++				le = al_find_ex(ni, NULL, ATTR_DATA, NULL, 0,
++						&next_svcn);
++				if (!le) {
++					err = -EINVAL;
++					goto out;
++				}
++			}
++
++			/* free all allocated memory */
++			run_truncate(run, 0);
++		} else {
++			u16 le_sz;
++			u16 roff = le16_to_cpu(attr->nres.run_off);
++
++			/*run==1 means unpack and deallocate*/
++			run_unpack_ex(RUN_DEALLOCATE, sbi, ni->mi.rno, svcn,
++				      evcn1 - 1, svcn, Add2Ptr(attr, roff),
++				      le32_to_cpu(attr->size) - roff);
++
++			/* delete this attribute segment */
++			mi_remove_attr(mi, attr);
++			if (!le)
++				break;
++
++			le_sz = le16_to_cpu(le->size);
++			if (!al_remove_le(ni, le)) {
++				err = -EINVAL;
++				goto out;
++			}
++
++			if (evcn1 >= alen)
++				break;
++
++			if (!svcn) {
++				/* Load next record that contains this attribute */
++				if (ni_load_mi(ni, le, &mi)) {
++					err = -EINVAL;
++					goto out;
++				}
++
++				/* Look for required attribute */
++				attr = mi_find_attr(mi, NULL, ATTR_DATA, NULL,
++						    0, &le->id);
++				if (!attr) {
++					err = -EINVAL;
++					goto out;
++				}
++				goto next_attr;
++			}
++			le = (struct ATTR_LIST_ENTRY *)((u8 *)le - le_sz);
++		}
++
++		if (evcn1 >= alen)
++			break;
++
++		attr = ni_enum_attr_ex(ni, attr, &le, &mi);
++		if (!attr) {
++			err = -EINVAL;
++			goto out;
++		}
++
++next_attr:
++		svcn = le64_to_cpu(attr->nres.svcn);
++		evcn1 = le64_to_cpu(attr->nres.evcn) + 1;
++	}
++
++	if (vbo + bytes <= valid_size)
++		valid_size -= bytes;
++	else if (vbo < valid_size)
++		valid_size = vbo;
++
++	if (!attr_b) {
++		le_b = NULL;
++		attr_b = ni_find_attr(ni, NULL, &le_b, ATTR_DATA, NULL, 0, NULL,
++				      &mi_b);
++		if (!attr_b) {
++			err = -ENOENT;
++			goto out;
++		}
++	}
++
++	attr_b->nres.alloc_size = cpu_to_le64(alloc_size - bytes);
++	attr_b->nres.data_size = cpu_to_le64(data_size - bytes);
++	attr_b->nres.valid_size = cpu_to_le64(valid_size);
++	total_size -= (u64)dealloc << sbi->cluster_bits;
++	if (is_attr_ext(attr_b))
++		attr_b->nres.total_size = cpu_to_le64(total_size);
++	mi_b->dirty = true;
++
++	/*update inode size*/
++	ni->i_valid = valid_size;
++	ni->vfs_inode.i_size = data_size - bytes;
++	inode_set_bytes(&ni->vfs_inode, total_size);
++	ni->ni_flags |= NI_FLAG_UPDATE_PARENT;
++	mark_inode_dirty(&ni->vfs_inode);
++
++out:
++	up_write(&ni->file.run_lock);
++	if (err)
++		make_bad_inode(&ni->vfs_inode);
++
++	return err;
++}
++
++/* not for normal files */
++int attr_punch_hole(struct ntfs_inode *ni, u64 vbo, u64 bytes)
++{
++	int err = 0;
++	struct runs_tree *run = &ni->file.run;
++	struct ntfs_sb_info *sbi = ni->mi.sbi;
++	struct ATTRIB *attr, *attr_b;
++	struct ATTR_LIST_ENTRY *le, *le_b;
++	struct mft_inode *mi, *mi_b;
++	CLST svcn, evcn1, vcn, len, end, alen, dealloc;
++	u64 total_size, alloc_size;
++
++	if (!bytes)
++		return 0;
++
++	le_b = NULL;
++	attr_b = ni_find_attr(ni, NULL, &le_b, ATTR_DATA, NULL, 0, NULL, &mi_b);
++	if (!attr_b)
++		return -ENOENT;
++
++	if (!attr_b->non_res) {
++		u32 data_size = le32_to_cpu(attr->res.data_size);
++		u32 from, to;
++
++		if (vbo > data_size)
++			return 0;
++
++		from = vbo;
++		to = (vbo + bytes) < data_size ? (vbo + bytes) : data_size;
++		memset(Add2Ptr(resident_data(attr_b), from), 0, to - from);
++		return 0;
++	}
++
++	/* TODO: add support for normal files too */
++	if (!is_attr_ext(attr_b))
++		return -EOPNOTSUPP;
++
++	alloc_size = le64_to_cpu(attr_b->nres.alloc_size);
++	total_size = le64_to_cpu(attr_b->nres.total_size);
++
++	if (vbo >= alloc_size) {
++		// NOTE: it is allowed
++		return 0;
++	}
++
++	if (vbo + bytes > alloc_size)
++		bytes = alloc_size - vbo;
++
++	down_write(&ni->file.run_lock);
++	/*
++	 * Enumerate all attribute segments and punch hole where necessary
++	 */
++	alen = alloc_size >> sbi->cluster_bits;
++	vcn = vbo >> sbi->cluster_bits;
++	len = bytes >> sbi->cluster_bits;
++	end = vcn + len;
++	dealloc = 0;
++
++	svcn = le64_to_cpu(attr_b->nres.svcn);
++	evcn1 = le64_to_cpu(attr_b->nres.evcn) + 1;
++
++	if (svcn <= vcn && vcn < evcn1) {
++		attr = attr_b;
++		le = le_b;
++		mi = mi_b;
++	} else if (!le_b) {
++		err = -EINVAL;
++		goto out;
++	} else {
++		le = le_b;
++		attr = ni_find_attr(ni, attr_b, &le, ATTR_DATA, NULL, 0, &vcn,
++				    &mi);
++		if (!attr) {
++			err = -EINVAL;
++			goto out;
++		}
++
++		svcn = le64_to_cpu(attr->nres.svcn);
++		evcn1 = le64_to_cpu(attr->nres.evcn) + 1;
++	}
++
++	while (svcn < end) {
++		CLST vcn1, zero, dealloc2;
++
++		err = attr_load_runs(attr, ni, run, &svcn);
++		if (err)
++			goto out;
++		vcn1 = max(vcn, svcn);
++		zero = min(end, evcn1) - vcn1;
++
++		dealloc2 = dealloc;
++		err = run_deallocate_ex(sbi, run, vcn1, zero, &dealloc, true);
++		if (err)
++			goto out;
++
++		if (dealloc2 == dealloc) {
++			/* looks like  the required range is already sparsed */
++		} else {
++			if (!run_add_entry(run, vcn1, SPARSE_LCN, zero,
++					   false)) {
++				err = -ENOMEM;
++				goto out;
++			}
++
++			err = mi_pack_runs(mi, attr, run, evcn1 - svcn);
++			if (err)
++				goto out;
++		}
++		/* free all allocated memory */
++		run_truncate(run, 0);
++
++		if (evcn1 >= alen)
++			break;
++
++		attr = ni_enum_attr_ex(ni, attr, &le, &mi);
++		if (!attr) {
++			err = -EINVAL;
++			goto out;
++		}
++
++		svcn = le64_to_cpu(attr->nres.svcn);
++		evcn1 = le64_to_cpu(attr->nres.evcn) + 1;
++	}
++
++	total_size -= (u64)dealloc << sbi->cluster_bits;
++	attr_b->nres.total_size = cpu_to_le64(total_size);
++	mi_b->dirty = true;
++
++	/*update inode size*/
++	inode_set_bytes(&ni->vfs_inode, total_size);
++	ni->ni_flags |= NI_FLAG_UPDATE_PARENT;
++	mark_inode_dirty(&ni->vfs_inode);
++
++out:
++	up_write(&ni->file.run_lock);
++	if (err)
++		make_bad_inode(&ni->vfs_inode);
++
++	return err;
++}
 diff --git a/fs/ntfs3/attrlist.c b/fs/ntfs3/attrlist.c
 new file mode 100644
 index 000000000000..e94512259354
@@ -2235,10 +2633,10 @@ index 000000000000..e94512259354
 +}
 diff --git a/fs/ntfs3/xattr.c b/fs/ntfs3/xattr.c
 new file mode 100644
-index 000000000000..06eafeb0436f
+index 000000000000..86f95c166a62
 --- /dev/null
 +++ b/fs/ntfs3/xattr.c
-@@ -0,0 +1,1073 @@
+@@ -0,0 +1,1072 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
@@ -2713,6 +3111,7 @@ index 000000000000..06eafeb0436f
 +	return err;
 +}
 +
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +static inline void ntfs_posix_acl_release(struct posix_acl *acl)
 +{
 +	if (acl && refcount_dec_and_test(&acl->a_refcount))
@@ -2911,14 +3310,71 @@ index 000000000000..06eafeb0436f
 +}
 +
 +/*
++ * Initialize the ACLs of a new inode. Called from ntfs_create_inode.
++ */
++int ntfs_init_acl(struct inode *inode, struct inode *dir)
++{
++	struct posix_acl *default_acl, *acl;
++	int err;
++
++	/*
++	 * TODO refactoring lock
++	 * ni_lock(dir) ... -> posix_acl_create(dir,...) -> ntfs_get_acl -> ni_lock(dir)
++	 */
++	inode->i_default_acl = NULL;
++
++	default_acl = ntfs_get_acl_ex(dir, ACL_TYPE_DEFAULT, 1);
++
++	if (!default_acl || default_acl == ERR_PTR(-EOPNOTSUPP)) {
++		inode->i_mode &= ~current_umask();
++		err = 0;
++		goto out;
++	}
++
++	if (IS_ERR(default_acl)) {
++		err = PTR_ERR(default_acl);
++		goto out;
++	}
++
++	acl = default_acl;
++	err = __posix_acl_create(&acl, GFP_NOFS, &inode->i_mode);
++	if (err < 0)
++		goto out1;
++	if (!err) {
++		posix_acl_release(acl);
++		acl = NULL;
++	}
++
++	if (!S_ISDIR(inode->i_mode)) {
++		posix_acl_release(default_acl);
++		default_acl = NULL;
++	}
++
++	if (default_acl)
++		err = ntfs_set_acl_ex(inode, default_acl, ACL_TYPE_DEFAULT, 1);
++
++	if (!acl)
++		inode->i_acl = NULL;
++	else if (!err)
++		err = ntfs_set_acl_ex(inode, acl, ACL_TYPE_ACCESS, 1);
++
++	posix_acl_release(acl);
++out1:
++	posix_acl_release(default_acl);
++
++out:
++	return err;
++}
++#endif
++
++/*
 + * ntfs_acl_chmod
 + *
-+ * helper for 'ntfs_setattr'
++ * helper for 'ntfs3_setattr'
 + */
 +int ntfs_acl_chmod(struct inode *inode)
 +{
 +	struct super_block *sb = inode->i_sb;
-+	int err;
 +
 +	if (!(sb->s_flags & SB_POSIXACL))
 +		return 0;
@@ -2926,9 +3382,7 @@ index 000000000000..06eafeb0436f
 +	if (S_ISLNK(inode->i_mode))
 +		return -EOPNOTSUPP;
 +
-+	err = posix_acl_chmod(inode, inode->i_mode);
-+
-+	return err;
++	return posix_acl_chmod(inode, inode->i_mode);
 +}
 +
 +/*
@@ -2938,18 +3392,12 @@ index 000000000000..06eafeb0436f
 + */
 +int ntfs_permission(struct inode *inode, int mask)
 +{
-+	struct super_block *sb = inode->i_sb;
-+	struct ntfs_sb_info *sbi = sb->s_fs_info;
-+	int err;
-+
-+	if (sbi->options.no_acs_rules) {
++	if (ntfs_sb(inode->i_sb)->options.no_acs_rules) {
 +		/* "no access rules" mode - allow all changes */
 +		return 0;
 +	}
 +
-+	err = generic_permission(inode, mask);
-+
-+	return err;
++	return generic_permission(inode, mask);
 +}
 +
 +/*
@@ -3074,6 +3522,7 @@ index 000000000000..06eafeb0436f
 +		goto out;
 +	}
 +
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +	if ((name_len == sizeof(XATTR_NAME_POSIX_ACL_ACCESS) - 1 &&
 +	     !memcmp(name, XATTR_NAME_POSIX_ACL_ACCESS,
 +		     sizeof(XATTR_NAME_POSIX_ACL_ACCESS))) ||
@@ -3086,9 +3535,11 @@ index 000000000000..06eafeb0436f
 +				ACL_TYPE_ACCESS :
 +				ACL_TYPE_DEFAULT,
 +			buffer, size);
-+	} else {
-+		err = ntfs_getxattr_hlp(inode, name, buffer, size, NULL);
++		goto out;
 +	}
++#endif
++	/* deal with ntfs extended attribute */
++	err = ntfs_getxattr_hlp(inode, name, buffer, size, NULL);
 +
 +out:
 +	return err;
@@ -3219,6 +3670,7 @@ index 000000000000..06eafeb0436f
 +		goto out;
 +	}
 +
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +	if ((name_len == sizeof(XATTR_NAME_POSIX_ACL_ACCESS) - 1 &&
 +	     !memcmp(name, XATTR_NAME_POSIX_ACL_ACCESS,
 +		     sizeof(XATTR_NAME_POSIX_ACL_ACCESS))) ||
@@ -3231,66 +3683,11 @@ index 000000000000..06eafeb0436f
 +				ACL_TYPE_ACCESS :
 +				ACL_TYPE_DEFAULT,
 +			value, size);
-+	} else {
-+		err = ntfs_set_ea(inode, name, value, size, flags, 0);
-+	}
-+
-+out:
-+	return err;
-+}
-+
-+/*
-+ * Initialize the ACLs of a new inode. Called from ntfs_create_inode.
-+ */
-+int ntfs_init_acl(struct inode *inode, struct inode *dir)
-+{
-+	struct posix_acl *default_acl, *acl;
-+	int err;
-+
-+	/*
-+	 * TODO refactoring lock
-+	 * ni_lock(dir) ... -> posix_acl_create(dir,...) -> ntfs_get_acl -> ni_lock(dir)
-+	 */
-+	inode->i_default_acl = NULL;
-+
-+	default_acl = ntfs_get_acl_ex(dir, ACL_TYPE_DEFAULT, 1);
-+
-+	if (!default_acl || default_acl == ERR_PTR(-EOPNOTSUPP)) {
-+		inode->i_mode &= ~current_umask();
-+		err = 0;
 +		goto out;
 +	}
-+
-+	if (IS_ERR(default_acl)) {
-+		err = PTR_ERR(default_acl);
-+		goto out;
-+	}
-+
-+	acl = default_acl;
-+	err = __posix_acl_create(&acl, GFP_NOFS, &inode->i_mode);
-+	if (err < 0)
-+		goto out1;
-+	if (!err) {
-+		posix_acl_release(acl);
-+		acl = NULL;
-+	}
-+
-+	if (!S_ISDIR(inode->i_mode)) {
-+		posix_acl_release(default_acl);
-+		default_acl = NULL;
-+	}
-+
-+	if (default_acl)
-+		err = ntfs_set_acl_ex(inode, default_acl, ACL_TYPE_DEFAULT, 1);
-+
-+	if (!acl)
-+		inode->i_acl = NULL;
-+	else if (!err)
-+		err = ntfs_set_acl_ex(inode, acl, ACL_TYPE_ACCESS, 1);
-+
-+	posix_acl_release(acl);
-+out1:
-+	posix_acl_release(default_acl);
++#endif
++	/* deal with ntfs extended attribute */
++	err = ntfs_set_ea(inode, name, value, size, flags, 0);
 +
 +out:
 +	return err;

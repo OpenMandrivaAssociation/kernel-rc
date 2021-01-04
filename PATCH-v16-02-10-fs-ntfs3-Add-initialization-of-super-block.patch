@@ -8,34 +8,34 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47B4FC1B0D9
-	for <linux-kernel@archiver.kernel.org>; Fri,  4 Dec 2020 15:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7858FC4332D
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12D9E22C9C
-	for <linux-kernel@archiver.kernel.org>; Fri,  4 Dec 2020 15:49:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39A4F2333B
+	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:54:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730807AbgLDPs7 (ORCPT
+        id S1729186AbgLYNyY (ORCPT
         <rfc822;linux-kernel@archiver.kernel.org>);
-        Fri, 4 Dec 2020 10:48:59 -0500
-Received: from relayfre-01.paragon-software.com ([176.12.100.13]:55210 "EHLO
+        Fri, 25 Dec 2020 08:54:24 -0500
+Received: from relayfre-01.paragon-software.com ([176.12.100.13]:47240 "EHLO
         relayfre-01.paragon-software.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730497AbgLDPs4 (ORCPT
+        by vger.kernel.org with ESMTP id S1726164AbgLYNyU (ORCPT
         <rfc822;linux-kernel@vger.kernel.org>);
-        Fri, 4 Dec 2020 10:48:56 -0500
+        Fri, 25 Dec 2020 08:54:20 -0500
 Received: from dlg2.mail.paragon-software.com (vdlg-exch-02.paragon-software.com [172.30.1.105])
-        by relayfre-01.paragon-software.com (Postfix) with ESMTPS id 2F7AF1D2D;
-        Fri,  4 Dec 2020 18:48:07 +0300 (MSK)
+        by relayfre-01.paragon-software.com (Postfix) with ESMTPS id 378001D60;
+        Fri, 25 Dec 2020 16:53:26 +0300 (MSK)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paragon-software.com; s=mail; t=1607096887;
-        bh=UzZrLzB+qcyDrnPJLsujLosIxI4A6el31A6itemIrFE=;
+        d=paragon-software.com; s=mail; t=1608904406;
+        bh=vutJMCWewDkU0CfOQtx+/cTQ7kZDXsADiZSdaCyB/+M=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=NTGINcyEx+Shnt+gQMmOT5Li4+4zwng30xpIFSZUnjJaebsJMmCmTnJNWCThsQZI6
-         0+NN+jb+D5K1b2zI9zg0oMM/EAYknZw+QIj2vnfICk5tg1C0N3XR+ku5pzNI1wcCxN
-         rRDow7j5eG97TBIsS4Nclv0XpRJZ7gGDYPkDmGIg=
+        b=WYdieos2IvqQBfbwyTuM3vp9SeeVfjnCAnVI1dYGB4Wpv6ATgQyes3y7n2P975Xsd
+         NnNkoUCApjGSKTufFKqZh3ShTakHMyyg9PLlQx7h7jquUGr9QRm5Zb86hnklgILYfo
+         arljlCPQKYkFJR8H6UFqbD5/OZd+ze6gtaTBlUFA=
 Received: from fsd-lkpg.ufsd.paragon-software.com (172.30.114.105) by
  vdlg-exch-02.paragon-software.com (172.30.1.105) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1847.3; Fri, 4 Dec 2020 18:48:06 +0300
+ 15.1.1847.3; Fri, 25 Dec 2020 16:53:25 +0300
 From:   Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 To:     <linux-fsdevel@vger.kernel.org>
 CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
@@ -45,12 +45,12 @@ CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
         <linux-ntfs-dev@lists.sourceforge.net>, <anton@tuxera.com>,
         <dan.carpenter@oracle.com>, <hch@lst.de>, <ebiggers@kernel.org>,
         Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Subject: [PATCH v14 02/10] fs/ntfs3: Add initialization of super block
-Date:   Fri, 4 Dec 2020 18:45:52 +0300
-Message-ID: <20201204154600.1546096-3-almaz.alexandrovich@paragon-software.com>
+Subject: [PATCH v16 02/10] fs/ntfs3: Add initialization of super block
+Date:   Fri, 25 Dec 2020 16:51:11 +0300
+Message-ID: <20201225135119.3666763-3-almaz.alexandrovich@paragon-software.com>
 X-Mailer: git-send-email 2.25.4
-In-Reply-To: <20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com>
-References: <20201204154600.1546096-1-almaz.alexandrovich@paragon-software.com>
+In-Reply-To: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
+References: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -60,7 +60,7 @@ X-ClientProxiedBy: vdlg-exch-02.paragon-software.com (172.30.1.105) To
 Precedence: bulk
 List-ID: <linux-kernel.vger.kernel.org>
 X-Mailing-List: linux-kernel@vger.kernel.org
-Archived-At: <https://lore.kernel.org/lkml/20201204154600.1546096-3-almaz.alexandrovich@paragon-software.com/>
+Archived-At: <https://lore.kernel.org/lkml/20201225135119.3666763-3-almaz.alexandrovich@paragon-software.com/>
 List-Archive: <https://lore.kernel.org/lkml/>
 List-Post: <mailto:linux-kernel@vger.kernel.org>
 
@@ -68,11 +68,11 @@ This adds initialization of super block
 
 Signed-off-by: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 ---
- fs/ntfs3/fsntfs.c | 2528 ++++++++++++++++++++++++++++++++++++++++++
+ fs/ntfs3/fsntfs.c | 2527 ++++++++++++++++++++++++++++++++++++++++++
  fs/ntfs3/index.c  | 2665 +++++++++++++++++++++++++++++++++++++++++++++
- fs/ntfs3/inode.c  | 2056 ++++++++++++++++++++++++++++++++++
- fs/ntfs3/super.c  | 1464 +++++++++++++++++++++++++
- 4 files changed, 8713 insertions(+)
+ fs/ntfs3/inode.c  | 2061 +++++++++++++++++++++++++++++++++++
+ fs/ntfs3/super.c  | 1477 +++++++++++++++++++++++++
+ 4 files changed, 8730 insertions(+)
  create mode 100644 fs/ntfs3/fsntfs.c
  create mode 100644 fs/ntfs3/index.c
  create mode 100644 fs/ntfs3/inode.c
@@ -80,10 +80,10 @@ Signed-off-by: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 
 diff --git a/fs/ntfs3/fsntfs.c b/fs/ntfs3/fsntfs.c
 new file mode 100644
-index 000000000000..d7614749dd7e
+index 000000000000..eb972616c426
 --- /dev/null
 +++ b/fs/ntfs3/fsntfs.c
-@@ -0,0 +1,2528 @@
+@@ -0,0 +1,2527 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
@@ -1623,8 +1623,7 @@ index 000000000000..d7614749dd7e
 +
 +			if (add + off == PAGE_SIZE) {
 +				page_idx += 1;
-+				if (page_idx >= nr_pages) {
-+					WARN_ON(1);
++				if (WARN_ON(page_idx >= nr_pages)) {
 +					err = -EINVAL;
 +					goto out;
 +				}
@@ -2614,7 +2613,7 @@ index 000000000000..d7614749dd7e
 +}
 diff --git a/fs/ntfs3/index.c b/fs/ntfs3/index.c
 new file mode 100644
-index 000000000000..b7caeb3da500
+index 000000000000..64855f9c0ad4
 --- /dev/null
 +++ b/fs/ntfs3/index.c
 @@ -0,0 +1,2665 @@
@@ -2858,8 +2857,8 @@ index 000000000000..b7caeb3da500
 +	}
 +
 +	data_size = le64_to_cpu(b->nres.data_size);
-+	if (off >= data_size) {
-+		WARN_ON(1);
++	if (WARN_ON(off >= data_size)) {
++		/* looks like filesystem error */
 +		return -EINVAL;
 +	}
 +
@@ -5285,10 +5284,10 @@ index 000000000000..b7caeb3da500
 +}
 diff --git a/fs/ntfs3/inode.c b/fs/ntfs3/inode.c
 new file mode 100644
-index 000000000000..13116e68f9f6
+index 000000000000..2b64fe8c1377
 --- /dev/null
 +++ b/fs/ntfs3/inode.c
-@@ -0,0 +1,2056 @@
+@@ -0,0 +1,2061 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
@@ -5399,12 +5398,12 @@ index 000000000000..13116e68f9f6
 +
 +	/*
 +	 * to reduce tab pressure use goto instead of
-+	 * while( (attr = ni_enum_attr_ex(ni, attr, &le) ))
++	 * while( (attr = ni_enum_attr_ex(ni, attr, &le, NULL) ))
 +	 */
 +next_attr:
 +	run = NULL;
 +	err = -EINVAL;
-+	attr = ni_enum_attr_ex(ni, attr, &le);
++	attr = ni_enum_attr_ex(ni, attr, &le, NULL);
 +	if (!attr)
 +		goto end_enum;
 +
@@ -5968,7 +5967,7 @@ index 000000000000..13116e68f9f6
 +	return generic_block_bmap(mapping, block, ntfs_get_block_bmap);
 +}
 +
-+int ntfs_readpage(struct file *file, struct page *page)
++static int ntfs_readpage(struct file *file, struct page *page)
 +{
 +	int err;
 +	struct address_space *mapping = page->mapping;
@@ -6319,7 +6318,7 @@ index 000000000000..13116e68f9f6
 +	return err;
 +}
 +
-+int ntfs_write_inode(struct inode *inode, struct writeback_control *wbc)
++int ntfs3_write_inode(struct inode *inode, struct writeback_control *wbc)
 +{
 +	return _ni_write_inode(inode, wbc->sync_mode == WB_SYNC_ALL);
 +}
@@ -6876,11 +6875,14 @@ index 000000000000..13116e68f9f6
 +
 +	inode->i_mode = mode;
 +
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +	if (!is_link && (sb->s_flags & SB_POSIXACL)) {
 +		err = ntfs_init_acl(inode, dir);
 +		if (err)
 +			goto out6;
-+	} else {
++	} else
++#endif
++	{
 +		inode->i_flags |= S_NOSEC;
 +	}
 +
@@ -7254,8 +7256,10 @@ index 000000000000..13116e68f9f6
 +		goto out;
 +
 +	default:
-+		if (IsReparseTagMicrosoft(rp->ReparseTag))
++		if (IsReparseTagMicrosoft(rp->ReparseTag)) {
++			/* unknown Microsoft Tag */
 +			goto out;
++		}
 +		if (!IsReparseTagNameSurrogate(rp->ReparseTag) ||
 +		    i_size <= sizeof(struct REPARSE_POINT)) {
 +			goto out;
@@ -7323,7 +7327,7 @@ index 000000000000..13116e68f9f6
 +
 +const struct inode_operations ntfs_link_inode_operations = {
 +	.get_link = ntfs_get_link,
-+	.setattr = ntfs_setattr,
++	.setattr = ntfs3_setattr,
 +	.listxattr = ntfs_listxattr,
 +	.permission = ntfs_permission,
 +	.get_acl = ntfs_get_acl,
@@ -7347,10 +7351,10 @@ index 000000000000..13116e68f9f6
 +};
 diff --git a/fs/ntfs3/super.c b/fs/ntfs3/super.c
 new file mode 100644
-index 000000000000..6b53001052a6
+index 000000000000..f53c3f770826
 --- /dev/null
 +++ b/fs/ntfs3/super.c
-@@ -0,0 +1,1464 @@
+@@ -0,0 +1,1477 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
@@ -7385,6 +7389,9 @@ index 000000000000..6b53001052a6
 +#include "debug.h"
 +#include "ntfs.h"
 +#include "ntfs_fs.h"
++#ifdef CONFIG_NTFS3_LZX_XPRESS
++#include "lib/lib.h"
++#endif
 +
 +#ifdef CONFIG_PRINTK
 +/*
@@ -7664,8 +7671,13 @@ index 000000000000..6b53001052a6
 +			opts->nohidden = 1;
 +			break;
 +		case Opt_acl:
++#ifdef CONFIG_NTFS3_FS_POSIX_ACL
 +			sb->s_flags |= SB_POSIXACL;
 +			break;
++#else
++			ntfs_err(sb, "support for ACL not compiled in!");
++			return -EINVAL;
++#endif
 +		case Opt_noatime:
 +			sb->s_flags |= SB_NOATIME;
 +			break;
@@ -7973,7 +7985,7 @@ index 000000000000..6b53001052a6
 +	.show_options = ntfs_show_options,
 +	.sync_fs = ntfs_sync_fs,
 +	.remount_fs = ntfs_remount,
-+	.write_inode = ntfs_write_inode,
++	.write_inode = ntfs3_write_inode,
 +};
 +
 +static struct inode *ntfs_export_get_inode(struct super_block *sb, u64 ino,
@@ -8022,7 +8034,7 @@ index 000000000000..6b53001052a6
 +static const struct export_operations ntfs_export_ops = {
 +	.fh_to_dentry = ntfs_fh_to_dentry,
 +	.fh_to_parent = ntfs_fh_to_parent,
-+	.get_parent = ntfs_get_parent,
++	.get_parent = ntfs3_get_parent,
 +	.commit_metadata = ntfs_nfs_commit_metadata,
 +};
 +
@@ -8083,6 +8095,7 @@ index 000000000000..6b53001052a6
 +		goto out;
 +	}
 +
++	/* cluster size: 512, 1K, 2K, 4K, ... 2M */
 +	sct_per_clst = true_sectors_per_clst(boot);
 +	if (!is_power_of2(sct_per_clst))
 +		goto out;
@@ -8296,7 +8309,11 @@ index 000000000000..6b53001052a6
 +	if (err)
 +		goto out;
 +
-+	spin_lock_init(&sbi->compress.lock);
++	mutex_init(&sbi->compress.mtx_lznt);
++#ifdef CONFIG_NTFS3_LZX_XPRESS
++	mutex_init(&sbi->compress.mtx_xpress);
++	mutex_init(&sbi->compress.mtx_lzx);
++#endif
 +
 +	/*
 +	 * Load $Volume. This should be done before $LogFile
@@ -8585,7 +8602,7 @@ index 000000000000..6b53001052a6
 +	}
 +
 +	for (idx = 0; idx < (0x10000 * sizeof(short) >> PAGE_SHIFT); idx++) {
-+		const u16 *src;
++		const __le16 *src;
 +		u16 *dst = Add2Ptr(upcase, idx << PAGE_SHIFT);
 +		struct page *page = ntfs_map_page(inode->i_mapping, idx);
 +
