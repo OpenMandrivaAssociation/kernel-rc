@@ -877,6 +877,8 @@ rm -rf .git
 %endif
 %autopatch -p1
 
+sed -i -e "s,' ' -f 2,' ' -f 4," scripts/lld-version.sh
+
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
 #patch -p1 -b -z .1002~ <%{S:1002}
