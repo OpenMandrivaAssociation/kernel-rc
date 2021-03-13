@@ -1,7 +1,7 @@
-diff -Naur linux-5.8.5/init/Kconfig linux-5.8.5-p/init/Kconfig
---- linux-5.8.5/init/Kconfig	2020-08-27 09:31:49.000000000 +0200
-+++ linux-5.8.5-p/init/Kconfig	2020-08-29 04:06:33.201442464 +0200
-@@ -2173,10 +2173,10 @@
+diff -up linux-5.12-rc1/init/Kconfig.1~ linux-5.12-rc1/init/Kconfig
+--- linux-5.12-rc1/init/Kconfig.1~	2021-03-01 01:05:19.000000000 +0100
++++ linux-5.12-rc1/init/Kconfig	2021-03-01 02:26:16.884986987 +0100
+@@ -2218,10 +2218,10 @@ config MODULE_COMPRESS
  	bool "Compress modules on installation"
  	help
  
@@ -15,7 +15,7 @@ diff -Naur linux-5.8.5/init/Kconfig linux-5.8.5-p/init/Kconfig
  
  	  Out-of-tree kernel modules installed using Kbuild will also be
  	  compressed upon installation.
-@@ -2196,7 +2196,7 @@
+@@ -2241,7 +2241,7 @@ choice
  	  This determines which sort of compression will be used during
  	  'make modules_install'.
  
@@ -24,7 +24,7 @@ diff -Naur linux-5.8.5/init/Kconfig linux-5.8.5-p/init/Kconfig
  
  config MODULE_COMPRESS_GZIP
  	bool "GZIP"
-@@ -2204,6 +2204,9 @@
+@@ -2249,6 +2249,9 @@ config MODULE_COMPRESS_GZIP
  config MODULE_COMPRESS_XZ
  	bool "XZ"
  
@@ -34,12 +34,12 @@ diff -Naur linux-5.8.5/init/Kconfig linux-5.8.5-p/init/Kconfig
  endchoice
  
  config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
-diff -Naur linux-5.8.5/Makefile linux-5.8.5-p/Makefile
---- linux-5.8.5/Makefile	2020-08-27 09:31:49.000000000 +0200
-+++ linux-5.8.5-p/Makefile	2020-08-29 04:06:33.201442464 +0200
-@@ -1039,6 +1039,9 @@
+diff -up linux-5.12-rc1/Makefile.1~ linux-5.12-rc1/Makefile
+--- linux-5.12-rc1/Makefile.1~	2021-03-01 02:26:16.884986987 +0100
++++ linux-5.12-rc1/Makefile	2021-03-01 02:26:51.428776570 +0100
+@@ -1075,6 +1075,9 @@ ifdef CONFIG_MODULE_COMPRESS
    ifdef CONFIG_MODULE_COMPRESS_XZ
-     mod_compress_cmd = $(XZ) -f
+     mod_compress_cmd = $(XZ) --lzma2=dict=2MiB -f
    endif # CONFIG_MODULE_COMPRESS_XZ
 +  ifdef CONFIG_MODULE_COMPRESS_ZSTD
 +    mod_compress_cmd = zstd -T0 -19 -q --rm -f

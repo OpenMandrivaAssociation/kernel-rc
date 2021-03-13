@@ -1,0 +1,68 @@
+diff -up linux-5.11/tools/build/feature/test-libcrypto.c.omv~ linux-5.11/tools/build/feature/test-libcrypto.c
+--- linux-5.11/tools/build/feature/test-libcrypto.c.omv~	2021-03-13 15:54:46.670718519 +0100
++++ linux-5.11/tools/build/feature/test-libcrypto.c	2021-03-13 15:55:30.784432826 +0100
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ #include <openssl/sha.h>
+ #include <openssl/md5.h>
+ 
+diff -up linux-5.11/tools/build/feature/test-libperl.c.omv~ linux-5.11/tools/build/feature/test-libperl.c
+--- linux-5.11/tools/build/feature/test-libperl.c.omv~	2021-03-13 15:57:49.528964377 +0100
++++ linux-5.11/tools/build/feature/test-libperl.c	2021-03-13 15:58:16.449196864 +0100
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++#pragma GCC diagnostic ignored "-Wcompound-token-split-by-macro"
+ #include <EXTERN.h>
+ #include <perl.h>
+ 
+diff -up linux-5.11/tools/perf/Makefile.config.omv~ linux-5.11/tools/perf/Makefile.config
+--- linux-5.11/tools/perf/Makefile.config.omv~	2021-03-13 15:36:19.037819547 +0100
++++ linux-5.11/tools/perf/Makefile.config	2021-03-13 16:06:33.122931193 +0100
+@@ -119,6 +119,11 @@ ifdef LIBUNWIND_DIR
+   LIBUNWIND_LDFLAGS = -L$(LIBUNWIND_DIR)/lib
+   LIBUNWIND_ARCHS = x86 x86_64 arm aarch64 debug-frame-arm debug-frame-aarch64
+   $(foreach libunwind_arch,$(LIBUNWIND_ARCHS),$(call libunwind_arch_set_flags,$(libunwind_arch)))
++else
++  LIBUNWIND_CFLAGS  = -I/usr/include/libunwind
++  LIBUNWIND_LDFLAGS = -L/usr/lib64/libunwind
++  LIBUNWIND_ARCHS = x86 x86_64 arm aarch64 debug-frame-arm debug-frame-aarch64
++  $(foreach libunwind_arch,$(LIBUNWIND_ARCHS),$(call libunwind_arch_set_flags,$(libunwind_arch)))
+ endif
+ 
+ # Set per-feature check compilation flags
+@@ -988,11 +993,15 @@ ifndef NO_AUXTRACE
+ endif
+ 
+ ifndef NO_JVMTI
+-  ifneq (,$(wildcard /usr/sbin/update-java-alternatives))
+-    JDIR=$(shell /usr/sbin/update-java-alternatives -l | head -1 | awk '{print $$3}')
++  ifneq (,$(JAVA_HOME))
++    JDIR=$(JAVA_HOME)
+   else
+-    ifneq (,$(wildcard /usr/sbin/alternatives))
+-      JDIR=$(shell /usr/sbin/alternatives --display java | tail -1 | cut -d' ' -f 5 | sed -e 's%/jre/bin/java.%%g' -e 's%/bin/java.%%g')
++    ifneq (,$(wildcard /usr/sbin/update-java-alternatives))
++      JDIR=$(shell /usr/sbin/update-java-alternatives -l | head -1 | awk '{print $$3}')
++    else
++      ifneq (,$(wildcard /usr/sbin/alternatives))
++        JDIR=$(shell /usr/sbin/alternatives --display java | tail -1 | cut -d' ' -f 5 | sed -e 's%/jre/bin/java.%%g' -e 's%/bin/java.%%g')
++      endif
+     endif
+   endif
+   ifndef JDIR
+diff -up linux-5.11/tools/perf/Makefile.perf.omv~ linux-5.11/tools/perf/Makefile.perf
+--- linux-5.11/tools/perf/Makefile.perf.omv~	2021-03-13 15:26:55.426285555 +0100
++++ linux-5.11/tools/perf/Makefile.perf	2021-03-13 15:30:38.421544652 +0100
+@@ -423,6 +423,11 @@ arch_asm_uapi_dir := $(srctree)/tools/ar
+ x86_arch_asm_uapi_dir := $(srctree)/tools/arch/x86/include/uapi/asm/
+ x86_arch_asm_dir := $(srctree)/tools/arch/x86/include/asm/
+ 
++ifeq ($(ARCH),x86)
++# Make sure we can find <asm/cmpxchg.h>
++CPPFLAGS += -I$(x86_arch_asm_dir)
++endif
++
+ beauty_outdir := $(OUTPUT)trace/beauty/generated
+ beauty_ioctl_outdir := $(beauty_outdir)/ioctl
+ drm_ioctl_array := $(beauty_ioctl_outdir)/drm_ioctl_array.c

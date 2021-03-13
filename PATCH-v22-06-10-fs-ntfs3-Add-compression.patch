@@ -6,36 +6,35 @@ X-Spam-Level:
 X-Spam-Status: No, score=-23.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77B48C433E6
-	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:55:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C7CC43381
+	for <linux-kernel@archiver.kernel.org>; Mon,  1 Mar 2021 16:06:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51B1123130
-	for <linux-kernel@archiver.kernel.org>; Fri, 25 Dec 2020 13:55:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65D4B64E12
+	for <linux-kernel@archiver.kernel.org>; Mon,  1 Mar 2021 16:06:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729363AbgLYNyu (ORCPT
-        <rfc822;linux-kernel@archiver.kernel.org>);
-        Fri, 25 Dec 2020 08:54:50 -0500
-Received: from relayfre-01.paragon-software.com ([176.12.100.13]:47316 "EHLO
+        id S237535AbhCAQFn (ORCPT <rfc822;linux-kernel@archiver.kernel.org>);
+        Mon, 1 Mar 2021 11:05:43 -0500
+Received: from relayfre-01.paragon-software.com ([176.12.100.13]:56450 "EHLO
         relayfre-01.paragon-software.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726291AbgLYNyL (ORCPT
+        by vger.kernel.org with ESMTP id S235211AbhCAQEB (ORCPT
         <rfc822;linux-kernel@vger.kernel.org>);
-        Fri, 25 Dec 2020 08:54:11 -0500
+        Mon, 1 Mar 2021 11:04:01 -0500
 Received: from dlg2.mail.paragon-software.com (vdlg-exch-02.paragon-software.com [172.30.1.105])
-        by relayfre-01.paragon-software.com (Postfix) with ESMTPS id 8EB711D71;
-        Fri, 25 Dec 2020 16:53:27 +0300 (MSK)
+        by relayfre-01.paragon-software.com (Postfix) with ESMTPS id DB00F1D1D;
+        Mon,  1 Mar 2021 19:03:09 +0300 (MSK)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paragon-software.com; s=mail; t=1608904407;
-        bh=QVKUxaz4zmOd9xSGGms1ZNGnJjBJSjVXGoT9ebjYpyo=;
+        d=paragon-software.com; s=mail; t=1614614590;
+        bh=EiDIO5OxcPqZ57nTG2b2MltTB6i4zu92dHQQ9VgNi8k=;
         h=From:To:CC:Subject:Date:In-Reply-To:References;
-        b=Fs042elzVB0ZGPcuIkBFG0C95AkazF3CNA11bX2Ule5N3yM9hWVj3RTaqoXPsbJdc
-         tDdDxsXe9P1UE1dICCKGHEbGwFrPIP5+QYnU21Eu/bH6N3IqWB68YC8msDuU3QE08p
-         pWK0e+LfsROLhN2HJxqFvxUBDMuXedfyhpaWqcrE=
+        b=OghRUKQMvKwDYCvW3MWNupcR7wm5tAya9cOfDhwNbFAA2f2+8qfxwLQUarUCRywte
+         d8Uoo7p+gZVL41KZCZlYa/pPFCEwc6wWMBMPcw5C/LDSzRtQTjn5zonIAl2VcuORxt
+         83KcPmDlFwO+oqG2nu2dCHKJvNnPOM817QDLWp4Q=
 Received: from fsd-lkpg.ufsd.paragon-software.com (172.30.114.105) by
  vdlg-exch-02.paragon-software.com (172.30.1.105) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1847.3; Fri, 25 Dec 2020 16:53:27 +0300
+ 15.1.1847.3; Mon, 1 Mar 2021 19:03:08 +0300
 From:   Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 To:     <linux-fsdevel@vger.kernel.org>
 CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
@@ -44,13 +43,14 @@ CC:     <viro@zeniv.linux.org.uk>, <linux-kernel@vger.kernel.org>,
         <mark@harmstone.com>, <nborisov@suse.com>,
         <linux-ntfs-dev@lists.sourceforge.net>, <anton@tuxera.com>,
         <dan.carpenter@oracle.com>, <hch@lst.de>, <ebiggers@kernel.org>,
+        <andy.lavr@gmail.com>,
         Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Subject: [PATCH v16 06/10] fs/ntfs3: Add compression
-Date:   Fri, 25 Dec 2020 16:51:15 +0300
-Message-ID: <20201225135119.3666763-7-almaz.alexandrovich@paragon-software.com>
+Subject: [PATCH v22 06/10] fs/ntfs3: Add compression
+Date:   Mon, 1 Mar 2021 19:00:58 +0300
+Message-ID: <20210301160102.2884774-7-almaz.alexandrovich@paragon-software.com>
 X-Mailer: git-send-email 2.25.4
-In-Reply-To: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
-References: <20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com>
+In-Reply-To: <20210301160102.2884774-1-almaz.alexandrovich@paragon-software.com>
+References: <20210301160102.2884774-1-almaz.alexandrovich@paragon-software.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
@@ -60,7 +60,7 @@ X-ClientProxiedBy: vdlg-exch-02.paragon-software.com (172.30.1.105) To
 Precedence: bulk
 List-ID: <linux-kernel.vger.kernel.org>
 X-Mailing-List: linux-kernel@vger.kernel.org
-Archived-At: <https://lore.kernel.org/lkml/20201225135119.3666763-7-almaz.alexandrovich@paragon-software.com/>
+Archived-At: <https://lore.kernel.org/lkml/20210301160102.2884774-7-almaz.alexandrovich@paragon-software.com/>
 List-Archive: <https://lore.kernel.org/lkml/>
 List-Post: <mailto:linux-kernel@vger.kernel.org>
 
@@ -1669,14 +1669,14 @@ index 000000000000..3d98f36a981e
 +}
 diff --git a/fs/ntfs3/lznt.c b/fs/ntfs3/lznt.c
 new file mode 100644
-index 000000000000..edba953b754a
+index 000000000000..ead9ab7d69b3
 --- /dev/null
 +++ b/fs/ntfs3/lznt.c
 @@ -0,0 +1,452 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *
-+ * Copyright (C) 2019-2020 Paragon Software GmbH, All rights reserved.
++ * Copyright (C) 2019-2021 Paragon Software GmbH, All rights reserved.
 + *
 + */
 +#include <linux/blkdev.h>
@@ -1969,8 +1969,8 @@ index 000000000000..edba953b754a
 + */
 +struct lznt *get_lznt_ctx(int level)
 +{
-+	struct lznt *r = ntfs_alloc(
-+		level ? offsetof(struct lznt, hash) : sizeof(struct lznt), 1);
++	struct lznt *r = ntfs_zalloc(level ? offsetof(struct lznt, hash)
++					   : sizeof(struct lznt));
 +
 +	if (r)
 +		r->std = !level;
@@ -2066,9 +2066,9 @@ index 000000000000..edba953b754a
 +			unc_use = err;
 +		} else {
 +			/* This chunk does not contain compressed data */
-+			unc_use = unc_chunk + LZNT_CHUNK_SIZE > unc_end ?
-+					  unc_end - unc_chunk :
-+					  LZNT_CHUNK_SIZE;
++			unc_use = unc_chunk + LZNT_CHUNK_SIZE > unc_end
++					  ? unc_end - unc_chunk
++					  : LZNT_CHUNK_SIZE;
 +
 +			if (cmpr_chunk + sizeof(chunk_hdr) + unc_use >
 +			    cmpr_end) {

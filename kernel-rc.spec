@@ -21,9 +21,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	11
+%define patchlevel	12
 %define sublevel	0
-%define relc		7
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -120,7 +120,23 @@
 %endif
 
 # build perf and cpupower tools
-%bcond_with build_perf
+%if 0%{relc}
+# One version of bpf and perf is enough - let's build it for stable only
+%bcond_with perf
+%bcond_with bpftool
+%else
+%bcond_without perf
+# FIXME figure out why bpftool won't build on aarch64
+# as of 5.9.1, error is:
+# ./tools/bpf/resolve_btfids/resolve_btfids vmlinux
+# FAILED: load BTF from vmlinux: Unknown error -2+ on_exit
+%ifarch %{aarch64}
+%bcond_with bpftool
+%else
+%bcond_without bpftool
+%endif
+
+%endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
 %ifarch %{ix86} %{x86_64}
@@ -140,16 +156,6 @@
 %ifarch %{riscv}
 %bcond_without build_desktop
 %bcond_with build_server
-%endif
-
-# FIXME figure out why bpftool won't build on aarch64
-# as of 5.9.1, error is:
-# ./tools/bpf/resolve_btfids/resolve_btfids vmlinux
-# FAILED: load BTF from vmlinux: Unknown error -2+ on_exit
-%ifarch %{aarch64}
-%bcond_with bpftool
-%else
-%bcond_without bpftool
 %endif
 
 # End of user definitions
@@ -333,26 +339,44 @@ Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patche
 Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
-# k10temp fixes
-Patch221:	k10temp-ryzen-zen3.patch
-
 # Fix CPU frequency governor mess caused by recent Intel patches
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
 Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/revert-parts-of-a00ec3874e7d326ab2dffbed92faddf6a77a84e9-no-Intel-NO.patch
 
+# Fix perf
+Patch230:	linux-5.11-perf-compile.patch
 
 # NTFS kernel patches
 # https://lore.kernel.org/lkml/20201225135119.3666763-1-almaz.alexandrovich@paragon-software.com/
-Patch300:	PATCH-v16-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
-Patch301:	PATCH-v16-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
-Patch302:	PATCH-v16-03-10-fs-ntfs3-Add-bitmap.patch
-Patch303:	PATCH-v16-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
-Patch304:	PATCH-v16-05-10-fs-ntfs3-Add-attrib-operations.patch
-Patch305:	PATCH-v16-06-10-fs-ntfs3-Add-compression.patch
-Patch306:	PATCH-v16-07-10-fs-ntfs3-Add-NTFS-journal.patch
-Patch307:	PATCH-v16-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
-Patch308:	PATCH-v16-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
-Patch309:	PATCH-v16-10-10-fs-ntfs3-Add-MAINTAINERS.patch
+Patch300:	PATCH-v22-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
+Patch301:	PATCH-v22-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
+Patch302:	PATCH-v22-03-10-fs-ntfs3-Add-bitmap.patch
+Patch303:	PATCH-v22-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
+Patch304:	PATCH-v22-05-10-fs-ntfs3-Add-attrib-operations.patch
+Patch305:	PATCH-v22-06-10-fs-ntfs3-Add-compression.patch
+Patch306:	PATCH-v22-07-10-fs-ntfs3-Add-NTFS-journal.patch
+Patch307:	PATCH-v22-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
+Patch308:	PATCH-v22-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
+Patch309:	PATCH-v22-10-10-fs-ntfs3-Add-MAINTAINERS.patch
+
+# Bootsplash support
+# based on https://gitlab.manjaro.org/packages/core/linux511/-/tree/master
+Patch401:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0401-revert-fbcon-remove-now-unusued-softback_lines-cursor-argument.patch
+Patch402:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0402-revert-fbcon-remove-no-op-fbcon_set_origin.patch
+Patch403:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0403-revert-fbcon-remove-soft-scrollback-code.patch
+Patch501:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0501-bootsplash.patch
+Patch502:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0502-bootsplash.patch
+Patch503:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0503-bootsplash.patch
+Patch504:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0504-bootsplash.patch
+Patch505:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0505-bootsplash.patch
+Patch506:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0506-bootsplash.patch
+Patch507:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0507-bootsplash.patch
+Patch508:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0508-bootsplash.patch
+Patch509:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0509-bootsplash.patch
+Patch510:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0510-bootsplash.patch
+Patch511:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0511-bootsplash.patch
+Patch512:      https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0512-bootsplash.patch
+Source513:     https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0513-bootsplash.gitpatch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -464,7 +488,7 @@ BuildRequires:	pahole
 %endif
 
 # for perf
-%if %{with build_perf}
+%if %{with perf}
 BuildRequires:	asciidoc
 BuildRequires:	pkgconfig(audit)
 BuildRequires:	binutils-devel
@@ -720,7 +744,7 @@ Linux kernel modules at load time.
 #
 # kernel/tools
 #
-%if %{with build_perf}
+%if %{with perf}
 %package -n perf
 Version:	%{kversion}
 Release:	%{rpmrel}
@@ -876,8 +900,7 @@ xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
 %autopatch -p1
-
-sed -i -e "s,' ' -f 2,' ' -f 4," scripts/lld-version.sh
+git apply %{S:513}
 
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
@@ -1685,11 +1708,6 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 ############################################################
 ### Linker start3 > Check point to build for omv or rosa ###
 ############################################################
-%if %{with build_perf}
-%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} WERROR=0 prefix=%{_prefix} all
-%make_build -C tools/perf -s CC=%{__cc} prefix=%{_prefix} man
-%endif
-
 %if %{with build_cpupower}
 # make sure version-gen.sh is executable.
 chmod +x tools/power/cpupower/utils/version-gen.sh
@@ -1707,10 +1725,15 @@ chmod +x tools/power/cpupower/utils/version-gen.sh
 %endif
 
 %if %{with bpftool}
-%make_build -C tools/lib/bpf CC=clang LD=ld.lld libbpf.a libbpf.pc libbpf.so -j1
+# FIXME As of lld 12.0 and kernel 5.11, lld results in unresolved symbols, ld.bfd works
+%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd libbpf.a libbpf.pc libbpf.so -j1
 cd tools/bpf/bpftool
-%make_build CC=clang LD=ld.lld bpftool -j1
+%make_build CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd bpftool -j1
 cd -
+%endif
+
+%if %{with perf}
+%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} all man
 %endif
 
 ############################################################
@@ -1761,13 +1784,13 @@ popd
 
 # need to set extraversion to match srpm again to avoid rebuild
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
-%if %{with build_perf}
+%if %{with perf}
 
 # perf tool binary and supporting scripts/binaries
-make -C tools/perf -s CC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install
+make -C tools/perf -s CC=%{__cc} HOSTCC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install
 
 # perf man pages (note: implicit rpm magic compresses them later)
-make -C tools/perf  -s CC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install-man
+make -C tools/perf  -s CC=%{__cc} HOSTCC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install-man
 %endif
 
 ############################################################
@@ -1797,8 +1820,8 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 
 %if %{with bpftool}
 # install bpftool and libbpf
-%make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir}
-%make_install -C tools/bpf/bpftool install CC=clang CXX=clang++ LD=ld.lld DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
+%make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd
+%make_install -C tools/bpf/bpftool install CC=clang CXX=clang++ LD=ld.bfd DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 %endif
 
 # Create directories infastructure
@@ -1929,7 +1952,7 @@ cd -
 %doc Documentation/*
 %endif
 
-%if %{with build_perf}
+%if %{with perf}
 %files -n perf
 %{_bindir}/perf
 %ifarch %{x86_64}
