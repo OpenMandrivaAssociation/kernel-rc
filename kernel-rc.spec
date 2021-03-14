@@ -481,10 +481,8 @@ BuildRequires:	xmlto
 # for ORC unwinder and perf
 BuildRequires:	pkgconfig(libelf)
 
-%if %{with bpftool}
-# for bpftool
+# for bpf
 BuildRequires:	pahole
-%endif
 
 # for perf
 %if %{with perf}
