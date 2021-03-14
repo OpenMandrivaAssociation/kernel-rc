@@ -135,7 +135,6 @@
 %else
 %bcond_without bpftool
 %endif
-
 %endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
@@ -500,8 +499,9 @@ BuildRequires:	perl-devel
 BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:	pkgconfig(python)
 BuildRequires:	pkgconfig(zlib)
-# (tpg) needed for bfd
-BuildRequires:	binutils-devel
+BuildRequires:	pkgconfig(babeltrace)
+BuildRequires:	jdk-current
+BuildRequires:	perl-devel
 %endif
 
 %ifarch %{arm}
@@ -1677,6 +1677,7 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 %endif
 	done
 done
+unset ARCH
 make mrproper
 
 %if %{with build_desktop}
@@ -1733,6 +1734,7 @@ cd -
 %endif
 
 %if %{with perf}
+[ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
 %make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} all man
 %endif
 
@@ -1784,13 +1786,12 @@ popd
 
 # need to set extraversion to match srpm again to avoid rebuild
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
+
 %if %{with perf}
-
+[ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
 # perf tool binary and supporting scripts/binaries
-make -C tools/perf -s CC=%{__cc} HOSTCC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install
-
-# perf man pages (note: implicit rpm magic compresses them later)
-make -C tools/perf  -s CC=%{__cc} HOSTCC=%{__cc} DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install-man
+# and man pages (note: implicit rpm magic compresses them later)
+%make_build -C tools/perf -s CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install install-man
 %endif
 
 ############################################################
