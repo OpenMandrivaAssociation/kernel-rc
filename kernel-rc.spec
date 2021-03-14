@@ -1819,8 +1819,8 @@ mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
 
 %if %{with bpftool}
 # install bpftool and libbpf
-%make_install -C tools/lib/bpf install install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd
-%make_install -C tools/bpf/bpftool install CC=clang CXX=clang++ LD=ld.bfd DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
+%make_install -C tools/lib/bpf install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd
+%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 %endif
 
 # Create directories infastructure
