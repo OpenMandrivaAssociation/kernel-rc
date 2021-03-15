@@ -487,6 +487,7 @@ BuildRequires:	pahole
 # for perf
 %if %{with perf}
 BuildRequires:	asciidoc
+BuildRequires:	xmlto
 BuildRequires:	pkgconfig(audit)
 BuildRequires:	binutils-devel
 BuildRequires:	bison
