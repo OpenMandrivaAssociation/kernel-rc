@@ -1707,33 +1707,46 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 ############################################################
 ### Linker start3 > Check point to build for omv or rosa ###
 ############################################################
+
+# We install all tools here too (rather than in %%install
+# where it really belongs): make mrproper in preparation
+# for packaging kernel-source would force a rebuilda
+
 %if %{with build_cpupower}
 # make sure version-gen.sh is executable.
 chmod +x tools/power/cpupower/utils/version-gen.sh
 %make_build -C tools/power/cpupower CPUFREQ_BENCH=false LDFLAGS="%{optflags}"
+%make_install -C tools/power/cpupower DESTDIR=%{temp_root} libdir=%{_libdir} mandir=%{_mandir} CPUFREQ_BENCH=false CC=%{__cc} LDFLAGS="%{optflags}"
 %endif
 
 %ifarch %{ix86} %{x86_64}
 %if %{with build_x86_energy_perf_policy}
 %make_build -C tools/power/x86/x86_energy_perf_policy CC=clang LDFLAGS="-Wl,--build-id=none"
+mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
+%make_install -C tools/power/x86/x86_energy_perf_policy DESTDIR="%{temp_root}"
 %endif
 
 %if %{with build_turbostat}
 %make_build -C tools/power/x86/turbostat CC=clang
+mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
+%make_install -C tools/power/x86/turbostat DESTDIR="%{temp_root}"
 %endif
 %endif
 
 %if %{with bpftool}
 # FIXME As of lld 12.0 and kernel 5.11, lld results in unresolved symbols, ld.bfd works
 %make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd libbpf.a libbpf.pc libbpf.so -j1
-cd tools/bpf/bpftool
-%make_build CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd bpftool -j1
-cd -
+#cd tools/bpf/bpftool
+%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd bpftool -j1
+#cd -
+%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd
+%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 %endif
 
 %if %{with perf}
 [ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
 %make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} all man
+%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} install install-man
 %endif
 
 ############################################################
@@ -1785,42 +1798,16 @@ popd
 # need to set extraversion to match srpm again to avoid rebuild
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
-%if %{with perf}
-[ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
-# perf tool binary and supporting scripts/binaries
-# and man pages (note: implicit rpm magic compresses them later)
-%make_build -C tools/perf -s CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd DESTDIR=%{buildroot} WERROR=0 HAVE_CPLUS_DEMANGLE=1 prefix=%{_prefix} install install-man
-%endif
-
 ############################################################
 ### Linker start4 > Check point to build for omv or rosa ###
 ############################################################
 %if %{with build_cpupower}
-%make_install -C tools/power/cpupower DESTDIR=%{buildroot} libdir=%{_libdir} mandir=%{_mandir} CPUFREQ_BENCH=false CC=%{__cc} LDFLAGS="%{optflags}"
-
 rm -f %{buildroot}%{_libdir}/*.{a,la}
 %find_lang cpupower
 chmod 0755 %{buildroot}%{_libdir}/libcpupower.so*
 mkdir -p %{buildroot}%{_unitdir} %{buildroot}%{_sysconfdir}/sysconfig
 install -m644 %{SOURCE30} %{buildroot}%{_unitdir}/cpupower.service
 install -m644 %{SOURCE31} %{buildroot}%{_sysconfdir}/sysconfig/cpupower
-%endif
-
-%ifarch %{ix86} %{x86_64}
-%if %{with build_x86_energy_perf_policy}
-mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
-%make_install -C tools/power/x86/x86_energy_perf_policy install DESTDIR="%{buildroot}"
-%endif
-%if %{with build_turbostat}
-mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_mandir}/man8
-%make_install -C tools/power/x86/turbostat install DESTDIR="%{buildroot}"
-%endif
-%endif
-
-%if %{with bpftool}
-# install bpftool and libbpf
-%make_install -C tools/lib/bpf install_headers DESTDIR=%{buildroot} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd
-%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd DESTDIR=%{buildroot} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
 %endif
 
 # Create directories infastructure
