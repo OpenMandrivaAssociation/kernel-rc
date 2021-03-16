@@ -15,7 +15,7 @@
 
 
 %bcond_without gcc
-%bcond_without clang
+%bcond_with clang
 
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
@@ -75,9 +75,9 @@
 %bcond_with uksm
 %endif
 
-%bcond_without build_source
-%bcond_without build_devel
-%bcond_without cross_headers
+%bcond_with build_source
+%bcond_with build_devel
+%bcond_with cross_headers
 
 %if %{with clang}
 # As of kernel 5.10-rc1, llvm 11, clang-built kernels linked with
@@ -125,7 +125,7 @@
 %bcond_with perf
 %bcond_with bpftool
 %else
-%bcond_without perf
+%bcond_with perf
 # FIXME figure out why bpftool won't build on aarch64
 # as of 5.9.1, error is:
 # ./tools/bpf/resolve_btfids/resolve_btfids vmlinux
@@ -1009,7 +1009,7 @@ find . -name "*.g*ignore" -delete
 chmod 755 tools/objtool/sync-check.sh
 
 %build
-%setup_compile_flags
+%set_build_flags
 
 ############################################################
 ###  Linker end2 > Check point to build for omv or rosa ###
@@ -1018,7 +1018,6 @@ chmod 755 tools/objtool/sync-check.sh
 %define _kerneldir /usr/src/linux-%{kversion}-%{buildrpmrel}
 %define _bootdir /boot
 %define _modulesdir /lib/modules
-%define _efidir %{_bootdir}/efi/EFI/openmandriva
 
 # Directories definition needed for building
 %define temp_root %{build_dir}/temp-root
@@ -1293,6 +1292,7 @@ BuildKernel() {
 %else
 %ifarch %{aarch64}
 	cp -f arch/arm64/boot/Image.gz %{temp_boot}/vmlinuz-$KernelVer
+	cp -f arch/arm64/boot/Image* %{temp_boot}/
 %else
 	cp -f arch/%{target_arch}/boot/bzImage %{temp_boot}/vmlinuz-$KernelVer
 %endif
@@ -1510,6 +1510,7 @@ CreateFiles() {
 %{_bootdir}/System.map-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %{_bootdir}/config-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %{_bootdir}/$ker-%{kversion}-$kernel_flavour-%{buildrpmrel}
+%{_bootdir}/Image*
 %dir %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel
 %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.*
@@ -1776,23 +1777,23 @@ cp -a %{temp_root} %{buildroot}
 # We used to have a copy of PrepareKernel here
 # Now, we make sure that the thing in the linux dir is what we want it to be
 for i in %{target_modules}/*; do
-	rm -f $i/build $i/source
+    rm -f $i/build $i/source
 done
 
 # sniff, if we compressed all the modules, we change the stamp :(
 # we really need the depmod -ae here
 pushd %{target_modules}
 for i in *; do
-	/sbin/depmod -ae -b %{buildroot} -F %{target_boot}/System.map-"$i" "$i"
-	echo $?
+    /sbin/depmod -ae -b %{buildroot} -F %{target_boot}/System.map-"$i" "$i"
+    echo $?
 done
 
 for i in *; do
-	pushd $i
+    pushd $i
 	printf '%s\n' "Creating modules.description for $i"
 	modules=$(find . -name "*.ko.[gxz]*[z|st]")
 	echo $modules | %kxargs /sbin/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
-	popd
+    popd
 done
 popd
 
