@@ -79,14 +79,6 @@
 %bcond_without build_devel
 %bcond_without cross_headers
 
-%if %{with clang}
-# As of kernel 5.10-rc1, llvm 11, clang-built kernels linked with
-# lld result in "inconsistent ORC unwind table entries in file: vmlinux"
-# on x86_64
-%bcond_without ld_workaround
-%endif
-
-
 %bcond_with lazy_developer
 %bcond_with build_debug
 %bcond_with dracut_all_initrd
@@ -279,7 +271,7 @@ Patch41:	workaround-aarch64-module-loader.patch
 # sources can be found here https://github.com/dolohow/uksm
 %if %{with uksm}
 # breaks armx builds
-Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.10.patch
+Patch42:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.12.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -443,9 +435,7 @@ BuildRequires:	hostname
 %if %{with clang}
 BuildRequires:	clang
 BuildRequires:	llvm
-%if %{without ld_workaround}
 BuildRequires:	lld
-%endif
 %endif
 %if %{with gcc}
 BuildRequires:	gcc
@@ -1035,6 +1025,14 @@ CheckConfig() {
 	fi
 }
 
+VerifyConfig() {
+# (tpg) please add CONFIG that were carelessly enabled, while it is known these MUST be disabled
+    if grep -Fxq "CONFIG_RT_GROUP_SCHED=y" .config kernel/configs/omv-*config; then
+	printf '%s\n' "Please stop enabling CONFIG_RT_GROUP_SCHED - this option is not recommended with systemd systemd/systemd#553, killing the build."
+	exit 1
+    fi
+}
+
 clangify() {
 	sed -i \
 		-e '/^CONFIG_CC_VERSION_TEXT=/d' \
@@ -1044,18 +1042,22 @@ clangify() {
 		-e '/^CONFIG_CLANG_VERSION=/d' \
 		-e '/^CONFIG_LD_VERSION=/d' \
 		-e '/^CONFIG_LD_IS_LLD=/d' \
+		-e '/^CONFIG_LD_IS_BFD=/d' \
 		-e '/^CONFIG_GCC_PLUGINS=/d' \
 		"$1"
 	cat >>"$1" <<'EOF'
 CONFIG_CC_IS_CLANG=y
 CONFIG_CC_HAS_ASM_GOTO_OUTPUT=y
-
+CONFIG_LD_IS_LLD=y
 CONFIG_INIT_STACK_NONE=y
 # CONFIG_INIT_STACK_ALL_PATTERN is not set
 # CONFIG_INIT_STACK_ALL_ZERO is not set
 
 # CONFIG_KCSAN is not set
 # CONFIG_SHADOW_CALL_STACK is not set
+# CONFIG_LTO_NONE is not set
+CONFIG_LTO_CLANG_FULL=y
+# CONFIG_LTO_CLANG_THIN is not set
 EOF
 }
 
@@ -1072,15 +1074,9 @@ CreateConfig() {
 		# however on bugs where we have to change LD or some other tool we cannot do that
 		CC=clang
 		CXX=clang++
-		%if %{with ld_workaround}
-		BUILD_LD="ld.bfd"
-		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
-		%else
-		BUILD_LD="ld.lld"
-		# bugs
+		BUILD_LD="ld.lld --icf=none --no-gc-sections"
 		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
-		%endif
-		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
 	else
 		CC=gcc
 		CXX=g++
@@ -1237,6 +1233,7 @@ PrepareKernel() {
 	extension=$2
 	config_dir=%{_sourcedir}
 	printf '%s\n' "Make config for kernel $extension"
+	VerifyConfig
 	%make_build -s mrproper
 %ifarch znver1
 	CreateConfig %{_target_cpu} ${flavour}
@@ -1254,15 +1251,9 @@ BuildKernel() {
 	if echo $1 |grep -q clang; then
 		CC=clang
 		CXX=clang++
-		%if %{with ld_workaround}
-		BUILD_LD="ld.bfd"
-		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
-		%else
-		BUILD_LD="ld.lld"
-		# bugs
+		BUILD_LD="ld.lld --icf=none --no-gc-sections"
 		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
-		%endif
-		BUILD_TOOLS='AR=llvm-ar HOSTAR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size READELF=llvm-readelf'
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
 	else
 		CC=gcc
 		CXX=g++
