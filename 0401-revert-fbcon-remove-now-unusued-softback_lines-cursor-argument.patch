@@ -1,6 +1,6 @@
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/bitblit.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/bitblit.c
---- linux-5.12-rc6/drivers/video/fbdev/core/bitblit.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/bitblit.c	2021-04-05 22:07:24.599356821 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/bitblit.c.49~ linux-5.11/drivers/video/fbdev/core/bitblit.c
+--- linux-5.11/drivers/video/fbdev/core/bitblit.c.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/bitblit.c	2021-04-07 19:08:09.691356736 +0200
 @@ -234,7 +234,7 @@ static void bit_clear_margins(struct vc_
  }
  
@@ -26,10 +26,10 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/bitblit.c.48~ linux-5.12-rc6/dr
   	c = scr_readw((u16 *) vc->vc_pos);
  	attribute = get_attribute(info, c);
  	src = vc->vc_font.data + ((c & charmask) * (w * vc->vc_font.height));
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c	2021-04-05 22:38:13.121421754 +0200
-@@ -384,7 +384,7 @@ static void fb_flashcursor(struct work_s
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon.c.49~ linux-5.11/drivers/video/fbdev/core/fbcon.c
+--- linux-5.11/drivers/video/fbdev/core/fbcon.c.49~	2021-04-07 19:08:09.504693017 +0200
++++ linux-5.11/drivers/video/fbdev/core/fbcon.c	2021-04-07 19:17:19.348203088 +0200
+@@ -392,7 +392,7 @@ static void fb_flashcursor(struct work_s
  	c = scr_readw((u16 *) vc->vc_pos);
  	mode = (!ops->cursor_flash || ops->cursor_state.enable) ?
  		CM_ERASE : CM_DRAW;
@@ -38,7 +38,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.48~ linux-5.12-rc6/driv
  		    get_color(vc, info, c, 0));
  	console_unlock();
  }
-@@ -1336,7 +1336,7 @@ static void fbcon_cursor(struct vc_data
+@@ -1344,7 +1344,7 @@ static void fbcon_cursor(struct vc_data
  	if (!ops->cursor)
  		return;
  
@@ -47,9 +47,9 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.48~ linux-5.12-rc6/driv
  		    get_color(vc, info, c, 0));
  }
  
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ccw.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ccw.c
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ccw.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ccw.c	2021-04-05 22:07:24.602690140 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon_ccw.c.49~ linux-5.11/drivers/video/fbdev/core/fbcon_ccw.c
+--- linux-5.11/drivers/video/fbdev/core/fbcon_ccw.c.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/fbcon_ccw.c	2021-04-07 19:08:09.691356736 +0200
 @@ -219,7 +219,7 @@ static void ccw_clear_margins(struct vc_
  }
  
@@ -75,9 +75,9 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ccw.c.48~ linux-5.12-rc6/
   	c = scr_readw((u16 *) vc->vc_pos);
  	attribute = get_attribute(info, c);
  	src = ops->fontbuffer + ((c & charmask) * (w * vc->vc_font.width));
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_cw.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_cw.c
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon_cw.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_cw.c	2021-04-05 22:07:24.602690140 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon_cw.c.49~ linux-5.11/drivers/video/fbdev/core/fbcon_cw.c
+--- linux-5.11/drivers/video/fbdev/core/fbcon_cw.c.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/fbcon_cw.c	2021-04-07 19:08:09.691356736 +0200
 @@ -202,7 +202,7 @@ static void cw_clear_margins(struct vc_d
  }
  
@@ -103,9 +103,9 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_cw.c.48~ linux-5.12-rc6/d
   	c = scr_readw((u16 *) vc->vc_pos);
  	attribute = get_attribute(info, c);
  	src = ops->fontbuffer + ((c & charmask) * (w * vc->vc_font.width));
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.h.48~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.h
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon.h.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.h	2021-04-05 22:07:24.602690140 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon.h.49~ linux-5.11/drivers/video/fbdev/core/fbcon.h
+--- linux-5.11/drivers/video/fbdev/core/fbcon.h.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/fbcon.h	2021-04-07 19:08:09.691356736 +0200
 @@ -62,7 +62,7 @@ struct fbcon_ops {
  	void (*clear_margins)(struct vc_data *vc, struct fb_info *info,
  			      int color, int bottom_only);
@@ -115,9 +115,9 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.h.48~ linux-5.12-rc6/driv
  	int  (*update_start)(struct fb_info *info);
  	int  (*rotate_font)(struct fb_info *info, struct vc_data *vc);
  	struct fb_var_screeninfo var;  /* copy of the current fb_var_screeninfo */
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ud.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ud.c
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ud.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ud.c	2021-04-05 22:07:24.602690140 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon_ud.c.49~ linux-5.11/drivers/video/fbdev/core/fbcon_ud.c
+--- linux-5.11/drivers/video/fbdev/core/fbcon_ud.c.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/fbcon_ud.c	2021-04-07 19:08:09.691356736 +0200
 @@ -249,7 +249,7 @@ static void ud_clear_margins(struct vc_d
  }
  
@@ -143,9 +143,9 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon_ud.c.48~ linux-5.12-rc6/d
   	c = scr_readw((u16 *) vc->vc_pos);
  	attribute = get_attribute(info, c);
  	src = ops->fontbuffer + ((c & charmask) * (w * vc->vc_font.height));
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/tileblit.c.48~ linux-5.12-rc6/drivers/video/fbdev/core/tileblit.c
---- linux-5.12-rc6/drivers/video/fbdev/core/tileblit.c.48~	2021-04-04 23:15:36.000000000 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/tileblit.c	2021-04-05 22:07:24.602690140 +0200
+diff -up linux-5.11/drivers/video/fbdev/core/tileblit.c.49~ linux-5.11/drivers/video/fbdev/core/tileblit.c
+--- linux-5.11/drivers/video/fbdev/core/tileblit.c.49~	2021-02-14 23:32:24.000000000 +0100
++++ linux-5.11/drivers/video/fbdev/core/tileblit.c	2021-04-07 19:08:09.691356736 +0200
 @@ -80,7 +80,7 @@ static void tile_clear_margins(struct vc
  }
  

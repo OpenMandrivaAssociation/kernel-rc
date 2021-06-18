@@ -1,7 +1,7 @@
-diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c
---- linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~	2021-04-05 22:38:32.404672288 +0200
-+++ linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c	2021-04-05 22:39:46.637686876 +0200
-@@ -114,6 +114,12 @@ static int logo_lines;
+diff -up linux-5.11/drivers/video/fbdev/core/fbcon.c.51~ linux-5.11/drivers/video/fbdev/core/fbcon.c
+--- linux-5.11/drivers/video/fbdev/core/fbcon.c.51~	2021-04-07 19:18:25.934284510 +0200
++++ linux-5.11/drivers/video/fbdev/core/fbcon.c	2021-04-07 19:25:58.270872904 +0200
+@@ -122,6 +122,12 @@ static int logo_lines;
  /* logo_shown is an index to vc_cons when >= 0; otherwise follows FBCON_LOGO
     enums.  */
  static int logo_shown = FBCON_LOGO_CANSHOW;
@@ -14,7 +14,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  /* console mappings */
  static int first_fb_vc;
  static int last_fb_vc = MAX_NR_CONSOLES - 1;
-@@ -153,6 +159,8 @@ static int margin_color;
+@@ -161,6 +167,8 @@ static int margin_color;
  
  static const struct consw fb_con;
  
@@ -23,7 +23,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  #define advance_row(p, delta) (unsigned short *)((unsigned long)(p) + (delta) * vc->vc_size_row)
  
  static int fbcon_set_origin(struct vc_data *);
-@@ -357,6 +365,18 @@ static int get_color(struct vc_data *vc,
+@@ -365,6 +373,18 @@ static int get_color(struct vc_data *vc,
  	return color;
  }
  
@@ -42,7 +42,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  static void fb_flashcursor(struct work_struct *work)
  {
  	struct fb_info *info = container_of(work, struct fb_info, queue);
-@@ -386,7 +406,7 @@ static void fb_flashcursor(struct work_s
+@@ -394,7 +414,7 @@ static void fb_flashcursor(struct work_s
  	c = scr_readw((u16 *) vc->vc_pos);
  	mode = (!ops->cursor_flash || ops->cursor_state.enable) ?
  		CM_ERASE : CM_DRAW;
@@ -51,7 +51,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  		    get_color(vc, info, c, 0));
  	console_unlock();
  }
-@@ -443,7 +463,13 @@ static int __init fb_console_setup(char
+@@ -451,7 +471,13 @@ static int __init fb_console_setup(char
  		}
  		
  		if (!strncmp(options, "scrollback:", 11)) {
@@ -66,7 +66,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  			continue;
  		}
  		
-@@ -988,6 +1014,31 @@ static const char *fbcon_startup(void)
+@@ -996,6 +1022,31 @@ static const char *fbcon_startup(void)
  
  	set_blitting_type(vc, info);
  
@@ -98,7 +98,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	/* Setup default font */
  	if (!p->fontdata && !vc->vc_font.data) {
  		if (!fontname[0] || !(font = find_font(fontname)))
-@@ -1159,6 +1210,9 @@ static void fbcon_init(struct vc_data *v
+@@ -1167,6 +1218,9 @@ static void fbcon_init(struct vc_data *v
  	if (logo)
  		fbcon_prepare_logo(vc, info, cols, rows, new_cols, new_rows);
  
@@ -108,7 +108,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	if (ops->rotate_font && ops->rotate_font(info, vc)) {
  		ops->rotate = FB_ROTATE_UR;
  		set_blitting_type(vc, info);
-@@ -1321,6 +1375,7 @@ static void fbcon_cursor(struct vc_data
+@@ -1329,6 +1383,7 @@ static void fbcon_cursor(struct vc_data
  {
  	struct fb_info *info = registered_fb[con2fb_map[vc->vc_num]];
  	struct fbcon_ops *ops = info->fbcon_par;
@@ -116,10 +116,10 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
   	int c = scr_readw((u16 *) vc->vc_pos);
  
  	ops->cur_blink_jiffies = msecs_to_jiffies(vc->vc_cur_blink_ms);
-@@ -1334,11 +1389,19 @@ static void fbcon_cursor(struct vc_data
- 		fbcon_add_cursor_timer(info);
+@@ -1343,10 +1398,19 @@ static void fbcon_cursor(struct vc_data
  
  	ops->cursor_flash = (mode == CM_ERASE) ? 0 : 1;
+ 
 +	if (mode & CM_SOFTBACK) {
 +		mode &= ~CM_SOFTBACK;
 +		y = softback_lines;
@@ -128,7 +128,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
 +			fbcon_set_origin(vc);
 +		y = 0;
 +	}
- 
++
  	if (!ops->cursor)
  		return;
  
@@ -137,7 +137,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  		    get_color(vc, info, c, 0));
  }
  
-@@ -1408,6 +1471,8 @@ static void fbcon_set_disp(struct fb_inf
+@@ -1416,6 +1480,8 @@ static void fbcon_set_disp(struct fb_inf
  
  	if (con_is_visible(vc)) {
  		update_screen(vc);
@@ -146,7 +146,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	}
  }
  
-@@ -1545,6 +1610,99 @@ static __inline__ void ypan_down_redraw(
+@@ -1553,6 +1619,99 @@ static __inline__ void ypan_down_redraw(
  	scrollback_current = 0;
  }
  
@@ -246,7 +246,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  static void fbcon_redraw_move(struct vc_data *vc, struct fbcon_display *p,
  			      int line, int count, int dy)
  {
-@@ -1684,6 +1842,31 @@ static void fbcon_redraw(struct vc_data
+@@ -1692,6 +1851,31 @@ static void fbcon_redraw(struct vc_data
  	}
  }
  
@@ -278,7 +278,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  static bool fbcon_scroll(struct vc_data *vc, unsigned int t, unsigned int b,
  		enum con_scroll dir, unsigned int count)
  {
-@@ -1706,6 +1889,8 @@ static bool fbcon_scroll(struct vc_data
+@@ -1714,6 +1898,8 @@ static bool fbcon_scroll(struct vc_data
  	case SM_UP:
  		if (count > vc->vc_rows)	/* Maximum realistic size */
  			count = vc->vc_rows;
@@ -287,7 +287,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  		if (logo_shown >= 0)
  			goto redraw_up;
  		switch (p->scrollmode) {
-@@ -2044,6 +2229,14 @@ static int fbcon_switch(struct vc_data *
+@@ -2052,6 +2238,14 @@ static int fbcon_switch(struct vc_data *
  	info = registered_fb[con2fb_map[vc->vc_num]];
  	ops = info->fbcon_par;
  
@@ -302,7 +302,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	if (logo_shown >= 0) {
  		struct vc_data *conp2 = vc_cons[logo_shown].d;
  
-@@ -2375,6 +2568,9 @@ static int fbcon_do_set_font(struct vc_d
+@@ -2383,6 +2577,9 @@ static int fbcon_do_set_font(struct vc_d
  	int resize;
  	char *old_data = NULL;
  
@@ -312,7 +312,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	resize = (w != vc->vc_font.width) || (h != vc->vc_font.height);
  	if (p->userfont)
  		old_data = vc->vc_font.data;
-@@ -2397,6 +2593,8 @@ static int fbcon_do_set_font(struct vc_d
+@@ -2405,6 +2602,8 @@ static int fbcon_do_set_font(struct vc_d
  		cols /= w;
  		rows /= h;
  		vc_resize(vc, cols, rows);
@@ -321,7 +321,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	} else if (con_is_visible(vc)
  		   && vc->vc_mode == KD_TEXT) {
  		fbcon_clear_margins(vc, 0);
-@@ -2546,7 +2744,19 @@ static void fbcon_set_palette(struct vc_
+@@ -2554,7 +2753,19 @@ static void fbcon_set_palette(struct vc_
  
  static u16 *fbcon_screen_pos(const struct vc_data *vc, int offset)
  {
@@ -342,7 +342,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  }
  
  static unsigned long fbcon_getxy(struct vc_data *vc, unsigned long pos,
-@@ -2560,7 +2770,22 @@ static unsigned long fbcon_getxy(struct
+@@ -2568,7 +2779,22 @@ static unsigned long fbcon_getxy(struct
  
  		x = offset % vc->vc_cols;
  		y = offset / vc->vc_cols;
@@ -365,7 +365,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	} else {
  		/* Should not happen */
  		x = y = 0;
-@@ -2588,11 +2813,106 @@ static void fbcon_invert_region(struct v
+@@ -2596,11 +2822,106 @@ static void fbcon_invert_region(struct v
  			a = ((a) & 0x88ff) | (((a) & 0x7000) >> 4) |
  			    (((a) & 0x0700) << 4);
  		scr_writew(a, p++);
@@ -472,7 +472,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	return 0;
  }
  
-@@ -2656,6 +2976,8 @@ static void fbcon_modechanged(struct fb_
+@@ -2664,6 +2985,8 @@ static void fbcon_modechanged(struct fb_
  
  		fbcon_set_palette(vc, color_table);
  		update_screen(vc);
@@ -481,7 +481,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	}
  }
  
-@@ -3060,6 +3382,7 @@ static const struct consw fb_con = {
+@@ -3068,6 +3391,7 @@ static const struct consw fb_con = {
  	.con_font_get 		= fbcon_get_font,
  	.con_font_default	= fbcon_set_def_font,
  	.con_set_palette 	= fbcon_set_palette,
@@ -489,7 +489,7 @@ diff -up linux-5.12-rc6/drivers/video/fbdev/core/fbcon.c.50~ linux-5.12-rc6/driv
  	.con_set_origin		= fbcon_set_origin,
  	.con_invert_region 	= fbcon_invert_region,
  	.con_screen_pos 	= fbcon_screen_pos,
-@@ -3294,6 +3617,9 @@ static void fbcon_exit(void)
+@@ -3302,6 +3626,9 @@ static void fbcon_exit(void)
  	}
  #endif
  

@@ -1,0 +1,10 @@
+--- linux-5.11.13/scripts/Makefile.tpg	2021-04-10 11:39:01.000000000 +0000
++++ linux-5.11.13/scripts/Makefile	2021-04-12 12:22:42.316416827 +0000
+@@ -29,6 +29,7 @@
+ HOSTCFLAGS_sorttable.o += -I$(srctree)/tools/arch/x86/include
+ HOSTCFLAGS_sorttable.o += -DUNWINDER_ORC_ENABLED
+ HOSTLDLIBS_sorttable = -lpthread
++HOSTLDFLAGS_sorttable.o = --icf=none
+ endif
+ 
+ # The following programs are only built on demand

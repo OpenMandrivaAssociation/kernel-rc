@@ -1,0 +1,19 @@
+diff -up linux-5.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi.35~ linux-5.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+--- linux-5.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi.35~	2021-05-09 23:17:44.000000000 +0200
++++ linux-5.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi	2021-05-11 17:46:43.553335865 +0200
+@@ -17,6 +17,7 @@
+ 	};
+ 
+ 	chosen {
++		bootargs = "mmc_cmdqueue=0 earlycon=uart8250,mmio32,0xff1a0000";
+ 		stdout-path = "serial2:1500000n8";
+ 	};
+ 
+@@ -729,6 +730,7 @@
+ 
+ &sdhci {
+ 	bus-width = <8>;
++	keep-power-in-suspend;
+ 	mmc-hs200-1_8v;
+ 	non-removable;
+ 	status = "okay";

@@ -1,0 +1,12 @@
+diff -Naur a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi	2021-02-14 22:32:24.000000000 +0000
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi	2021-03-20 11:30:50.229721094 +0000
+@@ -43,7 +43,7 @@
+ 
+ 		work_led: led-0 {
+ 			label = "work";
+-			default-state = "on";
++			linux,default-trigger = "heartbeat";
+ 			gpios = <&gpio0 RK_PB3 GPIO_ACTIVE_HIGH>;
+ 		};
+ 
