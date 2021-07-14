@@ -20,9 +20,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	13
+%define patchlevel	14
 %define sublevel	0
-%define relc		6
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -76,7 +76,8 @@
 # Build defines
 %bcond_with build_doc
 %ifarch %{ix86} %{x86_64}
-%bcond_without uksm
+# FIXME re-enable once ported to 5.14
+%bcond_with uksm
 %else
 %bcond_with uksm
 %endif
@@ -244,6 +245,7 @@ Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
 # (crazy) I really need to send that upstream soon
 Patch10:	iwlwifi-fix-5e003982b07ae.patch
+Patch11:	linux-5.13-attribute-error.patch
 Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch

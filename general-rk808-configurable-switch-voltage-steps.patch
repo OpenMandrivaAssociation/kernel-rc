@@ -1,36 +1,6 @@
-This patch allows to change the way that BUCK1 and BUCK2 of rk808 PMIC set voltage.
-
-It allows to change the hardcoded max. 100mV per one change
-to any multiple of 12.5mV while keeping the 100mV default.
-
-It was observed that making the steps smaller (eg. 50mV = 4 * 12.5mV)
-makes the NanoPi M4V2 running stable.
-
-One can configure the max number of steps per single change using
-the "max-buck-steps-per-change" property of rk808 node in device tree.
-
-Below example ensures that voltage is not changed in jumps larger than 50mV:
-
-&rk808 {
-	max-buck-steps-per-change = <4>;
-}
-
-Be aware that changing this parameter affects the time taken to switch between
-OPPs of LiTTLE cores of rk3399.
-
-For overclocked LiTTLE cores with base 408MHz @ 0.825V
-and max. 1.5GHz @ 1.2V it will take 7 steps of 50mV (at least 65uS each - caused by i2c),
-the final 25mV step and 1uS to settle: 7 x 65uS + 1uS = 456uS. 
-
-With default setting it would be 3 steps of 100mV (at least 65uS each - caused by i2c),
-the final 75mV step and 1uS to settle: 3 x 65uS + 1uS = 196uS.
-
-Signed-off-by: Piotr Szczepanik <piter75@gmail.com>
-
-diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
-index e926c1a85..cc3ec4803 100644
---- a/drivers/regulator/rk808-regulator.c
-+++ b/drivers/regulator/rk808-regulator.c
+diff -up linux-5.14-rc1/drivers/regulator/rk808-regulator.c.39~ linux-5.14-rc1/drivers/regulator/rk808-regulator.c
+--- linux-5.14-rc1/drivers/regulator/rk808-regulator.c.39~	2021-07-12 00:07:40.000000000 +0200
++++ linux-5.14-rc1/drivers/regulator/rk808-regulator.c	2021-07-12 12:11:16.127005371 +0200
 @@ -156,6 +156,7 @@
  
  struct rk808_regulator_data {
@@ -38,8 +8,8 @@ index e926c1a85..cc3ec4803 100644
 +	unsigned max_buck_steps_per_change;
  };
  
- static const int rk808_buck_config_regs[] = {
-@@ -239,7 +240,8 @@ static int rk808_buck1_2_get_voltage_sel_regmap(struct regulator_dev *rdev)
+ static const struct linear_range rk808_ldo3_voltage_ranges[] = {
+@@ -241,7 +242,8 @@ static int rk808_buck1_2_get_voltage_sel
  }
  
  static int rk808_buck1_2_i2c_set_voltage_sel(struct regulator_dev *rdev,
@@ -49,7 +19,7 @@ index e926c1a85..cc3ec4803 100644
  {
  	int ret, delta_sel;
  	unsigned int old_sel, tmp, val, mask = rdev->desc->vsel_mask;
-@@ -258,8 +260,8 @@ static int rk808_buck1_2_i2c_set_voltage_sel(struct regulator_dev *rdev,
+@@ -260,8 +262,8 @@ static int rk808_buck1_2_i2c_set_voltage
  	 * the risk of overshoot. Put it into a multi-step, can effectively
  	 * avoid this problem, a step is 100mv here.
  	 */
@@ -60,7 +30,7 @@ index e926c1a85..cc3ec4803 100644
  		val = old_sel << (ffs(mask) - 1);
  		val |= tmp;
  
-@@ -293,12 +295,13 @@ static int rk808_buck1_2_set_voltage_sel(struct regulator_dev *rdev,
+@@ -295,12 +297,13 @@ static int rk808_buck1_2_set_voltage_sel
  	struct rk808_regulator_data *pdata = rdev_get_drvdata(rdev);
  	int id = rdev_get_id(rdev);
  	struct gpio_desc *gpio = pdata->dvs_gpio[id];
@@ -75,7 +45,7 @@ index e926c1a85..cc3ec4803 100644
  
  	gpio_level = gpiod_get_value(gpio);
  	if (gpio_level == 0) {
-@@ -1292,6 +1295,12 @@ static int rk808_regulator_dt_parse_pdata(struct device *dev,
+@@ -1278,6 +1281,12 @@ static int rk808_regulator_dt_parse_pdat
  				0 : tmp);
  	}
  
@@ -88,4 +58,3 @@ index e926c1a85..cc3ec4803 100644
  dt_parse_end:
  	of_node_put(np);
  	return ret;
-
