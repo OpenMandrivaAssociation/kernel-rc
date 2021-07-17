@@ -10496,7 +10496,7 @@ CONFIG_TEST_LOCKUP=m
 #
 # Scheduler Debugging
 #
-# CONFIG_SCHED_DEBUG is not set
+CONFIG_SCHED_DEBUG=y
 CONFIG_SCHED_INFO=y
 CONFIG_SCHEDSTATS=y
 # end of Scheduler Debugging
