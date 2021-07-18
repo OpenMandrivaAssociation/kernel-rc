@@ -396,6 +396,8 @@ Patch301:	rk3399-add-sclk-i2sout-src-clock.patch
 # version number until nothing is found -- short of always keeping track of the mailing lists,
 # there doesn't seem to be a better way to always have the current version)
 # Versions > 19 require kernel 5.12+
+# (tpg) does not compile as of 2021-07-18
+%if 0
 Patch350:	PATCH-v26-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
 Patch351:	PATCH-v26-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
 Patch352:	PATCH-v26-03-10-fs-ntfs3-Add-bitmap.patch
@@ -406,6 +408,7 @@ Patch356:	PATCH-v26-07-10-fs-ntfs3-Add-NTFS-journal.patch
 Patch357:	PATCH-v26-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
 Patch358:	PATCH-v26-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
 Patch359:	PATCH-v26-10-10-fs-ntfs3-Add-MAINTAINERS.patch
+%endif
 
 # Bootsplash support
 # based on https://gitlab.manjaro.org/packages/core/linux511/-/tree/master
