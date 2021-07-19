@@ -4,6 +4,13 @@
 #end
 %define _disable_ld_no_undefined 1
 
+%ifarch %{aarch64}
+# FIXME this is a workaround for some debug files being created
+# but not making it to the debug file lists.
+# This should be fixed properly...
+%define _unpackaged_files_terminate_build 0
+%endif
+
 ## STOP: Adding weird and unsupported upstream kernel C/LD flags of any sort
 ## yes , including ftlo . O3 and whatever else
 
@@ -82,8 +89,8 @@
 %bcond_with uksm
 %endif
 
-%bcond_without build_source
-%bcond_without build_devel
+%bcond_with build_source
+%bcond_with build_devel
 %bcond_without cross_headers
 
 %bcond_with lazy_developer
