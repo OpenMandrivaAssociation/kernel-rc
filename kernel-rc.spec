@@ -20,6 +20,9 @@
 # let us try *old* way for kernel package(s)
 %global _build_id_links alldebug
 
+# Work around incomplete debug packages
+%global _empty_manifest_terminate_build 0
+
 %bcond_with gcc
 %bcond_without clang
 
@@ -29,7 +32,7 @@
 %define kernelversion	5
 %define patchlevel	14
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
