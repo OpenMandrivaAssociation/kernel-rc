@@ -22,7 +22,7 @@
 %define kernelversion	5
 %define patchlevel	14
 %define sublevel	0
-%define relc		2
+%define relc		5
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -321,6 +321,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1006:	vbox-5.10.patch
+Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
 # More actively maintained for newer kernels
@@ -1125,6 +1126,7 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1006~ -b <%{S:1006}
+patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
 # get rid of unwanted files
