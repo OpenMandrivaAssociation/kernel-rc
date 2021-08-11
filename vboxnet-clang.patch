@@ -1,0 +1,36 @@
+diff -up linux-5.14-rc5/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~ linux-5.14-rc5/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h
+--- linux-5.14-rc5/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~	2021-08-10 20:59:34.065525063 +0200
++++ linux-5.14-rc5/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h	2021-08-10 20:59:47.138608474 +0200
+@@ -42,7 +42,7 @@
+ #endif
+ #if RT_GNUC_PREREQ(4, 2)
+ # pragma GCC diagnostic ignored "-Wunused-parameter"
+-# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3)
++# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3) && !defined(__clang__)
+ #  pragma GCC diagnostic ignored "-Wold-style-declaration" /* 2.6.18-411.0.0.0.1.el5/build/include/asm/apic.h:110: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration] */
+ # endif
+ #endif
+diff -up linux-5.14-rc5/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~ linux-5.14-rc5/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h
+--- linux-5.14-rc5/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~	2021-08-10 22:35:49.445309848 +0200
++++ linux-5.14-rc5/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h	2021-08-10 22:35:55.674342091 +0200
+@@ -42,7 +42,7 @@
+ #endif
+ #if RT_GNUC_PREREQ(4, 2)
+ # pragma GCC diagnostic ignored "-Wunused-parameter"
+-# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3)
++# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3) && !defined(__clang__)
+ #  pragma GCC diagnostic ignored "-Wold-style-declaration" /* 2.6.18-411.0.0.0.1.el5/build/include/asm/apic.h:110: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration] */
+ # endif
+ #endif
+diff -up linux-5.14-rc5/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~ linux-5.14-rc5/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h
+--- linux-5.14-rc5/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~	2021-08-11 01:10:16.102588038 +0200
++++ linux-5.14-rc5/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h	2021-08-11 01:10:25.073643430 +0200
+@@ -42,7 +42,7 @@
+ #endif
+ #if RT_GNUC_PREREQ(4, 2)
+ # pragma GCC diagnostic ignored "-Wunused-parameter"
+-# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3)
++# if !defined(__cplusplus) && RT_GNUC_PREREQ(4, 3) && !defined(__clang__)
+ #  pragma GCC diagnostic ignored "-Wold-style-declaration" /* 2.6.18-411.0.0.0.1.el5/build/include/asm/apic.h:110: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration] */
+ # endif
+ #endif

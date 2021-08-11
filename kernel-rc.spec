@@ -4,6 +4,13 @@
 #end
 %define _disable_ld_no_undefined 1
 
+%ifarch %{aarch64}
+# FIXME this is a workaround for some debug files being created
+# but not making it to the debug file lists.
+# This should be fixed properly...
+%define _unpackaged_files_terminate_build 0
+%endif
+
 ## STOP: Adding weird and unsupported upstream kernel C/LD flags of any sort
 ## yes , including ftlo . O3 and whatever else
 
@@ -1141,7 +1148,7 @@ chmod 755 tools/objtool/sync-check.sh
 %set_build_flags
 
 ############################################################
-###  Linker end2 > Check point to build for omv or rosa ###
+###  Linker end2 > Check point to build for omv ###
 ############################################################
 CheckConfig() {
 
@@ -1828,7 +1835,7 @@ CreateKernel server
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
 ############################################################
-### Linker start3 > Check point to build for omv or rosa ###
+### Linker start3 > Check point to build for omv         ###
 ############################################################
 
 # We install all tools here too (rather than in %%install
@@ -1871,7 +1878,7 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %endif
 
 ############################################################
-###  Linker end3 > Check point to build for omv or rosa  ###
+###  Linker end3 > Check point to build for omv          ###
 ############################################################
 
 # We don't make to repeat the depend code at the install phase
@@ -1920,7 +1927,7 @@ popd
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
 ############################################################
-### Linker start4 > Check point to build for omv or rosa ###
+### Linker start4 > Check point to build for omv         ###
 ############################################################
 %if %{with build_cpupower}
 rm -f %{buildroot}%{_libdir}/*.{a,la}
@@ -1980,7 +1987,7 @@ cd -
 
 
 ############################################################
-### Linker start4 > Check point to build for omv or rosa ###
+### Linker start4 > Check point to build for omv         ###
 ############################################################
 
 %if %{with build_source}
