@@ -32,7 +32,7 @@
 %define kernelversion	5
 %define patchlevel	14
 %define sublevel	0
-%define relc		2
+%define relc		7
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -331,6 +331,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1006:	vbox-5.10.patch
+Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
 # More actively maintained for newer kernels
@@ -378,7 +379,6 @@ Patch271:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw
 Patch273:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-drm-meson-add-YUV422-output-support.patch
 #Patch274:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
 Patch275:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-add-ugoos-device.patch
-Patch276:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0017-drm-meson-fix-green-pink-color-distortion-set-from-u.patch
 Patch278:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0019-drm-panfrost-Handle-failure-in-panfrost_job_hw_submit.patch
 Patch279:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-phy-rockchip-typec-Set-extcon-capabilities.patch
 Patch280:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-usb-typec-altmodes-displayport-Add-hacky-generic-altmode.patch
@@ -1135,6 +1135,7 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1006~ -b <%{S:1006}
+patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
 # get rid of unwanted files
@@ -1149,7 +1150,7 @@ chmod 755 tools/objtool/sync-check.sh
 %set_build_flags
 
 ############################################################
-###  Linker end2 > Check point to build for omv or rosa ###
+###  Linker end2 > Check point to build for omv ###
 ############################################################
 CheckConfig() {
 
@@ -1836,7 +1837,7 @@ CreateKernel server
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
 ############################################################
-### Linker start3 > Check point to build for omv or rosa ###
+### Linker start3 > Check point to build for omv         ###
 ############################################################
 
 # We install all tools here too (rather than in %%install
@@ -1879,7 +1880,7 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %endif
 
 ############################################################
-###  Linker end3 > Check point to build for omv or rosa  ###
+###  Linker end3 > Check point to build for omv          ###
 ############################################################
 
 # We don't make to repeat the depend code at the install phase
@@ -1928,7 +1929,7 @@ popd
 sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
 ############################################################
-### Linker start4 > Check point to build for omv or rosa ###
+### Linker start4 > Check point to build for omv         ###
 ############################################################
 %if %{with build_cpupower}
 rm -f %{buildroot}%{_libdir}/*.{a,la}
@@ -1988,7 +1989,7 @@ cd -
 
 
 ############################################################
-### Linker start4 > Check point to build for omv or rosa ###
+### Linker start4 > Check point to build for omv         ###
 ############################################################
 
 %if %{with build_source}
