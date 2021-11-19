@@ -23,16 +23,21 @@
 # Work around incomplete debug packages
 %global _empty_manifest_terminate_build 0
 
+%ifarch aarch64
 %bcond_with gcc
 %bcond_without clang
+%else
+%bcond_without gcc
+%bcond_without clang
+%endif
 
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	14
+%define patchlevel	16
 %define sublevel	0
-%define relc		7
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -45,7 +50,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
-%define rpmrel		4
+%define rpmrel		1
 %define tar_ver		%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -75,7 +80,6 @@
 %define _kerneldir /usr/src/linux-%{kversion}-%{buildrpmrel}
 %define _bootdir /boot
 %define _modulesdir /lib/modules
-%define _efidir %{_bootdir}/efi/EFI/openmandriva
 
 # Directories definition needed for building
 %define temp_root %{build_dir}/temp-root
@@ -85,20 +89,23 @@
 
 # Build defines
 %bcond_with build_doc
-%ifarch %{ix86} %{x86_64}
-# FIXME re-enable once ported to 5.14
+%ifarch %{ix86} %{x86_64} aarch64
 %bcond_with uksm
 %else
 %bcond_with uksm
 %endif
 
+%if 0%{relc}
 %bcond_with build_source
 %bcond_with build_devel
+%else
+%bcond_without build_source
+%bcond_without build_devel
+%endif
 %bcond_without cross_headers
 
 %bcond_with lazy_developer
 %bcond_with build_debug
-%bcond_with dracut_all_initrd
 %bcond_without clr
 %bcond_with vbox_orig_mods
 # FIXME re-enable by default when the patches have been adapted to 5.8
@@ -253,9 +260,6 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 Source1001:	revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
 Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
-# (crazy) I really need to send that upstream soon
-Patch10:	iwlwifi-fix-5e003982b07ae.patch
-Patch11:	linux-5.13-attribute-error.patch
 Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
@@ -287,14 +291,16 @@ Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 # sources can be found here https://github.com/dolohow/uksm
 %if %{with uksm}
 # breaks armx builds
-Patch43:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.13.patch
+Patch43:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.15.patch
+# And make it build with gcc 11
+Patch44:	uksm-5.14-gcc-11.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
-Patch44:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
+Patch45:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
 # Restore ACPI loglevels to sane values
-Patch45:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
-Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
+Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
+Patch47:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
 Patch48:	linux-5.4.5-fix-build.patch
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
 Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
@@ -330,7 +336,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	vbox-5.10.patch
 Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
@@ -361,6 +366,7 @@ Patch247:       https://raw.githubusercontent.com/armbian/build/master/patch/ker
 Patch248:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-sd-drive-level-8ma.patch
 Patch249:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
 Patch250:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpi4-FixMMCFreq.patch
+Patch251:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.14/add-rockchip-iep-driver.patch
 
 # (tpg) Manjaro ARM Patches
 Patch260:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch
@@ -379,65 +385,26 @@ Patch271:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw
 Patch273:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-drm-meson-add-YUV422-output-support.patch
 #Patch274:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
 Patch275:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-add-ugoos-device.patch
-Patch278:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0019-drm-panfrost-Handle-failure-in-panfrost_job_hw_submit.patch
-Patch279:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-phy-rockchip-typec-Set-extcon-capabilities.patch
-Patch280:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-usb-typec-altmodes-displayport-Add-hacky-generic-altmode.patch
-Patch281:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-rockchip-add-typec-extcon-hack.patch
-Patch282:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-dts-rockchip-setup-USB-type-c-port-as-dual-data-role.patch
-Patch283:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-revert-arm64-dts-allwinner-a64-Add-I2S2-node.patch
-Patch284:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-Bluetooth-Add-new-quirk-for-broken-local-ext-features.patch
-#Patch285:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-Bluetooth-btrtl-add-support-for-the-RTL8723CS.patch
-Patch286:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-allwinner-a64-enable-Bluetooth-On-Pinebook.patch
-#Patch287:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-arm64-dts-allwinner-enable-bluetooth-pinetab-pinepho.patch
+Patch278:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0021-drm-panfrost-scheduler-fix.patch
+Patch279:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0023-drm-rockchip-support-gamma-control-on-RK3399.patch
+Patch280:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-phy-rockchip-typec-Set-extcon-capabilities.patch
+#Patch281:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-usb-typec-altmodes-displayport-Add-hacky-generic-altmode.patch
+#Patch282:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-rockchip-add-typec-extcon-hack.patch
+#Patch283:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-dts-rockchip-setup-USB-type-c-port-as-dual-data-role.patch
+Patch284:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-revert-arm64-dts-allwinner-a64-Add-I2S2-node.patch
+Patch285:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-Bluetooth-Add-new-quirk-for-broken-local-ext-features.patch
+#Patch286:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-Bluetooth-btrtl-add-support-for-the-RTL8723CS.patch
+Patch287:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-allwinner-a64-enable-Bluetooth-On-Pinebook.patch
+#Patch288:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-arm64-dts-allwinner-enable-bluetooth-pinetab-pinepho.patch
 Patch289:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-pinetab-accelerometer.patch
 Patch290:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-enable-jack-detection-pinetab.patch
 #Patch291:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0009-enable-hdmi-output-pinetab.patch
-Patch292:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0010-drm-panel-fix-PineTab-display.patch
 
 # (tpg) patches taken from https://github.com/OpenMandrivaSoftware/os-image-builder/tree/master/device/rockchip/generic/kernel-patches
 Patch295:	add-board-orangepi-4.patch
 Patch299:	general-btsdio-ignore-uart-devs.patch
 Patch300:	general-emmc-hs400es-init-tweak.patch
 Patch301:	rk3399-add-sclk-i2sout-src-clock.patch
-
-# NTFS kernel patches
-# https://lore.kernel.org/lkml/20210402155347.64594-1-almaz.alexandrovich@paragon-software.com/
-# (when losing track of what the latest version is, google "PATCH v26" NTFS and increase the
-# version number until nothing is found -- short of always keeping track of the mailing lists,
-# there doesn't seem to be a better way to always have the current version)
-# Versions > 19 require kernel 5.12+
-# (tpg) does not compile as of 2021-07-18
-%if 0
-Patch350:	PATCH-v26-01-10-fs-ntfs3-Add-headers-and-misc-files.patch
-Patch351:	PATCH-v26-02-10-fs-ntfs3-Add-initialization-of-super-block.patch
-Patch352:	PATCH-v26-03-10-fs-ntfs3-Add-bitmap.patch
-Patch353:	PATCH-v26-04-10-fs-ntfs3-Add-file-operations-and-implementation.patch
-Patch354:	PATCH-v26-05-10-fs-ntfs3-Add-attrib-operations.patch
-Patch355:	PATCH-v26-06-10-fs-ntfs3-Add-compression.patch
-Patch356:	PATCH-v26-07-10-fs-ntfs3-Add-NTFS-journal.patch
-Patch357:	PATCH-v26-08-10-fs-ntfs3-Add-Kconfig-Makefile-and-doc.patch
-Patch358:	PATCH-v26-09-10-fs-ntfs3-Add-NTFS3-in-fs-Kconfig-and-fs-Makefile.patch
-Patch359:	PATCH-v26-10-10-fs-ntfs3-Add-MAINTAINERS.patch
-%endif
-
-# Bootsplash support
-# based on https://gitlab.manjaro.org/packages/core/linux511/-/tree/master
-Patch401:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0401-revert-fbcon-remove-now-unusued-softback_lines-cursor-argument.patch
-Patch402:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0402-revert-fbcon-remove-no-op-fbcon_set_origin.patch
-Patch403:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0403-revert-fbcon-remove-soft-scrollback-code.patch
-Patch501:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0501-bootsplash.patch
-Patch502:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0502-bootsplash.patch
-Patch503:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0503-bootsplash.patch
-Patch504:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0504-bootsplash.patch
-Patch505:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0505-bootsplash.patch
-Patch506:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0506-bootsplash.patch
-Patch507:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0507-bootsplash.patch
-Patch508:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0508-bootsplash.patch
-Patch509:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0509-bootsplash.patch
-Patch510:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0510-bootsplash.patch
-Patch511:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0511-bootsplash.patch
-Patch512:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0512-bootsplash.patch
-Source513:	https://gitlab.manjaro.org/packages/core/linux511/-/raw/master/0513-bootsplash.gitpatch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -692,7 +659,6 @@ needs debugging info from the kernel, this package may help. \
 							\
 %endif							\
 							\
-%post -n %{kname}-%{1} -f kernel_files.%{1}-post 	\
 %posttrans -n %{kname}-%{1} -f kernel_files.%{1}-posttrans \
 %postun -n %{kname}-%{1} -f kernel_files.%{1}-postun 	\
 							\
@@ -896,8 +862,6 @@ Version:	%{kversion}
 Release:	%{rpmrel}
 Summary:	The cpupower tools
 Group:		System/Kernel and hardware
-Requires(post):		rpm-helper >= 0.24.0-3
-Requires(preun):	rpm-helper >= 0.24.0-3
 Obsoletes:	cpufreq < 2.0-3
 Provides:	cpufreq = 2.0-3
 Obsoletes:	cpufrequtils < 008-6
@@ -1036,7 +1000,6 @@ xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
 %autopatch -p1
-git apply %{S:513}
 
 %ifarch %{aarch64}
 # FIXME SynQuacer workaround
@@ -1134,7 +1097,6 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
-patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
@@ -1145,6 +1107,9 @@ find . -name "*.g*ignore" -delete
 
 # fix missing exec flag on file introduced in 4.14.10-rc1
 chmod 755 tools/objtool/sync-check.sh
+
+# (tpg) incerase ZSTD kernel module compression rate
+sed -i -e 's#$(ZSTD) \-T0#$(ZSTD) \--format=zstd \--ultra \-22 \-T0#g' scripts/Makefile.modinst
 
 %build
 %set_build_flags
@@ -1653,24 +1618,18 @@ EOF
 	cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 %endif
 
-### Create kernel Post script
-	cat > $kernel_files-post <<EOF
-%ifnarch %{armx} %{riscv}
-%if %{with dracut_all_initrd}
-[ -x /sbin/dracut ] && /sbin/dracut -f --regenerate-all
-%endif
+### Create kernel Posttrans script
+	cat > $kernel_files-posttrans <<EOF
+[ -x /sbin/depmod ] && /sbin/depmod -a %{kversion}-$kernel_flavour-%{buildrpmrel}
 
-/sbin/depmod -a %{kversion}-$kernel_flavour-%{buildrpmrel}
+%ifnarch %{armx} %{riscv}
 [ -x /sbin/dracut ] && /sbin/dracut -f --kver %{kversion}-$kernel_flavour-%{buildrpmrel}
+[ -x /usr/sbin/update-grub2 ] && /usr/sbin/update-grub2
 %endif
 
 ## cleanup some werid symlinks we never used anyway
 rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 
-# run update-grub2
-[ -x /usr/sbin/update-grub2 ] && /usr/sbin/update-grub2
-
-cd - > /dev/null
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
 if [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
@@ -1679,10 +1638,7 @@ if [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
 	ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
 fi
 %endif
-EOF
 
-	### Create kernel Posttrans script
-	cat > $kernel_files-posttrans <<EOF
 if [ -x /usr/sbin/dkms_autoinstaller ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
 	/usr/sbin/dkms_autoinstaller start %{kversion}-$kernel_flavour-%{buildrpmrel}
 fi
@@ -1698,18 +1654,8 @@ EOF
 cat > $kernel_files-postun <<EOF
 
 rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
-cd /boot > /dev/null
-
-if [ -e vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-	rm -rf vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel}
-fi
-
-if [ -e initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img ]; then
-	rm -rf initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
-fi
-
-
-cd - > /dev/null
+[ -e /boot/vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ] && rm -rf /boot/vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel}
+[ -e /boot/initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img ] && rm -rf /boot/initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
 
 rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel} >/dev/null
 if [ -d /var/lib/dkms ]; then

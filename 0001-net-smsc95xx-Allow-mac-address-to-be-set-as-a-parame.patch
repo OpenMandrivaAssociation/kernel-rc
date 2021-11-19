@@ -1,16 +1,6 @@
-From 28566a4f48ae06702e0c7145ed583484a26b9712 Mon Sep 17 00:00:00 2001
-From: Dan Johansen <strit@manjaro.org>
-Date: Mon, 26 Oct 2020 08:01:01 +0100
-Subject: [PATCH] net/smsc95xx: Allow mac address to be set as a parameter
-
----
- drivers/net/usb/smsc95xx.c | 57 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
-
-diff --git a/drivers/net/usb/smsc95xx.c b/drivers/net/usb/smsc95xx.c
-index ea0d5f04dc3a..3ded903589be 100644
---- a/drivers/net/usb/smsc95xx.c
-+++ b/drivers/net/usb/smsc95xx.c
+diff -up linux-5.16-rc1/drivers/net/usb/smsc95xx.c.43~ linux-5.16-rc1/drivers/net/usb/smsc95xx.c
+--- linux-5.16-rc1/drivers/net/usb/smsc95xx.c.43~	2021-11-14 22:56:52.000000000 +0100
++++ linux-5.16-rc1/drivers/net/usb/smsc95xx.c	2021-11-18 20:54:44.851051329 +0100
 @@ -50,6 +50,7 @@
  #define SUSPEND_SUSPEND3		(0x08)
  #define SUSPEND_ALLMODES		(SUSPEND_SUSPEND0 | SUSPEND_SUSPEND1 | \
@@ -30,7 +20,7 @@ index ea0d5f04dc3a..3ded903589be 100644
  static int __must_check __smsc95xx_read_reg(struct usbnet *dev, u32 index,
  					    u32 *data, int in_pm)
  {
-@@ -753,8 +758,59 @@ static int smsc95xx_ioctl(struct net_device *netdev, struct ifreq *rq, int cmd)
+@@ -753,8 +758,59 @@ static int smsc95xx_ioctl(struct net_dev
  	return phy_mii_ioctl(netdev->phydev, rq, cmd);
  }
  
@@ -87,10 +77,10 @@ index ea0d5f04dc3a..3ded903589be 100644
 +       if (smsc95xx_is_macaddr_param(dev, dev->net->dev_addr))
 +               return;
 +
+ 	u8 addr[ETH_ALEN];
+ 
  	/* maybe the boot loader passed the MAC address in devicetree */
- 	if (!eth_platform_get_mac_address(&dev->udev->dev,
- 			dev->net->dev_addr)) {
-@@ -780,6 +836,7 @@ static void smsc95xx_init_mac_address(struct usbnet *dev)
+@@ -781,6 +837,7 @@ static void smsc95xx_init_mac_address(st
  	netif_dbg(dev, ifup, dev->net, "MAC address set to eth_random_addr\n");
  }
  
@@ -98,6 +88,3 @@ index ea0d5f04dc3a..3ded903589be 100644
  static int smsc95xx_set_mac_address(struct usbnet *dev)
  {
  	u32 addr_lo = dev->net->dev_addr[0] | dev->net->dev_addr[1] << 8 |
--- 
-2.28.0
-

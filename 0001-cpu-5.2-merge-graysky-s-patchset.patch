@@ -1,6 +1,6 @@
-diff -up linux-5.8-rc1/arch/x86/include/asm/vermagic.h.19~ linux-5.8-rc1/arch/x86/include/asm/vermagic.h
---- linux-5.8-rc1/arch/x86/include/asm/vermagic.h.19~	2020-06-14 21:45:04.000000000 +0200
-+++ linux-5.8-rc1/arch/x86/include/asm/vermagic.h	2020-06-16 21:52:41.132824421 +0200
+diff -up linux-5.15/arch/x86/include/asm/vermagic.h.29~ linux-5.15/arch/x86/include/asm/vermagic.h
+--- linux-5.15/arch/x86/include/asm/vermagic.h.29~	2021-10-31 21:53:10.000000000 +0100
++++ linux-5.15/arch/x86/include/asm/vermagic.h	2021-11-03 20:24:41.464481729 +0100
 @@ -17,6 +17,30 @@
  #define MODULE_PROC_FAMILY "586MMX "
  #elif defined CONFIG_MCORE2
@@ -59,9 +59,9 @@ diff -up linux-5.8-rc1/arch/x86/include/asm/vermagic.h.19~ linux-5.8-rc1/arch/x8
  #elif defined CONFIG_MELAN
  #define MODULE_PROC_FAMILY "ELAN "
  #elif defined CONFIG_MCRUSOE
-diff -up linux-5.8-rc1/arch/x86/Kconfig.cpu.19~ linux-5.8-rc1/arch/x86/Kconfig.cpu
---- linux-5.8-rc1/arch/x86/Kconfig.cpu.19~	2020-06-14 21:45:04.000000000 +0200
-+++ linux-5.8-rc1/arch/x86/Kconfig.cpu	2020-06-16 22:03:50.575913298 +0200
+diff -up linux-5.15/arch/x86/Kconfig.cpu.29~ linux-5.15/arch/x86/Kconfig.cpu
+--- linux-5.15/arch/x86/Kconfig.cpu.29~	2021-10-31 21:53:10.000000000 +0100
++++ linux-5.15/arch/x86/Kconfig.cpu	2021-11-03 20:24:41.464481729 +0100
 @@ -123,6 +123,7 @@ config MPENTIUMM
  config MPENTIUM4
  	bool "Pentium-4/Celeron(P4-based)/Pentium-4 M/older Xeon"
@@ -208,18 +208,17 @@ diff -up linux-5.8-rc1/arch/x86/Kconfig.cpu.19~ linux-5.8-rc1/arch/x86/Kconfig.c
  
 -config MATOM
 -	bool "Intel Atom"
--	help
 +	  Enables -march=core2
++
++config MNEHALEM
++	bool "Intel Nehalem"
++	select X86_P6_NOP
+ 	help
  
 -	  Select this for the Intel Atom platform. Intel Atom CPUs have an
 -	  in-order pipelining architecture and thus can benefit from
 -	  accordingly optimized code. Use a recent GCC with specific Atom
 -	  support in order to fully benefit from selecting this option.
-+config MNEHALEM
-+	bool "Intel Nehalem"
-+	select X86_P6_NOP
-+	help
-+
 +	  Select this for 1st Gen Core processors in the Nehalem family.
 +
 +	  Enables -march=nehalem
@@ -408,32 +407,29 @@ diff -up linux-5.8-rc1/arch/x86/Kconfig.cpu.19~ linux-5.8-rc1/arch/x86/Kconfig.c
  
  config X86_MINIMUM_CPU_FAMILY
  	int
-diff -up linux-5.8-rc1/arch/x86/Makefile.19~ linux-5.8-rc1/arch/x86/Makefile
---- linux-5.8-rc1/arch/x86/Makefile.19~	2020-06-14 21:45:04.000000000 +0200
-+++ linux-5.8-rc1/arch/x86/Makefile	2020-06-16 21:52:41.132824421 +0200
-@@ -119,13 +119,46 @@ else
+diff -up linux-5.15/arch/x86/Makefile.29~ linux-5.15/arch/x86/Makefile
+--- linux-5.15/arch/x86/Makefile.29~	2021-11-03 20:24:41.464481729 +0100
++++ linux-5.15/arch/x86/Makefile	2021-11-03 20:37:44.633525702 +0100
+@@ -117,11 +117,46 @@ else
  	KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
  
          # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
-+        cflags-$(CONFIG_MNATIVE) += $(call cc-option,-march=native)
-         cflags-$(CONFIG_MK8) += $(call cc-option,-march=k8)
-+        cflags-$(CONFIG_MK8SSE3) += $(call cc-option,-march=k8-sse3,-mtune=k8)
-+        cflags-$(CONFIG_MK10) += $(call cc-option,-march=amdfam10)
-+        cflags-$(CONFIG_MBARCELONA) += $(call cc-option,-march=barcelona)
-+        cflags-$(CONFIG_MBOBCAT) += $(call cc-option,-march=btver1)
-+        cflags-$(CONFIG_MJAGUAR) += $(call cc-option,-march=btver2)
-+        cflags-$(CONFIG_MBULLDOZER) += $(call cc-option,-march=bdver1)
-+        cflags-$(CONFIG_MPILEDRIVER) += $(call cc-option,-march=bdver2)
-+        cflags-$(CONFIG_MSTEAMROLLER) += $(call cc-option,-march=bdver3)
-+        cflags-$(CONFIG_MEXCAVATOR) += $(call cc-option,-march=bdver4)
-+        cflags-$(CONFIG_MZEN) += $(call cc-option,-march=znver1)
-         cflags-$(CONFIG_MPSC) += $(call cc-option,-march=nocona)
- 
-         cflags-$(CONFIG_MCORE2) += \
--                $(call cc-option,-march=core2,$(call cc-option,-mtune=generic))
--	cflags-$(CONFIG_MATOM) += $(call cc-option,-march=atom) \
--		$(call cc-option,-mtune=atom,$(call cc-option,-mtune=generic))
-+                $(call cc-option,-march=core2,$(call cc-option,-mtune=core2))
++	cflags-$(CONFIG_MNATIVE)	+= $(call cc-option,-march=native)
+         cflags-$(CONFIG_MK8)		+= -march=k8
++	cflags-$(CONFIG_MK8SSE3)	+= $(call cc-option,-march=k8-sse3,-mtune=k8)
++	cflags-$(CONFIG_MK10)		+= $(call cc-option,-march=amdfam10)
++	cflags-$(CONFIG_MBARCELONA)	+= $(call cc-option,-march=barcelona)
++	cflags-$(CONFIG_MBOBCAT)	+= $(call cc-option,-march=btver1)
++	cflags-$(CONFIG_MJAGUAR)	+= $(call cc-option,-march=btver2)
++	cflags-$(CONFIG_MBULLDOZER)	+= $(call cc-option,-march=bdver1)
++	cflags-$(CONFIG_MPILEDRIVER)	+= $(call cc-option,-march=bdver2)
++	cflags-$(CONFIG_MSTEAMROLLER)	+= $(call cc-option,-march=bdver3)
++	cflags-$(CONFIG_MEXCAVATOR)	+= $(call cc-option,-march=bdver4)
++	cflags-$(CONFIG_MZEN)		+= $(call cc-option,-march=znver1)
+         cflags-$(CONFIG_MPSC)		+= -march=nocona
+         cflags-$(CONFIG_MCORE2)		+= -march=core2
+         cflags-$(CONFIG_MATOM)		+= -march=atom
+         cflags-$(CONFIG_GENERIC_CPU)	+= -mtune=generic
 +        cflags-$(CONFIG_MNEHALEM) += \
 +                $(call cc-option,-march=nehalem,$(call cc-option,-mtune=nehalem))
 +        cflags-$(CONFIG_MWESTMERE) += \
@@ -458,17 +454,17 @@ diff -up linux-5.8-rc1/arch/x86/Makefile.19~ linux-5.8-rc1/arch/x86/Makefile
 +                $(call cc-option,-march=icelake,$(call cc-option,-mtune=icelake))
 +        cflags-$(CONFIG_MATOM) += $(call cc-option,-march=bonnell) \
 +                $(call cc-option,-mtune=bonnell,$(call cc-option,-mtune=generic))
-         cflags-$(CONFIG_GENERIC_CPU) += $(call cc-option,-mtune=generic)
          KBUILD_CFLAGS += $(cflags-y)
  
-diff -up linux-5.8-rc1/arch/x86/Makefile_32.cpu.19~ linux-5.8-rc1/arch/x86/Makefile_32.cpu
---- linux-5.8-rc1/arch/x86/Makefile_32.cpu.19~	2020-06-14 21:45:04.000000000 +0200
-+++ linux-5.8-rc1/arch/x86/Makefile_32.cpu	2020-06-16 21:52:41.133824431 +0200
+         KBUILD_CFLAGS += -mno-red-zone
+diff -up linux-5.15/arch/x86/Makefile_32.cpu.29~ linux-5.15/arch/x86/Makefile_32.cpu
+--- linux-5.15/arch/x86/Makefile_32.cpu.29~	2021-10-31 21:53:10.000000000 +0100
++++ linux-5.15/arch/x86/Makefile_32.cpu	2021-11-03 20:38:36.768276151 +0100
 @@ -24,7 +24,18 @@ cflags-$(CONFIG_MK6)		+= -march=k6
  # Please note, that patches that add -march=athlon-xp and friends are pointless.
  # They make zero difference whatsosever to performance at this time.
  cflags-$(CONFIG_MK7)		+= -march=athlon
-+cflags-$(CONFIG_MNATIVE) += $(call cc-option,-march=native)
++cflags-$(CONFIG_MNATIVE)	+= $(call cc-option,-march=native)
  cflags-$(CONFIG_MK8)		+= $(call cc-option,-march=k8,-march=athlon)
 +cflags-$(CONFIG_MK8SSE3)		+= $(call cc-option,-march=k8-sse3,-march=athlon)
 +cflags-$(CONFIG_MK10)	+= $(call cc-option,-march=amdfam10,-march=athlon)
@@ -480,8 +476,8 @@ diff -up linux-5.8-rc1/arch/x86/Makefile_32.cpu.19~ linux-5.8-rc1/arch/x86/Makef
 +cflags-$(CONFIG_MSTEAMROLLER)	+= $(call cc-option,-march=bdver3,-march=athlon)
 +cflags-$(CONFIG_MEXCAVATOR)	+= $(call cc-option,-march=bdver4,-march=athlon)
 +cflags-$(CONFIG_MZEN)	+= $(call cc-option,-march=znver1,-march=athlon)
- cflags-$(CONFIG_MCRUSOE)	+= -march=i686 -falign-functions=0 -falign-jumps=0 -falign-loops=0
- cflags-$(CONFIG_MEFFICEON)	+= -march=i686 $(call tune,pentium3) -falign-functions=0 -falign-jumps=0 -falign-loops=0
+ cflags-$(CONFIG_MCRUSOE)	+= -march=i686 $(align)
+ cflags-$(CONFIG_MEFFICEON)	+= -march=i686 $(call tune,pentium3) $(align)
  cflags-$(CONFIG_MWINCHIPC6)	+= $(call cc-option,-march=winchip-c6,-march=i586)
 @@ -33,8 +44,19 @@ cflags-$(CONFIG_MCYRIXIII)	+= $(call cc-
  cflags-$(CONFIG_MVIAC3_2)	+= $(call cc-option,-march=c3-2,-march=i686)
