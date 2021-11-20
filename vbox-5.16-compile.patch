@@ -1,0 +1,130 @@
+diff -up linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/stdint.h.omv~ linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/stdint.h
+--- linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/stdint.h.omv~	2021-11-20 11:50:54.543466604 +0100
++++ linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/stdint.h	2021-11-20 11:51:02.846487362 +0100
+@@ -198,7 +198,7 @@ typedef uint64_t            uintmax_t;
+ typedef signed long         intptr_t;
+ #   endif
+ #   if !defined(_UINTPTR_T_DECLARED) && !defined(_UINTPTR_T) && !defined(_UINTPTR_T_DEFINED)
+-typedef unsigned long       uintptr_t;
++//typedef unsigned long       uintptr_t;
+ #   endif
+ #  else
+ #   if !defined(_INTPTR_T_DECLARED)  && !defined(_INTPTR_T) && !defined(_INTPTR_T_DEFINED)
+diff -up linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/types.h.omv~ linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/types.h
+--- linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/types.h.omv~	2021-11-20 11:48:30.764107038 +0100
++++ linux-5.16-rc1/drivers/net/vboxnetadp/include/iprt/types.h	2021-11-20 11:49:53.478313891 +0100
+@@ -131,14 +131,9 @@ RT_C_DECLS_END
+      *   3. Starting with 2.6.24, linux/types.h typedefs uintptr_t.
+      * We work around these issues here and nowhere else.
+      */
+-#  include <stddef.h>
+ #  if defined(__cplusplus)
+     typedef bool _Bool;
+ #  endif
+-#  define bool linux_bool
+-#  define true linux_true
+-#  define false linux_false
+-#  define uintptr_t linux_uintptr_t
+ #  include <linux/version.h>
+ #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,33)
+ #   include <generated/autoconf.h>
+diff -up linux-5.16-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~ linux-5.16-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h
+--- linux-5.16-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h.omv~	2021-11-20 11:52:05.646644396 +0100
++++ linux-5.16-rc1/drivers/net/vboxnetadp/r0drv/linux/the-linux-kernel.h	2021-11-20 11:52:11.685659496 +0100
+@@ -35,7 +35,6 @@
+  * Then use the linux bool type for all the stuff include here.
+  */
+ #include <iprt/types.h>
+-#define bool linux_bool
+ 
+ #if RT_GNUC_PREREQ(4, 6)
+ # pragma GCC diagnostic push
+diff -up linux-5.16-rc1/drivers/net/vboxnetflt/include/iprt/types.h.omv~ linux-5.16-rc1/drivers/net/vboxnetflt/include/iprt/types.h
+--- linux-5.16-rc1/drivers/net/vboxnetflt/include/iprt/types.h.omv~	2021-11-20 11:53:19.569829221 +0100
++++ linux-5.16-rc1/drivers/net/vboxnetflt/include/iprt/types.h	2021-11-20 11:53:29.983855256 +0100
+@@ -131,14 +131,9 @@ RT_C_DECLS_END
+      *   3. Starting with 2.6.24, linux/types.h typedefs uintptr_t.
+      * We work around these issues here and nowhere else.
+      */
+-#  include <stddef.h>
+ #  if defined(__cplusplus)
+     typedef bool _Bool;
+ #  endif
+-#  define bool linux_bool
+-#  define true linux_true
+-#  define false linux_false
+-#  define uintptr_t linux_uintptr_t
+ #  include <linux/version.h>
+ #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,33)
+ #   include <generated/autoconf.h>
+diff -up linux-5.16-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~ linux-5.16-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h
+--- linux-5.16-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h.omv~	2021-11-20 11:55:09.167103203 +0100
++++ linux-5.16-rc1/drivers/net/vboxnetflt/r0drv/linux/the-linux-kernel.h	2021-11-20 11:55:12.216110825 +0100
+@@ -35,7 +35,6 @@
+  * Then use the linux bool type for all the stuff include here.
+  */
+ #include <iprt/types.h>
+-#define bool linux_bool
+ 
+ #if RT_GNUC_PREREQ(4, 6)
+ # pragma GCC diagnostic push
+diff -up linux-5.16-rc1/drivers/virt/vboxdrv/include/internal/iprt.h.omv~ linux-5.16-rc1/drivers/virt/vboxdrv/include/internal/iprt.h
+--- linux-5.16-rc1/drivers/virt/vboxdrv/include/internal/iprt.h.omv~	2021-11-20 12:07:44.758991429 +0100
++++ linux-5.16-rc1/drivers/virt/vboxdrv/include/internal/iprt.h	2021-11-20 12:07:49.618003570 +0100
+@@ -41,7 +41,6 @@
+  && defined(IN_RING0) \
+  && defined(MODULE) \
+  && !defined(RT_NO_EXPORT_SYMBOL)
+-# define bool linux_bool /* see r0drv/linux/the-linux-kernel.h */
+ # include <linux/version.h>
+ # if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
+ #  include <generated/autoconf.h>
+diff -up linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/stdint.h.omv~ linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/stdint.h
+--- linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/stdint.h.omv~	2021-11-20 12:07:22.580936015 +0100
++++ linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/stdint.h	2021-11-20 12:07:34.067964716 +0100
+@@ -198,7 +198,7 @@ typedef uint64_t            uintmax_t;
+ typedef signed long         intptr_t;
+ #   endif
+ #   if !defined(_UINTPTR_T_DECLARED) && !defined(_UINTPTR_T) && !defined(_UINTPTR_T_DEFINED)
+-typedef unsigned long       uintptr_t;
++//typedef unsigned long       uintptr_t;
+ #   endif
+ #  else
+ #   if !defined(_INTPTR_T_DECLARED)  && !defined(_INTPTR_T) && !defined(_INTPTR_T_DEFINED)
+diff -up linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/types.h.omv~ linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/types.h
+--- linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/types.h.omv~	2021-11-20 11:59:29.556754019 +0100
++++ linux-5.16-rc1/drivers/virt/vboxdrv/include/iprt/types.h	2021-11-20 12:08:47.622148489 +0100
+@@ -131,14 +131,9 @@ RT_C_DECLS_END
+      *   3. Starting with 2.6.24, linux/types.h typedefs uintptr_t.
+      * We work around these issues here and nowhere else.
+      */
+-#  include <stddef.h>
+ #  if defined(__cplusplus)
+     typedef bool _Bool;
+ #  endif
+-#  define bool linux_bool
+-#  define true linux_true
+-#  define false linux_false
+-#  define uintptr_t linux_uintptr_t
+ #  include <linux/version.h>
+ #  if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,33)
+ #   include <generated/autoconf.h>
+@@ -266,7 +261,6 @@ typedef _Bool bool;
+ #   if (defined(RT_OS_DARWIN) || defined(RT_OS_HAIKU)) && (defined(_STDBOOL_H) || defined(__STDBOOL_H))
+ #    undef bool
+ #   endif
+-typedef _Bool bool;
+ #  endif
+ # else
+ #  if RT_MSC_PREREQ(RT_MSC_VER_VC120)
+diff -up linux-5.16-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~ linux-5.16-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h
+--- linux-5.16-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h.omv~	2021-11-20 12:06:16.305770418 +0100
++++ linux-5.16-rc1/drivers/virt/vboxdrv/r0drv/linux/the-linux-kernel.h	2021-11-20 12:06:19.222777707 +0100
+@@ -35,7 +35,6 @@
+  * Then use the linux bool type for all the stuff include here.
+  */
+ #include <iprt/types.h>
+-#define bool linux_bool
+ 
+ #if RT_GNUC_PREREQ(4, 6)
+ # pragma GCC diagnostic push
