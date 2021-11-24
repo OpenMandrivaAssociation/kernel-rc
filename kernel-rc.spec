@@ -24,7 +24,7 @@
 %global _empty_manifest_terminate_build 0
 
 %ifarch aarch64
-%bcond_with gcc
+%bcond_without gcc
 %bcond_without clang
 %else
 %bcond_without gcc
