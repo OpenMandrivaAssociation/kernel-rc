@@ -37,7 +37,7 @@
 %define kernelversion	5
 %define patchlevel	16
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -1160,6 +1160,10 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_LTO_NONE is not set
 CONFIG_LTO_CLANG_FULL=y
 # CONFIG_LTO_CLANG_THIN is not set
+CONFIG_CFI_CLANG=y
+CONFIG_CFI_CLANG_SHADOW=y
+# CONFIG_CFI_PERMISSIVE is not set
+CONFIG_RELR=y
 EOF
 }
 
