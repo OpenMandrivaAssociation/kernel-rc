@@ -142,15 +142,7 @@
 %bcond_with bpftool
 %else
 %bcond_without perf
-# FIXME figure out why bpftool won't build on aarch64
-# as of 5.9.1, error is:
-# ./tools/bpf/resolve_btfids/resolve_btfids vmlinux
-# FAILED: load BTF from vmlinux: Unknown error -2+ on_exit
-%ifarch %{aarch64}
-%bcond_with bpftool
-%else
 %bcond_without bpftool
-%endif
 %endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
@@ -304,6 +296,7 @@ Patch47:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151
 Patch48:	linux-5.4.5-fix-build.patch
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
 Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
+Patch55:	linux-5.16-clang-no-attribute-symver.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -336,7 +329,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	vbox-5.16-compile.patch
 Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
@@ -355,57 +347,72 @@ Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871
 
 # Fix perf
 Patch230:	linux-5.11-perf-compile.patch
+#Patch231:	ce71038e673ee8291c64631359e56c48c8616dc7.patch
 
 # (tpg) Armbian ARM Patches
-Patch240:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-fix-emmc.patch
-Patch241:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-fix-spi1-flash-speed.patch
-Patch242:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-work-led-heartbeat.patch
-Patch243:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-fix-mmc-signal-voltage-before-reboot.patch
-Patch245:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-unlock-temperature.patch
-Patch246:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-increasing_DMA_block_memory_allocation_to_2048.patch
-Patch247:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-rk808-configurable-switch-voltage-steps.patch
-Patch248:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-sd-drive-level-8ma.patch
-Patch249:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
-Patch250:       https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpi4-FixMMCFreq.patch
+Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-fix-emmc.patch
+Patch241:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-fix-spi1-flash-speed.patch
+Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpro64-work-led-heartbeat.patch
+Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-fix-mmc-signal-voltage-before-reboot.patch
+Patch245:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-unlock-temperature.patch
+Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-increasing_DMA_block_memory_allocation_to_2048.patch
+Patch247:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/general-rk808-configurable-switch-voltage-steps.patch
+Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-sd-drive-level-8ma.patch
+Patch249:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
+Patch250:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpi4-FixMMCFreq.patch
 Patch251:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.14/add-rockchip-iep-driver.patch
 
 # (tpg) Manjaro ARM Patches
-Patch260:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch
-Patch261:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-rockchip-add-usb3-node-to-roc-cc-rock64.patch
-#Patch262:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-allwinner-add-hdmi-sound-to-pine-devices.patch
-Patch263:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-dts-allwinner-add-ohci-ehci-to-h5-nanopi.patch
-Patch264:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-drm-bridge-analogix_dp-Add-enable_psr-param.patch
-Patch265:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-gpu-drm-add-new-display-resolution-2560x1440.patch
-Patch266:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-nuumio-panfrost-Silence-Panfrost-gem-shrinker-loggin.patch
-#Patch267:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-Add-Firefly-Station-p1-support.patch
-Patch268:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0009-typec-displayport-some-devices-have-pin-assignments-reversed.patch
-Patch269:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0010-usb-typec-add-extcon-to-tcpm.patch
-Patch270:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0011-arm64-rockchip-add-DP-ALT-rockpro64.patch
-Patch271:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0012-ayufan-drm-rockchip-add-support-for-modeline-32MHz-e.patch
-#Patch272:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0013-rk3399-rp64-pcie-Reimplement-rockchip-PCIe-bus-scan-delay.patch
-Patch273:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-drm-meson-add-YUV422-output-support.patch
-#Patch274:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
-Patch275:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-add-ugoos-device.patch
-Patch278:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0021-drm-panfrost-scheduler-fix.patch
-Patch279:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0023-drm-rockchip-support-gamma-control-on-RK3399.patch
-Patch280:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-phy-rockchip-typec-Set-extcon-capabilities.patch
-#Patch281:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-usb-typec-altmodes-displayport-Add-hacky-generic-altmode.patch
-#Patch282:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-rockchip-add-typec-extcon-hack.patch
-#Patch283:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-dts-rockchip-setup-USB-type-c-port-as-dual-data-role.patch
-Patch284:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-revert-arm64-dts-allwinner-a64-Add-I2S2-node.patch
-Patch285:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-Bluetooth-Add-new-quirk-for-broken-local-ext-features.patch
-#Patch286:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-Bluetooth-btrtl-add-support-for-the-RTL8723CS.patch
-Patch287:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-allwinner-a64-enable-Bluetooth-On-Pinebook.patch
-#Patch288:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-arm64-dts-allwinner-enable-bluetooth-pinetab-pinepho.patch
-Patch289:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-pinetab-accelerometer.patch
-Patch290:       https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-enable-jack-detection-pinetab.patch
-#Patch291:      https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0009-enable-hdmi-output-pinetab.patch
+Patch260:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-arm64-dts-rockchip-Add-back-cdn_dp-to-Pinebook-Pro.patch
+Patch261:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-allwinner-add-hdmi-sound-to-pine-devices.patch
+Patch262:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-allwinner-add-ohci-ehci-to-h5-nanopi.patch
+Patch263:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-drm-bridge-analogix_dp-Add-enable_psr-param.patch
+Patch264:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-gpu-drm-add-new-display-resolution-2560x1440.patch
+Patch265:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-nuumio-panfrost-Silence-Panfrost-gem-shrinker-loggin.patch
+Patch266:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-arm64-dts-rockchip-Add-Firefly-Station-p1-support.patch
+Patch267:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-typec-displayport-some-devices-have-pin-assignments-reversed.patch
+Patch268:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0009-Add-megis-extcon-changes-to-fusb302.patch
+Patch269:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0010-usb-typec-Add-megis-typex-to-extcon-bridge-driver.patch
+Patch270:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0011-arm64-rockchip-add-DP-ALT-rockpro64.patch
+Patch271:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0012-ayufan-drm-rockchip-add-support-for-modeline-32MHz-e.patch
+Patch272:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0013-rk3399-rp64-pcie-Reimplement-rockchip-PCIe-bus-scan-delay.patch
+Patch273:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-arm64-dts-rockchip-add-typec-extcon-hack.patch
+Patch274:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-drm-meson-add-YUV422-output-support.patch
+Patch275:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
+Patch276:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0017-add-ugoos-device.patch
+Patch277:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0018-drm-panfrost-scheduler-fix.patch
+Patch278:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0019-arm64-dts-rockchip-Add-pcie-bus-scan-delay-to-rockpr.patch
+Patch279:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0020-drm-rockchip-support-gamma-control-on-RK3399.patch
+Patch280:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0021-media-rockchip-rga-do-proper-error-checking-in-probe.patch
+Patch281:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0022-arm-dts-rockchip-firefly-station-m2.patch
+Patch282:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0023-add-dts-rk3568-station-p2.patch
+Patch283:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0024-add-dts-rk3568-radxa-rock3a.patch
+Patch284:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-Bluetooth-Add-new-quirk-for-broken-local-ext-features.patch
+Patch285:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-Bluetooth-btrtl-add-support-for-the-RTL8723CS.patch
+Patch286:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-allwinner-a64-enable-Bluetooth-On-Pinebook.patch
+Patch287:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-arm64-dts-allwinner-enable-bluetooth-pinetab-pinepho.patch
+Patch288:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-staging-add-rtl8723cs-driver.patch
+Patch289:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-pinetab-accelerometer.patch
+Patch290:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-enable-jack-detection-pinetab.patch
+Patch291:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-drm-rockchip-RK356x-VOP2-support.patch
+Patch292:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-rockchip-enable-vop2-and-hdmi-tx-on-quartz64a.patch
+Patch293:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-add-GPU-for-RK356x-SoCs.patch
+Patch294:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-power-supply-Add-Support-for-RK817-Charger.patch
+Patch295:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-phy-rockchip-inno-usb2-support-rk356x-usb2phy.patch
+Patch296:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-HDMI-Audio-on-RK356x-Quartz64-Model-A.patch
+Patch297:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-phy-rockchip-add-naneng-combo-phy-for-RK3568.patch
+Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-enable-sdmmc1-on-Quartz64-Model-A.patch
 
 # (tpg) patches taken from https://github.com/OpenMandrivaSoftware/os-image-builder/tree/master/device/rockchip/generic/kernel-patches
-Patch295:	add-board-orangepi-4.patch
-Patch299:	general-btsdio-ignore-uart-devs.patch
-Patch300:	general-emmc-hs400es-init-tweak.patch
-Patch301:	rk3399-add-sclk-i2sout-src-clock.patch
+Patch300:	add-board-orangepi-4.patch
+Patch301:	general-btsdio-ignore-uart-devs.patch
+Patch302:	general-emmc-hs400es-init-tweak.patch
+Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
+Patch304:	rtl8723cs-compile.patch
+
+# (tpg) patches taken from LibreELEC
+Patch400:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2000-v4l-wip-rkvdec-vp9.patch
+Patch401:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2001-v4l-wip-rkvdec-hevc.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -482,7 +489,7 @@ BuildRequires:	lld
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 %endif
-BuildRequires:  pkgconfig(libcap)
+BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
 # For git apply
@@ -501,7 +508,7 @@ BuildRequires:	pkgconfig(libpci)
 %endif
 
 %if %{with build_turbostat}
-BuildRequires:  pkgconfig(libpcap)
+BuildRequires:	pkgconfig(libpcap)
 %endif
 
 # for docs
@@ -512,8 +519,10 @@ BuildRequires:	xmlto
 # for ORC unwinder and perf
 BuildRequires:	pkgconfig(libelf)
 
+%if %{with bpftool}
 # for bpf
 BuildRequires:	pahole
+%endif
 
 # for perf
 %if %{with perf}
@@ -590,7 +599,7 @@ Recommends:	iw					\
 Requires:	grub2 >= 2.02-27			\
 Requires(post):	grub2 >= 2.02-27			\
 %endif							\
-%ifnarch %armx						\
+%ifnarch %{armx}						\
 Recommends:	cpupower				\
 Recommends:	microcode-intel				\
 Suggests:	dracut >= 047				\
@@ -770,7 +779,6 @@ voluntary preempt, CFS cpu scheduler and BFQ i/o scheduler, ONDEMAND governor.
 %endif
 %endif
 
-
 %if %{with build_server}
 %ifarch %{ix86}
 %define summary_server Linux Kernel for server use with i686 & 64GB RAM
@@ -854,7 +862,7 @@ Summary:	perf tool and the supporting documentation
 Group:		System/Kernel and hardware
 
 %description -n perf
-the perf tool and the supporting documentation.
+The perf tool and the supporting documentation.
 %endif
 
 %if %{with build_cpupower}
@@ -905,6 +913,7 @@ Group:		System/Kernel and hardware
 Tool to report processor frequency and idle statistics.
 %endif
 
+%if %{with bpftool}
 %define bpf_major 0
 %define libbpf %mklibname bpf %{bpf_major}
 %define libbpfdevel %mklibname bpf -d
@@ -932,6 +941,7 @@ Requires:	%{libbpf} = %{EVRD}
 %description -n %{libbpfdevel}
 This package includes libraries and header files needed for development
 of applications which use bpf library from kernel sour
+%endif
 
 %package headers
 Version:	%{kversion}
@@ -1098,39 +1108,37 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
-patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
 # get rid of unwanted files
-find . -name '*~' -o -name '*.orig' -o -name '*.append' -delete
-# wipe all .gitignore/.get_maintainer.ignore files
-find . -name "*.g*ignore" -delete
+find . -name '*~' -o -name '*.orig' -o -name '*.append' -o -name '*.g*ignore' | %kxargs rm -f
 
 # fix missing exec flag on file introduced in 4.14.10-rc1
 chmod 755 tools/objtool/sync-check.sh
 
-# (tpg) incerase ZSTD kernel module compression rate
-sed -i -e 's#$(ZSTD) \-T0#$(ZSTD) \--format=zstd \--ultra \-22 \-T0#g' scripts/Makefile.modinst
-
 %build
 %set_build_flags
 
-############################################################
-###  Linker end2 > Check point to build for omv ###
-############################################################
+###
+### Functions definitions needed to build kernel
+###
+
 CheckConfig() {
 
-	if [ ! -e $(pwd)/.config ]; then
-		printf '%s\n' "Kernel config in $(pwd) missing, killing the build."
-		exit 1
-	fi
-}
+    if [ ! -e $(pwd)/.config ]; then
+	printf '%s\n' "Kernel config in $(pwd) missing, killing the build."
+	exit 1
+    fi
 
-VerifyConfig() {
 # (tpg) please add CONFIG that were carelessly enabled, while it is known these MUST be disabled
-    if grep -Fxq "CONFIG_RT_GROUP_SCHED=y" .config kernel/configs/omv-*config; then
+    if grep -Fxq "CONFIG_RT_GROUP_SCHED=y" .config ; then
 	printf '%s\n' "Please stop enabling CONFIG_RT_GROUP_SCHED - this option is not recommended with systemd systemd/systemd#553, killing the build."
+	exit 1
+    fi
+# (tpg) kernel modules are compresed manually inside spec file
+    if ! grep -Fxq "CONFIG_MODULE_COMPRESS_NONE=y" .config ; then
+	printf '%s\n' "Please do not disable CONFIG_MODULE_COMPRESS_NONE=y or set any other module compression inside .config, as this will bloat main package instead of debuginfo subpackage, killing the build."
 	exit 1
     fi
 }
@@ -1160,10 +1168,6 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_LTO_NONE is not set
 CONFIG_LTO_CLANG_FULL=y
 # CONFIG_LTO_CLANG_THIN is not set
-CONFIG_CFI_CLANG=y
-CONFIG_CFI_CLANG_SHADOW=y
-# CONFIG_CFI_PERMISSIVE is not set
-CONFIG_RELR=y
 EOF
 }
 
@@ -1174,7 +1178,7 @@ CreateConfig() {
 	CONFIGS=""
 	rm -fv .config
 
-
+	printf '%s\n' "<-- Creating config for kernel type ${type} for ${arch}"
 	if echo $type |grep -q clang; then
 		CC=clang
 		CXX=clang++
@@ -1190,7 +1194,7 @@ CreateConfig() {
 		BUILD_TOOLS=""
 	fi
 
-	# (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
+# (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
 	case ${arch} in
 	i?86)
 		case ${type} in
@@ -1293,7 +1297,7 @@ CreateConfig() {
 		;;
 	esac
 
-	# ( crazy) remove along with the old configs once ARM* and ppc* is finished
+# ( crazy) remove along with the old configs once ARM* and ppc* is finished
 	if [[ -n ${CONFIGS} ]]; then
 		for i in common common-${type}; do
 			[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
@@ -1311,24 +1315,25 @@ CreateConfig() {
 		arch=powerpc
 	fi
 
-	# ( crazy) remove along with the old configs once ARM* and ppc* is finished
+# ( crazy) remove along with the old configs once ARM* and ppc* is finished
 	if [[ -n ${CONFIGS} ]]; then
 		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 $CONFIGS
 	else
-		%if %{without lazy_developer}
-		## YES, intentionally, DIE on wrong config
+%if %{without lazy_developer}
+## YES, intentionally, DIE on wrong config
 		CheckConfig
 		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 oldconfig
-		%else
+%else
 		printf '%s\n' "Lazy developer option is enabled!!. Don't be lazy!."
-		## that takes kernel defaults on missing or changed things
-		## olddefconfig is similar to yes ... but not that verbose
+## that takes kernel defaults on missing or changed things
+## olddefconfig is similar to yes ... but not that verbose
 		CheckConfig
 		yes "" | make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" oldconfig
-		%endif
+%endif
 	fi
+
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
-	# " <--- workaround for vim syntax highlighting bug, ignore
+# " <--- workaround for vim syntax highlighting bug, ignore
 	cp .config kernel/configs/omv-${cfgarch}-${type}.config
 }
 
@@ -1336,21 +1341,20 @@ PrepareKernel() {
 	name=$1
 	extension=$2
 	config_dir=%{_sourcedir}
-	printf '%s\n' "Make config for kernel $extension"
-	VerifyConfig
+	printf '%s\n' "<-- Preparing kernel $extension"
 	%make_build -s mrproper
 %ifarch znver1
 	CreateConfig %{_target_cpu} ${flavour}
 %else
 	CreateConfig %{target_arch} ${flavour}
 %endif
-	# make sure EXTRAVERSION says what we want it to say
+# make sure EXTRAVERSION says what we want it to say
 	sed -ri "s|^(EXTRAVERSION =).*|\1 -$extension|" Makefile
 }
 
 BuildKernel() {
 	KernelVer=$1
-	printf '%s\n' "Building kernel $KernelVer"
+	printf '%s\n' "<--- Building kernel $KernelVer"
 
 	if echo $1 |grep -q clang; then
 		CC=clang
@@ -1361,7 +1365,7 @@ BuildKernel() {
 	else
 		CC=gcc
 		CXX=g++
-		# force ld.bfd, Kbuild logic issues when ld is linked  to something else
+# force ld.bfd, Kbuild logic issues when ld is linked  to something else
 		BUILD_LD="%{_target_platform}-ld.bfd"
 		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
 		BUILD_TOOLS=""
@@ -1373,7 +1377,7 @@ BuildKernel() {
 %endif
 	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $TARGETS
 
-	# Start installing stuff
+# Start installing stuff
 	install -d %{temp_boot}
 	install -m 644 System.map %{temp_boot}/System.map-$KernelVer
 	install -m 644 .config %{temp_boot}/config-$KernelVer
@@ -1381,9 +1385,9 @@ BuildKernel() {
 
 %ifarch %{arm}
 	if [ -f arch/arm/boot/uImage ]; then
-		cp -f arch/arm/boot/uImage %{temp_boot}/uImage-$KernelVer
+	    cp -f arch/arm/boot/uImage %{temp_boot}/uImage-$KernelVer
 	else
-		cp -f arch/arm/boot/zImage %{temp_boot}/vmlinuz-$KernelVer
+	    cp -f arch/arm/boot/zImage %{temp_boot}/vmlinuz-$KernelVer
 	fi
 %else
 %ifarch %{aarch64}
@@ -1393,18 +1397,18 @@ BuildKernel() {
 %endif
 %endif
 
-	# modules
+# modules
 	install -d %{temp_modules}/$KernelVer
 	%make_build INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_MOD_STRIP=1 modules_install
 
-	# headers
+# headers
 	%make_build INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
 %ifarch %{armx} %{ppc}
 	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
 %endif
 
-	# remove /lib/firmware, we use a separate kernel-firmware
+# remove /lib/firmware, we use a separate kernel-firmware
 	rm -rf %{temp_root}/lib/firmware
 }
 
@@ -1418,7 +1422,7 @@ SaveDevel() {
 	for i in $(find . -name 'Makefile*'); do cp -R --parents $i $TempDevelRoot;done
 	for i in $(find . -name 'Kconfig*' -o -name 'Kbuild*'); do cp -R --parents $i $TempDevelRoot;done
 	cp -fR include $TempDevelRoot
-	# ln -s ../generated/uapi/linux/version.h $TempDevelRoot/include/linux/version.h
+#	ln -s ../generated/uapi/linux/version.h $TempDevelRoot/include/linux/version.h
 	cp -fR scripts $TempDevelRoot
 	cp -fR kernel/time/timeconst.bc $TempDevelRoot/kernel/time/
 	cp -fR kernel/bounds.c $TempDevelRoot/kernel
@@ -1441,18 +1445,18 @@ SaveDevel() {
 
 	cp -fR .config Module.symvers $TempDevelRoot
 
-	# Needed for truecrypt build (Danny)
+# Needed for truecrypt build (Danny)
 	cp -fR drivers/md/dm.h $TempDevelRoot/drivers/md/
 
-	# Needed for lirc_gpio (#39004)
+# Needed for lirc_gpio (#39004)
 	cp -fR drivers/media/pci/bt8xx/bttv{,p}.h $TempDevelRoot/drivers/media/pci/bt8xx/
 	cp -fR drivers/media/pci/bt8xx/bt848.h $TempDevelRoot/drivers/media/pci/bt8xx/
 	cp -fR drivers/media/common/btcx-risc.h $TempDevelRoot/drivers/media/common/
 
-	# Needed for external dvb tree (#41418)
+# Needed for external dvb tree (#41418)
 	cp -fR drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
 
-	# orc unwinder needs theese
+# orc unwinder needs theese
 	cp -fR tools/build/Build{,.include} $TempDevelRoot/tools/build
 	cp -fR tools/build/fixdep.c $TempDevelRoot/tools/build
 	cp -fR tools/lib/{str_error_r.c,string.c} $TempDevelRoot/tools/lib
@@ -1460,29 +1464,30 @@ SaveDevel() {
 	cp -fR tools/objtool/* $TempDevelRoot/tools/objtool
 	cp -fR tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
 
-	# Make clean fails on the include statements in the Makefiles - and the drivers aren't relevant for -devel
+# Make clean fails on the include statements in the Makefiles - and the drivers aren't relevant for -devel
 	rm -rf $TempDevelRoot/drivers/net/wireless/rtl8*
 	sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
+	sed -i -e '/rtl8723cs.*/d' $TempDevelRoot/drivers/staging/{Makefile,Kconfig}
 
 	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
 		rm -rf $TempDevelRoot/arch/$i
 	done
 
-	# Clean the scripts tree, and make sure everything is ok (sanity check)
-	# running prepare+scripts (tree was already "prepared" in build)
+# Clean the scripts tree, and make sure everything is ok (sanity check)
+# running prepare+scripts (tree was already "prepared" in build)
 	cd $TempDevelRoot >/dev/null
 	%make_build ARCH=%{target_arch} clean
 	cd - >/dev/null
 
 	rm -f $TempDevelRoot/.config.old
 
-	# fix permissions
+# fix permissions
 	chmod -R a+rX $TempDevelRoot
 
 	kernel_devel_files=kernel_devel_files.$devel_flavour
 
-	### Create the kernel_devel_files.*
+### Create the kernel_devel_files.*
 	cat > $kernel_devel_files <<EOF
 %dir $DevelRoot
 %dir $DevelRoot/arch
@@ -1550,7 +1555,7 @@ $DevelRoot/Module.symvers
 $DevelRoot/arch/Kconfig
 EOF
 
-	### Create -devel Post script on the fly
+### Create -devel Post script on the fly
 	cat > $kernel_devel_files-post <<EOF
 if [ -d /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel} ]; then
 	rm -f /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/{build,source}
@@ -1560,7 +1565,7 @@ fi
 EOF
 
 
-	### Create -devel Preun script on the fly
+### Create -devel Preun script on the fly
 	cat > $kernel_devel_files-preun <<EOF
 if [ -L /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/build ]; then
 	rm -f /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/build
@@ -1571,7 +1576,7 @@ fi
 exit 0
 EOF
 
-	### Create -devel Postun script on the fly
+### Create -devel Postun script on the fly
 	cat > $kernel_devel_files-postun <<EOF
 rm -rf /usr/src/linux-%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
 EOF
@@ -1600,7 +1605,7 @@ CreateFiles() {
 	kernel_files=kernel_files.$kernel_flavour
 
 	ker="vmlinuz"
-	### Create the kernel_files.*
+### Create the kernel_files.*
 	cat > $kernel_files <<EOF
 %{_bootdir}/System.map-%{kversion}-$kernel_flavour-%{buildrpmrel}
 %{_bootdir}/config-%{kversion}-$kernel_flavour-%{buildrpmrel}
@@ -1621,7 +1626,7 @@ CreateFiles() {
 EOF
 
 %if %{with build_debug}
-	cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
+    cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 %endif
 
 ### Create kernel Posttrans script
@@ -1639,20 +1644,20 @@ rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
 if [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-	rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/{build,source}
-	ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
-	ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
+    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/{build,source}
+    ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
+    ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
 fi
 %endif
 
 if [ -x /usr/sbin/dkms_autoinstaller ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-	/usr/sbin/dkms_autoinstaller start %{kversion}-$kernel_flavour-%{buildrpmrel}
+    /usr/sbin/dkms_autoinstaller start %{kversion}-$kernel_flavour-%{buildrpmrel}
 fi
 
 if [ -x %{_sbindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-	/bin/systemctl --quiet restart dkms.service
-	/bin/systemctl --quiet try-restart loadmodules.service
-	%{_sbindir}/dkms autoinstall --verbose --kernelver %{kversion}-$kernel_flavour-%{buildrpmrel}
+    /bin/systemctl --quiet restart dkms.service
+    /bin/systemctl --quiet try-restart loadmodules.service
+    %{_sbindir}/dkms autoinstall --verbose --kernelver %{kversion}-$kernel_flavour-%{buildrpmrel}
 fi
 EOF
 
@@ -1665,18 +1670,18 @@ rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.{alias{,.
 
 rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel} >/dev/null
 if [ -d /var/lib/dkms ]; then
-	rm -f /var/lib/dkms/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-	rm -rf /var/lib/dkms/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
-	rm -f /var/lib/dkms-binary/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-	rm -rf /var/lib/dkms-binary/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+    rm -f /var/lib/dkms/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+    rm -f /var/lib/dkms-binary/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms-binary/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
 fi
 
 %if %{with build_devel}
 if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build ]; then
-	rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
+    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
 fi
 if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source ]; then
-	rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
+    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
 fi
 %endif
 exit 0
@@ -1703,25 +1708,26 @@ rm -rf %{temp_root}
 install -d %{temp_root}
 
 ###
-# DO it...
+### Let's build some kernel
 ###
+
 # Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
 for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
-	for t in desktop server; do
+	for t in server; do
 		CreateConfig $a $t
 		export ARCH=$a
 		[ "$ARCH" = "znver1" ] && export ARCH=x86
 %if %{with cross_headers}
 		if [ "$t" = "desktop" ]; then
-			# While we have a kernel configured for it, let's package
-			# headers for crosscompilers...
-			# Done in a for loop because we may have to install the same
-			# headers multiple times, e.g.
-			# aarch64-linux-gnu, aarch64-linux-musl, aarch64-linux-android
-			# all share the same kernel headers.
-			# This is a little ugly because the kernel's arch names don't match
-			# triplets...
+# While we have a kernel configured for it, let's package
+# headers for crosscompilers...
+# Done in a for loop because we may have to install the same
+# headers multiple times, e.g.
+# aarch64-linux-gnu, aarch64-linux-musl, aarch64-linux-android
+# all share the same kernel headers.
+# This is a little ugly because the kernel's arch names don't match
+# triplets...
 			for i in %{long_cross_header_archs}; do
 				[ "$i" = "%{_target_platform}" ] && continue
 				TripletArch=$(echo ${i} |cut -d- -f1)
@@ -1753,7 +1759,7 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 					[ "$a" != "$TripletArch" ] && continue
 					;;
 				esac
-				%make_build ARCH=${a} SRCARCH=${SARCH}  INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
+				%make_build V=0 VERBOSE=0 ARCH=${a} SRCARCH=${SARCH} INSTALL_HDR_PATH=%{temp_root}%{_prefix}/${i} headers_install
 			done
 		fi
 %endif
@@ -1819,10 +1825,10 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 
 %if %{with bpftool}
 # FIXME As of lld 12.0 and kernel 5.11, lld results in unresolved symbols, ld.bfd works
-%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd libbpf.a libbpf.pc libbpf.so -j1
-%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd bpftool -j1
-%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd
-%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir}
+%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel} libbpf.a libbpf.pc libbpf.so -j1
+%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel} bpftool -j1
+%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel}
+%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel}
 %endif
 
 %if %{with perf}
@@ -1844,6 +1850,7 @@ PrepareKernel "" %{buildrpmrel}custom
 ###
 ### install
 ###
+
 %install
 # Directories definition needed for installing
 %define target_source %{buildroot}%{_kerneldir}
@@ -1857,8 +1864,11 @@ cp -a %{temp_root} %{buildroot}
 # We used to have a copy of PrepareKernel here
 # Now, we make sure that the thing in the linux dir is what we want it to be
 for i in %{target_modules}/*; do
-	rm -f $i/build $i/source
+    rm -f $i/build $i/source
 done
+
+# (tpg) let's compress all modules
+find %{target_modules} -name "*.ko" | %kxargs zstd --format=zstd --ultra -22 -T0 --rm -f -q
 
 # sniff, if we compressed all the modules, we change the stamp :(
 # we really need the depmod -ae here
@@ -1870,9 +1880,9 @@ done
 
 for i in *; do
     pushd $i
-    printf '%s\n' "Creating modules.description for $i"
-    modules=$(find . -name "*.ko.[gxz]*[z|st]")
-    echo $modules | %kxargs /sbin/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
+	printf '%s\n' "Creating modules.description for $i"
+	modules=$(find . -name "*.ko.[gxz]*[z|st]")
+	echo $modules | %kxargs /sbin/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
     popd
 done
 popd
@@ -1909,7 +1919,7 @@ rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
 # first architecture files
 for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
-	rm -rf %{target_source}/arch/$i
+    rm -rf %{target_source}/arch/$i
 done
 
 # other misc files
@@ -1930,15 +1940,14 @@ find -iname ".gitignore" -delete
 rm -f .cache.mk
 # Drop script binaries that can be rebuilt
 find tools scripts -executable |while read r; do
-	if file $r |grep -q ELF; then
-		rm -f $r
-	fi
+    if file $r |grep -q ELF; then
+	rm -f $r
+    fi
 done
 cd -
 
 #endif %{with build_source}
 %endif
-
 
 ############################################################
 ### Linker start4 > Check point to build for omv         ###
@@ -2038,7 +2047,7 @@ cd -
 %endif
 %dir %{_prefix}/libexec/perf-core
 %{_prefix}/libexec/perf-core/*
-%{_mandir}/man[1-8]/perf*
+%doc %{_mandir}/man[1-8]/perf*
 %{_sysconfdir}/bash_completion.d/perf
 %{_prefix}/lib/perf
 %ifarch %{x86_64}
@@ -2056,7 +2065,7 @@ cd -
 %{_libdir}/libcpupower.so.0
 %{_libdir}/libcpupower.so.0.0.1
 %{_unitdir}/cpupower.service
-%{_mandir}/man[1-8]/cpupower*
+%doc %{_mandir}/man[1-8]/cpupower*
 %{_datadir}/bash-completion/completions/cpupower
 %config(noreplace) %{_sysconfdir}/sysconfig/cpupower
 
@@ -2069,13 +2078,13 @@ cd -
 %if %{with build_x86_energy_perf_policy}
 %files -n x86_energy_perf_policy
 %{_bindir}/x86_energy_perf_policy
-%{_mandir}/man8/x86_energy_perf_policy.8*
+%doc %{_mandir}/man8/x86_energy_perf_policy.8*
 %endif
 
 %if %{with build_turbostat}
 %files -n turbostat
 %{_bindir}/turbostat
-%{_mandir}/man8/turbostat.8*
+%doc %{_mandir}/man8/turbostat.8*
 %endif
 %endif
 
