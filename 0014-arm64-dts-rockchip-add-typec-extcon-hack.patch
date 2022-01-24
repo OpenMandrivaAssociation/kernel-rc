@@ -1,0 +1,64 @@
+diff -up linux-5.16/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts.56~ linux-5.16/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
+--- linux-5.16/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts.56~	2022-01-10 12:04:19.877261533 +0100
++++ linux-5.16/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts	2022-01-10 12:05:57.558561759 +0100
+@@ -384,10 +384,20 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&dc_det_pin>;
+ 	};
++
++	typec_extcon_bridge: typec-extcon {
++		compatible = "linux,typec-extcon-bridge";
++		usb-role-switch;
++		orientation-switch;
++		mode-switch;
++		svid = /bits/ 16 <0xff01>;
++	};
+ };
+ 
+ &cdn_dp {
+ 	status = "okay";
++	extcon = <&typec_extcon_bridge>;
++	phys = <&tcphy0_dp>;
+ };
+ 
+ &cpu_b0 {
+@@ -709,6 +719,8 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&fusb0_int_pin>;
+ 		vbus-supply = <&vbus_typec>;
++		extcon = <&typec_extcon_bridge>;
++		usb-role-switch = <&typec_extcon_bridge>;
+ 
+ 		connector {
+ 			compatible = "usb-c-connector";
+@@ -717,10 +729,20 @@
+ 			op-sink-microwatt = <1000000>;
+ 			power-role = "dual";
+ 			sink-pdos =
+-				<PDO_FIXED(5000, 2500, PDO_FIXED_USB_COMM)>;
++				<PDO_FIXED(5000, 2500, PDO_FIXED_USB_COMM | PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP)>;
+ 			source-pdos =
+-				<PDO_FIXED(5000, 1400, PDO_FIXED_USB_COMM)>;
++				<PDO_FIXED(5000, 1400, PDO_FIXED_USB_COMM | PDO_FIXED_DUAL_ROLE | PDO_FIXED_DATA_SWAP)>;
+ 			try-power-role = "sink";
++			
++			mode-switch = <&typec_extcon_bridge>;
++			orientation-switch = <&typec_extcon_bridge>;
++
++			altmodes {
++				dp {
++					svid = <0xff01>;
++					vdo = <0x0c0046>;
++				};
++			};
+ 
+ 			ports {
+ 				#address-cells = <1>;
+@@ -988,6 +1010,7 @@
+ };
+ 
+ &tcphy0 {
++	extcon = <&typec_extcon_bridge>;
+ 	status = "okay";
+ };
+ 

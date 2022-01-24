@@ -1,6 +1,16 @@
-diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c
---- linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~	2021-12-26 22:17:17.000000000 +0100
-+++ linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c	2021-12-27 16:08:53.062514060 +0100
+From ed2bd8b9262b5367b0e253ffbb238ee85d82f52f Mon Sep 17 00:00:00 2001
+From: Dan Johansen <strit@manjaro.org>
+Date: Tue, 25 May 2021 22:50:01 +0200
+Subject: [PATCH] usb/typec: add extcon to tcpm
+
+---
+ drivers/usb/typec/tcpm/tcpm.c | 133 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 132 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/typec/tcpm/tcpm.c b/drivers/usb/typec/tcpm/tcpm.c
+index 64133e586c64..8fa1d0993b97 100644
+--- a/drivers/usb/typec/tcpm/tcpm.c
++++ b/drivers/usb/typec/tcpm/tcpm.c
 @@ -8,6 +8,7 @@
  #include <linux/completion.h>
  #include <linux/debugfs.h>
@@ -9,7 +19,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  #include <linux/hrtimer.h>
  #include <linux/jiffies.h>
  #include <linux/kernel.h>
-@@ -475,6 +476,12 @@ struct tcpm_port {
+@@ -468,6 +469,12 @@ struct tcpm_port {
  	 * SNK_READY for non-pd link.
  	 */
  	bool slow_charger_loop;
@@ -22,7 +32,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  #ifdef CONFIG_DEBUG_FS
  	struct dentry *dentry;
  	struct mutex logbuffer_lock;	/* log buffer access lock */
-@@ -862,6 +869,33 @@ static void tcpm_ams_finish(struct tcpm_
+@@ -824,6 +831,33 @@ static void tcpm_ams_finish(struct tcpm_port *port)
  	port->ams = NONE_AMS;
  }
  
@@ -56,7 +66,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  static int tcpm_pd_transmit(struct tcpm_port *port,
  			    enum tcpm_transmit_type type,
  			    const struct pd_message *msg)
-@@ -1074,6 +1108,8 @@ static int tcpm_set_roles(struct tcpm_po
+@@ -1036,6 +1070,8 @@ static int tcpm_set_roles(struct tcpm_port *port, bool attached,
  	typec_set_data_role(port->typec_port, data);
  	typec_set_pwr_role(port->typec_port, role);
  
@@ -65,7 +75,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  	return 0;
  }
  
-@@ -1523,7 +1559,7 @@ static void svdm_consume_modes(struct tc
+@@ -1484,7 +1520,7 @@ static void svdm_consume_modes(struct tcpm_port *port, const u32 *p, int cnt)
  		paltmode->mode = i;
  		paltmode->vdo = p[i];
  
@@ -74,7 +84,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  			 pmdata->altmodes, paltmode->svid,
  			 paltmode->mode, paltmode->vdo);
  
-@@ -1678,6 +1714,7 @@ static int tcpm_pd_svdm(struct tcpm_port
+@@ -1629,6 +1665,7 @@ static int tcpm_pd_svdm(struct tcpm_port *port, struct typec_altmode *adev,
  			modep->svid_index++;
  			if (modep->svid_index < modep->nsvids) {
  				u16 svid = modep->svids[modep->svid_index];
@@ -82,7 +92,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  				response[0] = VDO(svid, 1, svdm_version, CMD_DISCOVER_MODES);
  				rlen = 1;
  			} else {
-@@ -3700,6 +3737,8 @@ static void tcpm_detach(struct tcpm_port
+@@ -3610,6 +3647,8 @@ static void tcpm_detach(struct tcpm_port *port)
  	}
  
  	tcpm_reset_port(port);
@@ -91,7 +101,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  }
  
  static void tcpm_src_detach(struct tcpm_port *port)
-@@ -5919,6 +5958,64 @@ void tcpm_tcpc_reset(struct tcpm_port *p
+@@ -5808,6 +5847,64 @@ void tcpm_tcpc_reset(struct tcpm_port *port)
  }
  EXPORT_SYMBOL_GPL(tcpm_tcpc_reset);
  
@@ -156,7 +166,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  static int tcpm_fw_get_caps(struct tcpm_port *port,
  			    struct fwnode_handle *fwnode)
  {
-@@ -5939,6 +6036,23 @@ static int tcpm_fw_get_caps(struct tcpm_
+@@ -5827,6 +5924,23 @@ static int tcpm_fw_get_caps(struct tcpm_port *port,
  	 */
  	fw_devlink_purge_absent_suppliers(fwnode);
  
@@ -180,7 +190,7 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  	/* USB data support is optional */
  	ret = fwnode_property_read_string(fwnode, "data-role", &cap_str);
  	if (ret == 0) {
-@@ -6376,6 +6490,17 @@ struct tcpm_port *tcpm_register_port(str
+@@ -6226,6 +6340,17 @@ struct tcpm_port *tcpm_register_port(struct device *dev, struct tcpc_dev *tcpc)
  		goto out_destroy_wq;
  
  	port->try_role = port->typec_caps.prefer_role;
@@ -198,9 +208,9 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  
  	port->typec_caps.fwnode = tcpc->fwnode;
  	port->typec_caps.revision = 0x0120;	/* Type-C spec release 1.2 */
-@@ -6410,6 +6535,12 @@ struct tcpm_port *tcpm_register_port(str
+@@ -6259,6 +6384,12 @@ struct tcpm_port *tcpm_register_port(struct device *dev, struct tcpc_dev *tcpc)
+ 				     &tcpm_altmode_ops, port,
  				     port->port_altmode, ALTMODE_DISCOVERY_MAX);
- 	port->registered = true;
  
 +	err = tcpm_fw_get_caps_late(port, tcpc->fwnode);
 +	if (err < 0) {
@@ -211,3 +221,6 @@ diff -up linux-5.16-rc7/drivers/usb/typec/tcpm/tcpm.c.50~ linux-5.16-rc7/drivers
  	mutex_lock(&port->lock);
  	tcpm_init(port);
  	mutex_unlock(&port->lock);
+-- 
+2.31.1
+

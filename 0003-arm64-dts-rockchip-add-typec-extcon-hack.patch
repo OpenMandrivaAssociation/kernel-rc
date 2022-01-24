@@ -1,28 +1,19 @@
-From 948d7ade0ddcf292b91d91cb8b6819a19ab3f604 Mon Sep 17 00:00:00 2001
-From: Tobias Schramm <t.schramm@manjaro.org>
-Date: Thu, 28 May 2020 14:44:15 +0200
-Subject: [PATCH] arm64: dts: rockchip: add typec extcon hack
-
-Not for mainline
-
-Signed-off-by: Tobias Schramm <t.schramm@manjaro.org>
----
- arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts b/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
-index decb212e2dca..37f967a89401 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
-+++ b/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
-@@ -401,6 +401,7 @@ opp08 {
- 
- &cdn_dp {
- 	status = "okay";
-+	extcon = <&fusb0>;
+diff -up linux-5.15/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts.60~ linux-5.15/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
+--- linux-5.15/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts.60~	2021-11-25 20:12:02.649659672 +0100
++++ linux-5.15/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts	2021-11-25 20:13:10.705935209 +0100
+@@ -385,6 +385,11 @@
+ 	};
  };
  
++&cdn_dp {
++	status = "okay";
++	extcon = <&fusb0>;
++};
++
  &cpu_b0 {
-@@ -735,6 +736,9 @@ connector {
+ 	cpu-supply = <&vdd_cpu_b>;
+ };
+@@ -717,6 +722,9 @@
  				<PDO_FIXED(5000, 1400, PDO_FIXED_USB_COMM)>;
  			try-power-role = "sink";
  
@@ -32,7 +23,7 @@ index decb212e2dca..37f967a89401 100644
  			ports {
  				#address-cells = <1>;
  				#size-cells = <0>;
-@@ -1002,6 +1006,7 @@ spiflash: flash@0 {
+@@ -983,6 +991,7 @@
  };
  
  &tcphy0 {
@@ -40,5 +31,3 @@ index decb212e2dca..37f967a89401 100644
  	status = "okay";
  };
  
--- 
-GitLab 

@@ -1,0 +1,12 @@
+diff -up linux-5.16/tools/lib/bpf/libbpf_internal.h.omv~ linux-5.16/tools/lib/bpf/libbpf_internal.h
+--- linux-5.16/tools/lib/bpf/libbpf_internal.h.omv~	2022-01-10 21:35:59.692883497 +0100
++++ linux-5.16/tools/lib/bpf/libbpf_internal.h	2022-01-10 21:36:34.541023281 +0100
+@@ -104,7 +104,7 @@
+  * Starting with GNU C 10, use symver attribute instead of .symver assembler
+  * directive, which works better with GCC LTO builds.
+  */
+-#if defined(SHARED) && defined(__GNUC__) && __GNUC__ >= 10
++#if defined(SHARED) && defined(__GNUC__) && __GNUC__ >= 10 && !defined(__clang__)
+ 
+ #define DEFAULT_VERSION(internal_name, api_name, version) \
+ 	__attribute__((symver(#api_name "@@" #version)))

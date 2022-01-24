@@ -35,9 +35,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	16
+%define patchlevel	17
 %define sublevel	0
-%define relc		8
+%define relc		1
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -50,7 +50,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
-%define rpmrel		1
+%define rpmrel		2
 %define tar_ver		%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -90,7 +90,7 @@
 # Build defines
 %bcond_with build_doc
 %ifarch %{ix86} %{x86_64} aarch64
-%bcond_with uksm
+%bcond_without uksm
 %else
 %bcond_with uksm
 %endif
@@ -105,7 +105,7 @@
 %bcond_without cross_headers
 
 %bcond_with lazy_developer
-%bcond_with build_debug
+%bcond_without build_debug
 %bcond_without clr
 %bcond_with vbox_orig_mods
 # FIXME re-enable by default when the patches have been adapted to 5.8
@@ -214,14 +214,12 @@ Source4:	%{name}.rpmlintrc
 ## all in one configs for each kernel
 Source10:	x86_64-desktop-gcc-omv-defconfig
 Source11:	x86_64-server-gcc-omv-defconfig
-Source12:	x86_64-znver-desktop-gcc-omv-defconfig
-Source13:	x86_64-znver-server-gcc-omv-defconfig
-Source14:	i686-desktop-gcc-omv-defconfig
-Source15:	i686-server-gcc-omv-defconfig
-Source16:	armv7hnl-desktop-omv-defconfig
-Source17:	armv7hnl-server-omv-defconfig
-Source18:	aarch64-desktop-omv-defconfig
-Source19:	aarch64-server-omv-defconfig
+Source12:	i686-desktop-gcc-omv-defconfig
+Source13:	i686-server-gcc-omv-defconfig
+Source14:	armv7hnl-desktop-omv-defconfig
+Source15:	armv7hnl-server-omv-defconfig
+Source16:	aarch64-desktop-omv-defconfig
+Source17:	aarch64-server-omv-defconfig
 
 # config and systemd service file from fedora
 Source30:	cpupower.service
@@ -281,11 +279,10 @@ Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 # The Ultra Kernel Same Page Deduplication
 # http://kerneldedup.org/en/projects/uksm/download/
 # sources can be found here https://github.com/dolohow/uksm
+# Usually faster ports to new kernel releases can be found at
+# https://github.com/sirlucjan/kernel-patches/tree/master/5.16/uksm-patches
 %if %{with uksm}
-# breaks armx builds
-Patch43:	https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-5.15.patch
-# And make it build with gcc 11
-Patch44:	uksm-5.14-gcc-11.patch
+Patch43:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.16/uksm-patches/0001-UKSM-for-5.16.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -333,7 +330,7 @@ Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
 # More actively maintained for newer kernels
-Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
+#Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
 
 # Assorted fixes
 
@@ -377,7 +374,7 @@ Patch270:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/maste
 Patch271:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0012-ayufan-drm-rockchip-add-support-for-modeline-32MHz-e.patch
 Patch272:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0013-rk3399-rp64-pcie-Reimplement-rockchip-PCIe-bus-scan-delay.patch
 Patch273:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-arm64-dts-rockchip-add-typec-extcon-hack.patch
-Patch274:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-drm-meson-add-YUV422-output-support.patch
+#Patch274:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-drm-meson-add-YUV422-output-support.patch
 Patch275:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
 Patch276:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0017-add-ugoos-device.patch
 Patch277:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0018-drm-panfrost-scheduler-fix.patch
@@ -398,21 +395,19 @@ Patch291:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/maste
 Patch292:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-rockchip-enable-vop2-and-hdmi-tx-on-quartz64a.patch
 Patch293:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-add-GPU-for-RK356x-SoCs.patch
 Patch294:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-power-supply-Add-Support-for-RK817-Charger.patch
-Patch295:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-phy-rockchip-inno-usb2-support-rk356x-usb2phy.patch
 Patch296:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-HDMI-Audio-on-RK356x-Quartz64-Model-A.patch
 Patch297:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-phy-rockchip-add-naneng-combo-phy-for-RK3568.patch
-Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-enable-sdmmc1-on-Quartz64-Model-A.patch
+#Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-enable-sdmmc1-on-Quartz64-Model-A.patch
 
 # (tpg) patches taken from https://github.com/OpenMandrivaSoftware/os-image-builder/tree/master/device/rockchip/generic/kernel-patches
 Patch300:	add-board-orangepi-4.patch
-Patch301:	general-btsdio-ignore-uart-devs.patch
 Patch302:	general-emmc-hs400es-init-tweak.patch
 Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 Patch304:	rtl8723cs-compile.patch
 
 # (tpg) patches taken from LibreELEC
-Patch400:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2000-v4l-wip-rkvdec-vp9.patch
-Patch401:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2001-v4l-wip-rkvdec-hevc.patch
+#Patch400:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2000-v4l-wip-rkvdec-vp9.patch
+#Patch401:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2001-v4l-wip-rkvdec-hevc.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -430,7 +425,7 @@ Patch904:	0105-ksm-wakeups.patch
 Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
-Patch909:	0110-give-rdrand-some-credit.patch
+#Patch909:	0110-give-rdrand-some-credit.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
 Patch913:	0117-migrate-some-systemd-defaults-to-the-kernel-defaults.patch
 Patch914:	0120-use-lfence-instead-of-rep-and-nop.patch
@@ -454,7 +449,6 @@ very current hardware.
 %endif
 # (crazy) it needs kmod >= 27-3 bc ZSTD support
 %define requires3	kmod >= 27-3
-%define requires4	sysfsutils >=  2.1.0-12
 %define requires5	kernel-firmware
 
 %define kprovides1	%{kname} = %{kverrel}
@@ -497,6 +491,8 @@ BuildRequires:	git-core
 # For power tools
 BuildRequires:	pkgconfig(ncurses)
 BuildRequires:	pkgconfig(libkmod)
+# For sign-file
+BuildRequires:	pkgconfig(openssl)
 
 %ifarch %{x86_64} %{aarch64}
 BuildRequires:	pkgconfig(numa)
@@ -585,7 +581,7 @@ Release:	%{rpmrel}				\
 Provides:	%kprovides1 %kprovides2			\
 %{expand:%%{?kprovides_%{1}:Provides: %{kprovides_%{1}}}} \
 Provides:	%{kname}-%{1}-%{buildrel}		\
-Requires(pre):	%requires3 %requires4			\
+Requires(pre):	%requires3				\
 Requires:	%requires5				\
 Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
 Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
@@ -1022,7 +1018,7 @@ rm -rf .git
 # merge SAA716x DVB driver from extra tarball
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
 sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/Makefile
-find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" |xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
+find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" -type f | xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
 %endif
 
 %if %{with rtl8821ce}
@@ -1033,12 +1029,6 @@ sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8723de/Kconfig' 
 sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8821CE) += rtl8821ce/' Makefile
 sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8723DE) += rtl8723de/' Makefile
 cd -
-%endif
-
-%if %{with build_debug}
-%define debug --debug
-%else
-%define debug --no-debug
 %endif
 
 # make sure the kernel has the sublevel we know it has...
@@ -1168,7 +1158,34 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_LTO_NONE is not set
 CONFIG_LTO_CLANG_FULL=y
 # CONFIG_LTO_CLANG_THIN is not set
+CONFIG_CFI_CLANG=y
+CONFIG_CFI_CLANG_SHADOW=y
+# CONFIG_CFI_PERMISSIVE is not set
+CONFIG_RELR=y
 EOF
+}
+amdify() {
+	# Yes, it is intentional that CONFIG_AMD_NUMA gets disabled
+	# for the AMD kernel -- AMD_NUMA is only for pre-ACPI systems
+	# such as initial Opterons. Not useful for current AMD boxes.
+	sed -i -E \
+		-e 's/^CONFIG_GENERIC_CPU=y/# CONFIG_GENERIC_CPU is not set/' \
+		-e 's/^# CONFIG_MZEN is not set/CONFIG_MZEN=y/' \
+		-e '/CONFIG_HAVE_INTEL_TXT/d' \
+		-e 's/^CONFIG_X86_INTEL_LPSS=y/# CONFIG_X86_INTEL_LPSS is not set/' \
+		-e 's/^CONFIG_CPU_SUP_(INTEL|CENTAUR|ZHAOXIN)=y/# CONFIG_CPU_SUP_\1 is not set/' \
+		-e 's/^CONFIG_X86_MCE_INTEL=y/# CONFIG_X86_MCE_INTEL is not set/' \
+		-e 's/^CONFIG_MICROCODE_INTEL=y/# CONFIG_MICROCODE_INTEL is not set/' \
+		-e 's/^CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' \
+		-e 's/^CONFIG_INTEL_IDLE=y/# CONFIG_INTEL_IDLE is not set/' \
+		-e 's/^CONFIG_INTEL_WMI(.*)=(y|m)/# CONFIG_INTEL_WMI\1 is not set/' \
+		-e 's,^CONFIG_SND_SOC_INTEL(.*)=.*,# CONFIG_SND_SOC_INTEL\1 is not set,' \
+		-e 's,^CONFIG_SND_SOC_SOF_INTEL(.*)=.*,# CONFIG_SND_SOC_SOF_INTEL\1 is not set,' \
+		-e 's,^CONFIG_AMD_NUMA=y,# CONFIG_AMD_NUMA is not set,' \
+		-e 's,^CONFIG_KVM_INTEL=m,# CONFIG_KVM_INTEL is not set,' \
+		-e 's,^CONFIG_INTEL_SOC(.*)=(y|m),# CONFIG_INTEL_SOC\1 is not set,' \
+		-e 's,^CONFIG_AGP_(INTEL|SIS|VIA)=(y|m),# CONFIG_AGP_\1 is not set,' \
+		"$1"
 }
 
 CreateConfig() {
@@ -1214,16 +1231,18 @@ CreateConfig() {
 			;;
 		esac
 		;;
-	x86_64|x86)
+	x86_64|x86|znver1)
 		case ${type} in
 		desktop|desktop-clang)
 			rm -rf .config
 			cp -v ${config_dir}/x86_64-desktop-gcc-omv-defconfig .config
+			[ "${arch}" = "znver1" ] && amdify .config
 			echo ${type} |grep -q clang && clangify .config
 			;;
 		server|server-clang)
 			rm -rf .config
 			cp -v ${config_dir}/x86_64-server-gcc-omv-defconfig .config
+			[ "${arch}" = "znver1" ] && amdify .config
 			echo ${type} |grep -q clang && clangify .config
 			;;
 		*)
@@ -1260,24 +1279,6 @@ CreateConfig() {
 		server|server-clang)
 			rm -rf .config
 			cp -v ${config_dir}/aarch64-server-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
-			;;
-		*)
-			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
-			exit 1
-			;;
-		esac
-		;;
-	znver1)
-		case ${type} in
-		desktop|desktop-clang)
-			rm -rf .config
-			cp -v ${config_dir}/x86_64-znver-desktop-gcc-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
-			;;
-		server|server-clang)
-			rm -rf .config
-			cp -v ${config_dir}/x86_64-znver-server-gcc-omv-defconfig .config
 			echo ${type} |grep -q clang && clangify .config
 			;;
 		*)
@@ -1382,20 +1383,16 @@ BuildKernel() {
 	install -m 644 System.map %{temp_boot}/System.map-$KernelVer
 	install -m 644 .config %{temp_boot}/config-$KernelVer
 
-
 %ifarch %{arm}
-	if [ -f arch/arm/boot/uImage ]; then
-	    cp -f arch/arm/boot/uImage %{temp_boot}/uImage-$KernelVer
-	else
-	    cp -f arch/arm/boot/zImage %{temp_boot}/vmlinuz-$KernelVer
-	fi
+	IMAGE=zImage
 %else
 %ifarch %{aarch64}
-	cp -f arch/arm64/boot/Image.gz %{temp_boot}/vmlinuz-$KernelVer
+	IMAGE=Image.gz
 %else
-	cp -f arch/%{target_arch}/boot/bzImage %{temp_boot}/vmlinuz-$KernelVer
+	IMAGE=bzImage
 %endif
 %endif
+	cp -f arch/%{target_arch}/boot/$IMAGE %{temp_boot}/vmlinuz-$KernelVer
 
 # modules
 	install -d %{temp_modules}/$KernelVer
@@ -1422,7 +1419,6 @@ SaveDevel() {
 	for i in $(find . -name 'Makefile*'); do cp -R --parents $i $TempDevelRoot;done
 	for i in $(find . -name 'Kconfig*' -o -name 'Kbuild*'); do cp -R --parents $i $TempDevelRoot;done
 	cp -fR include $TempDevelRoot
-#	ln -s ../generated/uapi/linux/version.h $TempDevelRoot/include/linux/version.h
 	cp -fR scripts $TempDevelRoot
 	cp -fR kernel/time/timeconst.bc $TempDevelRoot/kernel/time/
 	cp -fR kernel/bounds.c $TempDevelRoot/kernel
@@ -1586,14 +1582,18 @@ SaveDebug() {
 	debug_flavour=$1
 
 	install -m 644 vmlinux %{temp_boot}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}
-	kernel_debug_files=../kernel_debug_files.$debug_flavour
-	echo "%{_bootdir}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}" >> $kernel_debug_files
+	kernel_debug_files=kernel_debug_files.$debug_flavour
+	printf '%s\n' "%{_bootdir}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}" >> $kernel_debug_files
 
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
+	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
+	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
+	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f |while read r; do
+		# sign modules after stripping
+		scripts/sign-file sha1 certs/signing_key.pem certs/signing_key.x509 $r
+	done
 
 	cd %{temp_modules}
-	find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" > debug_module_list
+	find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" -type f > debug_module_list
 	cd -
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%{_modulesdir}/\1|' >> $kernel_debug_files
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%exclude %{_modulesdir}/\1|' >> ../kernel_exclude_debug_files.$debug_flavour
@@ -1626,7 +1626,7 @@ CreateFiles() {
 EOF
 
 %if %{with build_debug}
-    cat kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
+    cat ../kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 %endif
 
 ### Create kernel Posttrans script
@@ -1714,7 +1714,7 @@ install -d %{temp_root}
 # Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
 for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
-	for t in server; do
+	for t in desktop server; do
 		CreateConfig $a $t
 		export ARCH=$a
 		[ "$ARCH" = "znver1" ] && export ARCH=x86
@@ -1800,7 +1800,7 @@ sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
 
 # We install all tools here too (rather than in %%install
 # where it really belongs): make mrproper in preparation
-# for packaging kernel-source would force a rebuilda
+# for packaging kernel-source would force a rebuild
 
 %if %{with build_cpupower}
 # make sure version-gen.sh is executable.
@@ -1868,7 +1868,7 @@ for i in %{target_modules}/*; do
 done
 
 # (tpg) let's compress all modules
-find %{target_modules} -name "*.ko" | %kxargs zstd --format=zstd --ultra -22 -T0 --rm -f -q
+find %{target_modules} -name "*.ko" -type f | %kxargs zstd --format=zstd --ultra -22 -T0 --rm -f -q
 
 # sniff, if we compressed all the modules, we change the stamp :(
 # we really need the depmod -ae here
@@ -1881,7 +1881,7 @@ done
 for i in *; do
     pushd $i
 	printf '%s\n' "Creating modules.description for $i"
-	modules=$(find . -name "*.ko.[gxz]*[z|st]")
+	modules=$(find . -name "*.ko.[gxz]*[z|st]" -type f)
 	echo $modules | %kxargs /sbin/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
     popd
 done

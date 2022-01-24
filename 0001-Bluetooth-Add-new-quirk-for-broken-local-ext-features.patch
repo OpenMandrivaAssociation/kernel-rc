@@ -1,0 +1,31 @@
+diff -up linux-5.17-rc1/include/net/bluetooth/hci.h.67~ linux-5.17-rc1/include/net/bluetooth/hci.h
+--- linux-5.17-rc1/include/net/bluetooth/hci.h.67~	2022-01-23 09:12:53.000000000 +0100
++++ linux-5.17-rc1/include/net/bluetooth/hci.h	2022-01-24 01:32:51.755143026 +0100
+@@ -228,6 +228,13 @@ enum {
+ 	 */
+ 	HCI_QUIRK_VALID_LE_STATES,
+ 
++	/* When this quirk is set, max_page for local extended features
++	 * is set to 1, even if controller reports higher number. Some
++	 * controllers (e.g. RTL8723CS) report more pages, but they
++	 * don't actually support features declared there.
++	 */
++	HCI_QUIRK_BROKEN_LOCAL_EXT_FTR_MAX_PAGE,
++
+ 	/* When this quirk is set, then erroneous data reporting
+ 	 * is ignored. This is mainly due to the fact that the HCI
+ 	 * Read Default Erroneous Data Reporting command is advertised,
+diff -up linux-5.17-rc1/net/bluetooth/hci_event.c.67~ linux-5.17-rc1/net/bluetooth/hci_event.c
+--- linux-5.17-rc1/net/bluetooth/hci_event.c.67~	2022-01-24 01:32:51.756143031 +0100
++++ linux-5.17-rc1/net/bluetooth/hci_event.c	2022-01-24 01:34:02.607513414 +0100
+@@ -837,7 +837,9 @@ static u8 hci_cc_read_local_ext_features
+ 	if (rp->status)
+ 		return rp->status;
+ 
+-	if (hdev->max_page < rp->max_page)
++	if (!test_bit(HCI_QUIRK_BROKEN_LOCAL_EXT_FTR_MAX_PAGE,
++				&hdev->quirks) &&
++				hdev->max_page < rp->max_page)
+ 		hdev->max_page = rp->max_page;
+ 
+ 	if (rp->page < HCI_MAX_PAGES)

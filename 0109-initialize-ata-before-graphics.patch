@@ -1,6 +1,6 @@
-diff -up linux-5.16-rc1/drivers/Makefile.74~ linux-5.16-rc1/drivers/Makefile
---- linux-5.16-rc1/drivers/Makefile.74~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/drivers/Makefile	2021-11-18 21:01:51.777766268 +0100
+diff -up linux-5.15/drivers/Makefile.78~ linux-5.15/drivers/Makefile
+--- linux-5.15/drivers/Makefile.78~	2021-10-31 21:53:10.000000000 +0100
++++ linux-5.15/drivers/Makefile	2021-11-03 20:42:22.304893882 +0100
 @@ -60,15 +60,8 @@ obj-y				+= char/
  # iommu/ comes before gpu as gpu are using iommu controllers
  obj-y				+= iommu/

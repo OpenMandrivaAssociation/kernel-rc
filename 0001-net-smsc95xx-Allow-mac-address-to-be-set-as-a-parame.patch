@@ -1,6 +1,6 @@
-diff -up linux-5.16-rc1/drivers/net/usb/smsc95xx.c.43~ linux-5.16-rc1/drivers/net/usb/smsc95xx.c
---- linux-5.16-rc1/drivers/net/usb/smsc95xx.c.43~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/drivers/net/usb/smsc95xx.c	2021-11-18 20:54:44.851051329 +0100
+diff -up linux-5.16/drivers/net/usb/smsc95xx.c.43~ linux-5.16/drivers/net/usb/smsc95xx.c
+--- linux-5.16/drivers/net/usb/smsc95xx.c.43~	2022-01-09 23:55:34.000000000 +0100
++++ linux-5.16/drivers/net/usb/smsc95xx.c	2022-01-10 11:33:33.272235865 +0100
 @@ -50,6 +50,7 @@
  #define SUSPEND_SUSPEND3		(0x08)
  #define SUSPEND_ALLMODES		(SUSPEND_SUSPEND0 | SUSPEND_SUSPEND1 | \
