@@ -37,7 +37,7 @@
 %define kernelversion	5
 %define patchlevel	17
 %define sublevel	0
-%define relc		1
+%define relc		2
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -90,7 +90,8 @@
 # Build defines
 %bcond_with build_doc
 %ifarch %{ix86} %{x86_64} aarch64
-%bcond_without uksm
+# UKSM tends to break in -rc releases
+%bcond_with uksm
 %else
 %bcond_with uksm
 %endif
@@ -326,6 +327,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
+Source1006:	port-vbox-to-5.17.patch
 Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
@@ -404,6 +406,7 @@ Patch300:	add-board-orangepi-4.patch
 Patch302:	general-emmc-hs400es-init-tweak.patch
 Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 Patch304:	rtl8723cs-compile.patch
+Patch305:	port-rtl8723cs-to-5.17.patch
 
 # (tpg) patches taken from LibreELEC
 #Patch400:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2000-v4l-wip-rkvdec-vp9.patch
@@ -1098,6 +1101,7 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
+patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 

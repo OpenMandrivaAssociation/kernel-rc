@@ -1,0 +1,12 @@
+diff -up linux-5.17-rc2/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~ linux-5.17-rc2/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c
+--- linux-5.17-rc2/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c.omv~	2022-01-31 12:28:52.452682069 +0100
++++ linux-5.17-rc2/drivers/net/vboxnetadp/linux/VBoxNetAdp-linux.c	2022-01-31 12:32:57.461366469 +0100
+@@ -303,7 +303,7 @@ int vboxNetAdpOsCreate(PVBOXNETADP pThis
+ 
+         if (pNetDev->dev_addr)
+         {
+-            memcpy(pNetDev->dev_addr, pMACAddress, ETH_ALEN);
++            eth_hw_addr_set(pNetDev, pMACAddress->au8);
+             Log2(("vboxNetAdpOsCreate: pNetDev->dev_addr = %.6Rhxd\n", pNetDev->dev_addr));
+ 
+             /*
