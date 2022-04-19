@@ -24,7 +24,7 @@
 %global _empty_manifest_terminate_build 0
 
 %ifarch aarch64
-%bcond_without gcc
+%bcond_with gcc
 %bcond_without clang
 %else
 %bcond_without gcc
@@ -35,9 +35,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion	5
-%define patchlevel	17
+%define patchlevel	18
 %define sublevel	0
-%define relc		2
+%define relc		3
 # Only ever wrong on x.0 releases...
 %define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
 
@@ -50,7 +50,7 @@
 %define rpmrel		0.rc%{relc}.1
 %define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
 %else
-%define rpmrel		2
+%define rpmrel		1
 %define tar_ver		%{kernelversion}.%{patchlevel}
 %endif
 %define buildrpmrel	%{rpmrel}%{rpmtag}
@@ -90,8 +90,12 @@
 # Build defines
 %bcond_with build_doc
 %ifarch %{ix86} %{x86_64} aarch64
-# UKSM tends to break in -rc releases
+%if %{relc}
+# UKSM is usually not supported for -rc releases
 %bcond_with uksm
+%else
+%bcond_without uksm
+%endif
 %else
 %bcond_with uksm
 %endif
@@ -254,9 +258,7 @@ Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
-Patch33:	linux-4.7-intel-dvi-duallink.patch
 Patch34:	kernel-5.6-kvm-gcc10.patch
-Patch35:	linux-5.2.9-riscv-compile.patch
 # Work around rpm dependency generator screaming about
 # error: Illegal char ']' (0x5d) in: 1.2.1[50983]_custom
 # caused by aacraid versioning ("1.2.1[50983]-custom")
@@ -283,7 +285,7 @@ Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 # Usually faster ports to new kernel releases can be found at
 # https://github.com/sirlucjan/kernel-patches/tree/master/5.16/uksm-patches
 %if %{with uksm}
-Patch43:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.16/uksm-patches/0001-UKSM-for-5.16.patch
+Patch43:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.17/uksm-patches-v2/0001-UKSM-for-5.17.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -327,12 +329,11 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	port-vbox-to-5.17.patch
+Source1006:	vboxnetadp-kernel-5.17.patch
 Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
-# More actively maintained for newer kernels
-#Patch211:	https://github.com/sirlucjan/kernel-patches/blob/master/5.2/cpu-patches/0001-cpu-5.2-merge-graysky-s-patchset.patch
+Patch211:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.17/cpu-patches/0001-cpu-patches.patch
 
 # Assorted fixes
 
@@ -359,9 +360,9 @@ Patch247:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-sd-drive-level-8ma.patch
 Patch249:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
 Patch250:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.11/board-rockpi4-FixMMCFreq.patch
-Patch251:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-5.14/add-rockchip-iep-driver.patch
 
 # (tpg) Manjaro ARM Patches
+%if 0
 Patch260:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-arm64-dts-rockchip-Add-back-cdn_dp-to-Pinebook-Pro.patch
 Patch261:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-allwinner-add-hdmi-sound-to-pine-devices.patch
 Patch262:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-arm64-dts-allwinner-add-ohci-ehci-to-h5-nanopi.patch
@@ -376,7 +377,7 @@ Patch270:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/maste
 Patch271:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0012-ayufan-drm-rockchip-add-support-for-modeline-32MHz-e.patch
 Patch272:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0013-rk3399-rp64-pcie-Reimplement-rockchip-PCIe-bus-scan-delay.patch
 Patch273:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0014-arm64-dts-rockchip-add-typec-extcon-hack.patch
-#Patch274:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-drm-meson-add-YUV422-output-support.patch
+Patch274:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0015-drm-meson-add-YUV422-output-support.patch
 Patch275:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0016-arm64-dts-meson-add-initial-Beelink-GT1-Ultimate-dev.patch
 Patch276:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0017-add-ugoos-device.patch
 Patch277:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0018-drm-panfrost-scheduler-fix.patch
@@ -393,20 +394,22 @@ Patch287:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/maste
 Patch288:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-staging-add-rtl8723cs-driver.patch
 Patch289:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-pinetab-accelerometer.patch
 Patch290:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-enable-jack-detection-pinetab.patch
-Patch291:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0001-drm-rockchip-RK356x-VOP2-support.patch
 Patch292:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0002-arm64-dts-rockchip-enable-vop2-and-hdmi-tx-on-quartz64a.patch
 Patch293:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0003-add-GPU-for-RK356x-SoCs.patch
 Patch294:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0004-power-supply-Add-Support-for-RK817-Charger.patch
+Patch295:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0005-phy-rockchip-inno-usb2-support-rk356x-usb2phy.patch
 Patch296:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0006-HDMI-Audio-on-RK356x-Quartz64-Model-A.patch
 Patch297:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0007-phy-rockchip-add-naneng-combo-phy-for-RK3568.patch
-#Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-enable-sdmmc1-on-Quartz64-Model-A.patch
+Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/0008-arm64-dts-rockchip-enable-sdmmc1-on-Quartz64-Model-A.patch
+%endif
 
 # (tpg) patches taken from https://github.com/OpenMandrivaSoftware/os-image-builder/tree/master/device/rockchip/generic/kernel-patches
 Patch300:	add-board-orangepi-4.patch
 Patch302:	general-emmc-hs400es-init-tweak.patch
 Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
-Patch304:	rtl8723cs-compile.patch
-Patch305:	port-rtl8723cs-to-5.17.patch
+#Patch304:	rtl8723cs-compile.patch
+
+Patch350:	rtla-5.17-fix-make-clean.patch
 
 # (tpg) patches taken from LibreELEC
 #Patch400:	https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/projects/Rockchip/patches/linux/default/linux-2000-v4l-wip-rkvdec-vp9.patch
@@ -428,7 +431,6 @@ Patch904:	0105-ksm-wakeups.patch
 Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
-#Patch909:	0110-give-rdrand-some-credit.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
 Patch913:	0117-migrate-some-systemd-defaults-to-the-kernel-defaults.patch
 Patch914:	0120-use-lfence-instead-of-rep-and-nop.patch
@@ -1135,6 +1137,11 @@ CheckConfig() {
 	printf '%s\n' "Please do not disable CONFIG_MODULE_COMPRESS_NONE=y or set any other module compression inside .config, as this will bloat main package instead of debuginfo subpackage, killing the build."
 	exit 1
     fi
+# (tpg) stop enabling CONFIG_DEBUG_KERNEL
+    if grep -Fxq "CONFIG_DEBUG_KERNEL=y" .config ; then
+	printf '%s\n' "Please do not set CONFIG_DEBUG_KERNEL=y as this is relase build, and we are not developing kernel or its modules."
+	exit 1
+    fi
 }
 
 clangify() {
@@ -1156,18 +1163,18 @@ CONFIG_LD_IS_LLD=y
 CONFIG_INIT_STACK_NONE=y
 # CONFIG_INIT_STACK_ALL_PATTERN is not set
 # CONFIG_INIT_STACK_ALL_ZERO is not set
-
 # CONFIG_KCSAN is not set
 # CONFIG_SHADOW_CALL_STACK is not set
 # CONFIG_LTO_NONE is not set
-CONFIG_LTO_CLANG_FULL=y
-# CONFIG_LTO_CLANG_THIN is not set
+# CONFIG_LTO_CLANG_FULL is not set
+CONFIG_LTO_CLANG_THIN=y
 CONFIG_CFI_CLANG=y
 CONFIG_CFI_CLANG_SHADOW=y
 # CONFIG_CFI_PERMISSIVE is not set
 CONFIG_RELR=y
 EOF
 }
+
 amdify() {
 	# Yes, it is intentional that CONFIG_AMD_NUMA gets disabled
 	# for the AMD kernel -- AMD_NUMA is only for pre-ACPI systems
@@ -1189,6 +1196,7 @@ amdify() {
 		-e 's,^CONFIG_KVM_INTEL=m,# CONFIG_KVM_INTEL is not set,' \
 		-e 's,^CONFIG_INTEL_SOC(.*)=(y|m),# CONFIG_INTEL_SOC\1 is not set,' \
 		-e 's,^CONFIG_AGP_(INTEL|SIS|VIA)=(y|m),# CONFIG_AGP_\1 is not set,' \
+		-e 's,^CONFIG_PECI=(y|m),# CONFIG_PECI is not set,' \
 		"$1"
 }
 
@@ -1322,12 +1330,12 @@ CreateConfig() {
 
 # ( crazy) remove along with the old configs once ARM* and ppc* is finished
 	if [[ -n ${CONFIGS} ]]; then
-		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 $CONFIGS
+		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 $CONFIGS
 	else
 %if %{without lazy_developer}
 ## YES, intentionally, DIE on wrong config
 		CheckConfig
-		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=1 oldconfig
+		make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 oldconfig
 %else
 		printf '%s\n' "Lazy developer option is enabled!!. Don't be lazy!."
 ## that takes kernel defaults on missing or changed things
@@ -1376,37 +1384,37 @@ BuildKernel() {
 		BUILD_TOOLS=""
 	fi
 
-	TARGETS=all
+%ifarch %{arm}
+	IMAGE=zImage
+	TARGETS="${IMAGE} modules"
+%else
 %ifarch %{aarch64}
-	TARGETS="$TARGETS dtbs"
+	IMAGE=Image
+	TARGETS="${IMAGE} modules dtbs"
+%else
+	IMAGE=bzImage
+	TARGETS="${IMAGE} modules"
 %endif
-	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $TARGETS
+%endif
+
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $TARGETS
 
 # Start installing stuff
 	install -d %{temp_boot}
 	install -m 644 System.map %{temp_boot}/System.map-$KernelVer
 	install -m 644 .config %{temp_boot}/config-$KernelVer
 
-%ifarch %{arm}
-	IMAGE=zImage
-%else
-%ifarch %{aarch64}
-	IMAGE=Image.gz
-%else
-	IMAGE=bzImage
-%endif
-%endif
 	cp -f arch/%{target_arch}/boot/$IMAGE %{temp_boot}/vmlinuz-$KernelVer
 
 # modules
 	install -d %{temp_modules}/$KernelVer
-	%make_build INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_MOD_STRIP=1 modules_install
+	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_MOD_STRIP=1 modules_install
 
 # headers
-	%make_build INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
+	%make_build V=0 VERBOSE=0 INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
 %ifarch %{armx} %{ppc}
-	%make_build ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
+	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
 %endif
 
 # remove /lib/firmware, we use a separate kernel-firmware
@@ -1477,7 +1485,7 @@ SaveDevel() {
 # Clean the scripts tree, and make sure everything is ok (sanity check)
 # running prepare+scripts (tree was already "prepared" in build)
 	cd $TempDevelRoot >/dev/null
-	%make_build ARCH=%{target_arch} clean
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} clean
 	cd - >/dev/null
 
 	rm -f $TempDevelRoot/.config.old
@@ -1591,13 +1599,14 @@ SaveDebug() {
 
 	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
 	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
+	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f -exec strip --strip-debug {} +
 	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f |while read r; do
-		# sign modules after stripping
+# sign modules after stripping
 		scripts/sign-file sha1 certs/signing_key.pem certs/signing_key.x509 $r
 	done
 
 	cd %{temp_modules}
-	find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" -type f > debug_module_list
+	    find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" -type f > debug_module_list
 	cd -
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%{_modulesdir}/\1|' >> $kernel_debug_files
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%exclude %{_modulesdir}/\1|' >> ../kernel_exclude_debug_files.$debug_flavour
@@ -1924,11 +1933,14 @@ rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
 for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
     rm -rf %{target_source}/arch/$i
+    rm -rf %{target_source}/scripts/dtc/include-prefixes/$i
+    rm -rf %{target_source}/tools/arch/$i
+    rm -rf %{target_source}/tools/testing/selftests/$i
 done
 
 # other misc files
-rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes}
-rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore}
+rm -f %{target_source}/{.config.old,.config.cmd,.gitignore,.lst,.mailmap,.gitattributes,.get_maintainer.ignore}
+rm -f %{target_source}/{.missing-syscalls.d,arch/.gitignore,firmware/.gitignore,.gitattributes}
 rm -rf %{target_source}/.tmp_depmod/
 rm -rf %{buildroot}/usr/src/linux-*/uksm.txt
 
@@ -1938,10 +1950,11 @@ cd %{target_source}
 # lots of gitignore files
 find -iname ".gitignore" -delete
 # clean tools tree
-%make_build -C tools clean -j1
-%make_build -C tools/build clean -j1
-%make_build -C tools/build/feature clean -j1
+%make_build -C tools clean -j1 V=0 VERBOSE=0
+%make_build -C tools/build clean -j1 V=0 VERBOSE=0
+%make_build -C tools/build/feature clean -j1 V=0 VERBOSE=0
 rm -f .cache.mk
+
 # Drop script binaries that can be rebuilt
 find tools scripts -executable |while read r; do
     if file $r |grep -q ELF; then
