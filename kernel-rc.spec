@@ -119,7 +119,7 @@
 # SRC RPM description
 #
 Summary:	Linux kernel built for %{distribution}
-Name:		kernel%{?relc:-relc}
+Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
 Release:	%{?relc:0.%{relc}.}1
 License:	GPLv2
