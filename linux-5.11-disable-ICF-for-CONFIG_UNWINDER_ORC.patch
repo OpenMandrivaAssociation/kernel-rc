@@ -1,11 +1,11 @@
-diff -up linux-5.17/scripts/Makefile.11~ linux-5.17/scripts/Makefile
---- linux-5.17/scripts/Makefile.11~	2022-03-26 17:15:04.126085631 +0100
-+++ linux-5.17/scripts/Makefile	2022-03-26 17:16:50.345573163 +0100
+diff -up linux-5.19-rc2/scripts/Makefile.8~ linux-5.19-rc2/scripts/Makefile
+--- linux-5.19-rc2/scripts/Makefile.8~	2022-06-18 17:56:19.820332682 +0200
++++ linux-5.19-rc2/scripts/Makefile	2022-06-18 17:57:16.016692598 +0200
 @@ -13,6 +13,7 @@ hostprogs-always-$(CONFIG_SYSTEM_EXTRA_C
  
  HOSTCFLAGS_sorttable.o = -I$(srctree)/tools/include
  HOSTLDLIBS_sorttable = -lpthread
 +HOSTLDFLAGS_sorttable = --icf=none
  HOSTCFLAGS_asn1_compiler.o = -I$(srctree)/include
- HOSTCFLAGS_sign-file.o = $(shell pkg-config --cflags libcrypto 2> /dev/null)
- HOSTLDLIBS_sign-file = $(shell pkg-config --libs libcrypto 2> /dev/null || echo -lcrypto)
+ HOSTCFLAGS_sign-file.o = $(shell $(HOSTPKG_CONFIG) --cflags libcrypto 2> /dev/null)
+ HOSTLDLIBS_sign-file = $(shell $(HOSTPKG_CONFIG) --libs libcrypto 2> /dev/null || echo -lcrypto)

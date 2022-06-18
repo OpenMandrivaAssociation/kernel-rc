@@ -1,6 +1,6 @@
 # utils/cpuidle-info.c:193: error: undefined reference to 'cpufreq_cpu_exists'
 # investigate aarch64
-%define _binaries_in_noarch_packages_terminate_build   0
+%define _binaries_in_noarch_packages_terminate_build 0
 #end
 %define _disable_ld_no_undefined 1
 
@@ -23,61 +23,52 @@
 # Work around incomplete debug packages
 %global _empty_manifest_terminate_build 0
 
+%global cross_header_archs aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux ppc64le-linuxmusl ppc64-linuxmusl ppc64le-linuxuclibc ppc64-linuxuclibc
+%global long_cross_header_archs %(
+    for i in %{cross_header_archs}; do
+	CPU=$(echo $i |cut -d- -f1)
+	OS=$(echo $i |cut -d- -f2)
+	echo -n "$(rpm --target=${CPU}-${OS} -E %%{_target_platform}) "
+    done
+)
+
+# Parallelize xargs invocations on smp machines
+%define kxargs xargs %([ -z "$RPM_BUILD_NCPUS" ] \\\
+    && RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
+    [ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
+
+%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/')
+
+
+# (tpg) define here per arch which kernel flavours you would like to build
 %ifarch aarch64
-%bcond_with gcc
-%bcond_without clang
+%define kernel_flavours server
 %else
-%bcond_without gcc
-%bcond_without clang
+%define kernel_flavours desktop server desktop-gcc
+%endif
+
+# (tpg) package these kernel modules as subpackages
+%ifarch aarch64
+%define modules_subpackages appletalk decnet fddi
+%else
+%define modules_subpackages appletalk arcnet infiniband isdn
 %endif
 
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
-%define kernelversion	5
-%define patchlevel	18
-%define sublevel	0
-%define relc		6
-# Only ever wrong on x.0 releases...
-%define previous	%{kernelversion}.%(echo $((%{patchlevel}-1)))
-
-%define buildrel	%{kversion}-%{buildrpmrel}
-%define rpmtag		%{disttag}
-
-# IMPORTANT
-# This is the place where you set release version %{version}-1omv2015
-%if 0%{relc}
-%define rpmrel		0.rc%{relc}.1
-%define tar_ver		%{kernelversion}.%{patchlevel}-rc%{relc}
-%else
-%define rpmrel		1
-%define tar_ver		%{kernelversion}.%{patchlevel}
-%endif
-%define buildrpmrel	%{rpmrel}%{rpmtag}
-
-# kernel Makefile extraversion is substituted by
-# kpatch wich are either 0 (empty), rc (kpatch)
-%define kpatch		%{nil}
-
-# kernel base name (also name of srpm)
-%if 0%{relc}
-%define kname		kernel-rc
-%else
-%define kname		kernel-release
-%endif
-
-# version defines
-%define kversion	%{kernelversion}.%{patchlevel}.%{sublevel}
-%define kverrel		%{kversion}-%{rpmrel}
+%define kernelversion 5
+%define patchlevel 19
+#define sublevel 5
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
-%define top_dir_name	%{kname}-%{_arch}
-
-%define build_dir	${RPM_BUILD_DIR}/%{top_dir_name}
+%define top_dir_name %{name}-%{_arch}
+%define build_dir ${RPM_BUILD_DIR}/%{top_dir_name}
 
 # Common target directories
-%define _kerneldir /usr/src/linux-%{kversion}-%{buildrpmrel}
+%define _kerneldir /usr/src/linux-%{version}-%{release}%{disttag}
 %define _bootdir /boot
 %define _modulesdir /lib/modules
 
@@ -89,24 +80,10 @@
 
 # Build defines
 %bcond_with build_doc
-%ifarch %{ix86} %{x86_64} aarch64
-%if %{relc}
-# UKSM is usually not supported for -rc releases
 %bcond_with uksm
-%else
-%bcond_without uksm
-%endif
-%else
-%bcond_with uksm
-%endif
 
-%if 0%{relc}
-%bcond_with build_source
-%bcond_with build_devel
-%else
 %bcond_without build_source
 %bcond_without build_devel
-%endif
 %bcond_without cross_headers
 
 %bcond_with lazy_developer
@@ -116,39 +93,9 @@
 # FIXME re-enable by default when the patches have been adapted to 5.8
 %bcond_with saa716x
 %bcond_with rtl8821ce
-
-%global cross_header_archs	aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux ppc64le-linuxmusl ppc64-linuxmusl ppc64le-linuxuclibc ppc64-linuxuclibc
-%global long_cross_header_archs %(
-	for i in %{cross_header_archs}; do
-		CPU=$(echo $i |cut -d- -f1)
-		OS=$(echo $i |cut -d- -f2)
-		echo -n "$(rpm --target=${CPU}-${OS} -E %%{_target_platform}) "
-	done
-)
-
-%ifarch %{x86_64}
-# BEGIN OF FLAVOURS
-%bcond_without build_desktop
-%bcond_without build_server
-# END OF FLAVOURS
-%endif
-
-%ifarch %{ix86}
-# BEGIN OF FLAVOURS
-%bcond_without build_desktop
-%bcond_with build_server
-# END OF FLAVOURS
-%endif
-
 # build perf and cpupower tools
-%if 0%{relc}
-# One version of bpf and perf is enough - let's build it for stable only
-%bcond_with perf
-%bcond_with bpftool
-%else
 %bcond_without perf
 %bcond_without bpftool
-%endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
 %ifarch %{ix86} %{x86_64}
@@ -157,17 +104,10 @@
 # cpupower is currently x86 only
 %bcond_with build_cpupower
 %endif
-
 # ARM builds
 %ifarch %{armx}
 %bcond_with build_desktop
 %bcond_without build_server
-%endif
-
-# RISC-V
-%ifarch %{riscv}
-%bcond_without build_desktop
-%bcond_with build_server
 %endif
 
 # End of user definitions
@@ -175,23 +115,13 @@
 # For the .nosrc.rpm
 %bcond_with build_nosrc
 
-###################################################
-###  Linker end1 > Check point to build for omv ###
-###################################################
-# Parallelize xargs invocations on smp machines
-%define kxargs xargs %([ -z "$RPM_BUILD_NCPUS" ] \\\
-	&& RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
-	[ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
-
-%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/')
-
 #
 # SRC RPM description
 #
 Summary:	Linux kernel built for %{distribution}
-Name:		%{kname}
-Version:	%{kversion}
-Release:	%{rpmrel}
+Name:		kernel%{?relc:-relc}
+Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
+Release:	%{?relc:0.%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -203,17 +133,16 @@ URL:		http://www.kernel.org
 # Sources
 #
 ### This is for full SRC RPM
-%if 0%{relc}
-Source0:	https://git.kernel.org/torvalds/t/linux-%{tar_ver}.tar.gz
+%if 0%{?relc:1}
+Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-rc%{relc}.tar.gz
 %else
-Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{tar_ver}.tar.xz
-Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{tar_ver}.tar.sign
+Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
+Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
 %endif
 ### This is for stripped SRC RPM
 %if %{with build_nosrc}
 NoSource:	0
 %endif
-
 Source3:	README.kernel-sources
 Source4:	%{name}.rpmlintrc
 ## all in one configs for each kernel
@@ -225,7 +154,6 @@ Source14:	armv7hnl-desktop-omv-defconfig
 Source15:	armv7hnl-server-omv-defconfig
 Source16:	aarch64-desktop-omv-defconfig
 Source17:	aarch64-server-omv-defconfig
-
 # config and systemd service file from fedora
 Source30:	cpupower.service
 Source31:	cpupower.config
@@ -240,7 +168,7 @@ Source31:	cpupower.config
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%autopatch -p1
 
-%if 0%{sublevel}
+%if 0%{?sublevel:1}
 # The big upstream patch is added as source rather than patch
 # because "git apply" is needed to handle binary patches it
 # frequently contains (firmware updates etc.)
@@ -269,14 +197,8 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 # FIXME this may need porting, not sure where WC is set in 5.10
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
-# FIXME hardening the module loader breaks it when
-# using binutils 2.35, https://sourceware.org/bugzilla/show_bug.cgi?id=26378
-# Let's revert it for now until there's a good fix.
-Patch41:	workaround-aarch64-module-loader.patch
-%if %{with clang}
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
-%endif
 
 # (tpg)
 # The Ultra Kernel Same Page Deduplication
@@ -285,7 +207,7 @@ Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 # Usually faster ports to new kernel releases can be found at
 # https://github.com/sirlucjan/kernel-patches/tree/master/5.16/uksm-patches
 %if %{with uksm}
-Patch43:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.17/uksm-patches-v2/0001-UKSM-for-5.17.patch
+Patch43:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.18/uksm-patches/0001-UKSM-for-5.18.patch
 %endif
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
@@ -329,7 +251,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	vboxnetadp-kernel-5.17.patch
 Source1007:	vboxnet-clang.patch
 
 # Better support for newer x86 processors
@@ -435,41 +356,6 @@ Patch913:	0117-migrate-some-systemd-defaults-to-the-kernel-defaults.patch
 Patch914:	0120-use-lfence-instead-of-rep-and-nop.patch
 %endif
 
-# Defines for the things that are needed for all the kernels
-#
-%define common_desc_kernel The kernel package contains the Linux kernel (vmlinuz), the core of your \
-OpenMandriva Lx operating system. The kernel handles the basic functions \
-of the operating system: memory allocation, process allocation, device \
-input and output, etc. \
-This version is a preview of an upcoming kernel version, and may be helpful if you are using \
-very current hardware.
-
-### Global Requires/Provides
-# do not require dracut, please it bloats dockers and other minimal instllations
-# better solution needs to be figured out
-# (crazy) it needs dracut >= 050-4 bc ZSTD support
-%ifnarch %{armx} %{riscv}
-%define requires2	dracut >= 050-4
-%endif
-# (crazy) it needs kmod >= 27-3 bc ZSTD support
-%define requires3	kmod >= 27-3
-%define requires5	kernel-firmware
-
-%define kprovides1	%{kname} = %{kverrel}
-%define kprovides2	kernel = %{tar_ver}
-%define kprovides_server	drbd-api = 88
-
-%define kobsoletes1	dkms-r8192se <= 0019.1207.2010-2
-%define kobsoletes2	dkms-lzma <= 4.43-32
-%define kobsoletes3	dkms-psb <= 4.41.1-7
-
-## FIXME
-%define kconflicts1	dkms-broadcom-wl < 5.100.82.112-12
-%define kconflicts2	dkms-fglrx < 13.200.5-1
-%define kconflicts3	dkms-nvidia-current < 325.15-1
-%define kconflicts4	dkms-nvidia-long-lived < 319.49-1
-%define kconflicts5	dkms-nvidia304 < 304.108-1
-
 Autoreqprov:	no
 BuildRequires:	zstd
 BuildRequires:	findutils
@@ -478,15 +364,9 @@ BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	binutils
 BuildRequires:	hostname
-%if %{with clang}
 BuildRequires:	clang
 BuildRequires:	llvm
 BuildRequires:	lld
-%endif
-%if %{with gcc}
-BuildRequires:	gcc
-BuildRequires:	gcc-c++
-%endif
 BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
@@ -497,6 +377,7 @@ BuildRequires:	pkgconfig(ncurses)
 BuildRequires:	pkgconfig(libkmod)
 # For sign-file
 BuildRequires:	pkgconfig(openssl)
+BuildRequires:	openssl
 
 %ifarch %{x86_64} %{aarch64}
 BuildRequires:	pkgconfig(numa)
@@ -551,10 +432,6 @@ BuildRequires:	perl(ExtUtils::Embed)
 BuildRequires:	uboot-mkimage
 %endif
 
-%ifnarch %{armx} %{riscv}
-# might be useful too:
-Suggests:	microcode-intel
-%endif
 
 # Let's pull in some of the most commonly used DKMS modules
 # so end users don't have to install compilers (and worse,
@@ -567,264 +444,197 @@ BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.10
 %endif
 
 %description
-%common_desc_kernel
+The kernel package contains the Linux kernel (vmlinuz), the core of your
+%{distriubution} operating system. The kernel handles the basic functions
+of the operating system: memory allocation, process allocation, device
+input and output, etc.
 
-# Define obsolete/provides to help automatic upgrades of old kernel-xen-pvops
-%define latest_obsoletes_server kernel-xen-pvops-latest < 3.2.1-1
-%define latest_provides_server kernel-xen-pvops-latest = %{kverrel}
-%define latest_obsoletes_devel_server kernel-xen-pvops-devel-latest < 3.2.1-1
-%define latest_provides_devel_server kernel-xen-pvops-devel-latest = %{kverrel}
-
-# mkflavour() name flavour processor
-# name: the flavour name in the package name
-# flavour: first parameter of CreateKernel()
-%define mkflavour()					\
-%package -n %{kname}-%{1}				\
-Version:	%{kversion}				\
-Release:	%{rpmrel}				\
-Provides:	%kprovides1 %kprovides2			\
-%{expand:%%{?kprovides_%{1}:Provides: %{kprovides_%{1}}}} \
-Provides:	%{kname}-%{1}-%{buildrel}		\
-Requires(pre):	%requires3				\
-Requires:	%requires5				\
-Obsoletes:	%kobsoletes1 %kobsoletes2 %kobsoletes3	\
-Conflicts:	%kconflicts1 %kconflicts2 %kconflicts3	\
-Conflicts:	%kconflicts4 %kconflicts5 \
-Conflicts:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
-Obsoletes:	%{kname}-%{1}-latest <= %{kversion}-%{rpmrel}	\
-Provides:	installonlypkg(kernel)			\
-Provides:	should-restart = system			\
-Recommends:	iw					\
-%ifarch %{ix86} %{x86_64}				\
-Requires:	grub2 >= 2.02-27			\
-Requires(post):	grub2 >= 2.02-27			\
-%endif							\
-%ifnarch %{armx}						\
-Recommends:	cpupower				\
-Recommends:	microcode-intel				\
-Suggests:	dracut >= 047				\
-%endif							\
-%ifarch %{ix86}						\
-Conflicts:	arch(x86_64)				\
-Conflicts:	arch(znver1)				\
-%endif							\
-Summary:	%{expand:%{summary_%(echo %{1} | sed -e "s/-/_/")}} \
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}				\
-%common_desc_kernel %{expand:%{info_%(echo %{1} | sed -e "s/-/_/")}} \
-							\
-%if %{with build_devel}					\
-%package -n	%{kname}-%{1}-devel			\
-Version:	%{kversion}				\
-Release:	%{rpmrel}				\
-Requires:	glibc-devel				\
-Requires:	ncurses-devel				\
-Requires:	make					\
-%ifarch %{x86_64}					\
-Requires:	pkgconfig(libelf)			\
-%endif							\
-Summary:	The kernel-devel files for %{kname}-%{1}-%{buildrel} \
-Group:		Development/Kernel			\
-Provides:	kernel-devel = %{kverrel}		\
-Provides:	%{kname}-devel = %{kverrel} 		\
-Provides:	%{kname}-%{1}-devel-%{buildrel}		\
-Conflicts:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel} \
-Obsoletes:	%{kname}-%{1}-devel-latest <= %{kversion}-%{rpmrel} \
-Provides:	installonlypkg(kernel)			\
-Requires:	%{kname}-%{1} = %{kversion}-%{rpmrel}	\
-%ifarch %{ix86}						\
-Conflicts:	arch(x86_64)				\
-Conflicts:	arch(znver1)				\
-%endif							\
-%description -n %{kname}-%{1}-devel			\
-This package contains the kernel files (headers and build tools) \
-that should be enough to build additional drivers for   \
-use with %{kname}-%{1}-%{buildrel}.			\
-							\
-If you want to build your own kernel, you need to install the full \
-%{kname}-source-%{buildrel} rpm.			\
-							\
-%endif							\
-							\
-%if %{with build_debug}					\
-%package -n	%{kname}-%{1}-debuginfo			\
-Version:	%{kversion}				\
-Release:	%{rpmrel}				\
-Summary:	Files with debuginfo for %{kname}-%{1}-%{buildrel} \
-Group:		Development/Debug			\
-Provides:	kernel-debug = %{kverrel} 		\
-Provides:	kernel-%{1}-%{buildrel}-debuginfo	\
-Provides:	installonlypkg(kernel)			\
-Requires:	%{kname}-%{1} = %{kversion}-%{rpmrel}	\
-%ifarch %{ix86}						\
-Conflicts:	arch(x86_64)				\
-Conflicts:	arch(znver1)				\
-%endif							\
-%description -n %{kname}-%{1}-debuginfo			\
-This package contains the files with debuginfo to aid in debug tasks \
-when using %{kname}-%{1}-%{buildrel}.			\
-							\
-If you need to look at debug information or use some application that \
-needs debugging info from the kernel, this package may help. \
-							\
-%endif							\
-							\
-%posttrans -n %{kname}-%{1} -f kernel_files.%{1}-posttrans \
-%postun -n %{kname}-%{1} -f kernel_files.%{1}-postun 	\
-							\
-%if %{with build_devel}					\
-%post -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-post \
-%preun -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-preun \
-%postun -n %{kname}-%{1}-devel -f kernel_devel_files.%{1}-postun \
-%endif							\
-							\
-%files -n %{kname}-%{1} -f kernel_files.%{1} 		\
-							\
-%package -n %{kname}-%{1}-modules-appletalk		\
-Summary:	AppleTalk modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-appletalk		\
-AppleTalk modules for kernel %{kname}-%{1}		\
-AppleTalk is an obsolete protocol for networking Apple	\
-devices. If you don't know what this is, you don't	\
-need it.						\
-%files -n %{kname}-%{1}-modules-appletalk		\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/net/appletalk \
-							\
-%ifnarch %{armx}					\
-%package -n %{kname}-%{1}-modules-arcnet		\
-Summary:	ARCNET modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-arcnet		\
-ARCNET modules for kernel %{kname}-%{1}			\
-ARCNET is an obsolete networking protocol.		\
-If you don't know what this is, you don't need it.	\
-%files -n %{kname}-%{1}-modules-arcnet			\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/drivers/net/arcnet \
-%endif							\
-							\
-%package -n %{kname}-%{1}-modules-decnet		\
-Summary:	DECnet modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-decnet		\
-DECnet modules for kernel %{kname}-%{1}			\
-DECnet is an obsolete networking protocol.		\
-If you don't know what this is, you don't need it.	\
-%files -n %{kname}-%{1}-modules-decnet			\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/net/decnet \
-							\
-%package -n %{kname}-%{1}-modules-fddi			\
-Summary:	FDDI modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-fddi		\
-FDDI modules for kernel %{kname}-%{1}			\
-FDDI is an obsolete networking protocol.		\
-If you don't know what this is, you don't need it.	\
-%files -n %{kname}-%{1}-modules-fddi			\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/drivers/net/fddi \
-							\
-%ifnarch %{armx}					\
-%package -n %{kname}-%{1}-modules-infiniband		\
-Summary:	Infiniband modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-infiniband	\
-Infiniband modules for kernel %{kname}-%{1}		\
-Infiniband is an alternative to Ethernet commonly used	\
-for communication between supercomputers. If you don't	\
-know what it is, you don't need it.			\
-%files -n %{kname}-%{1}-modules-infiniband		\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/drivers/infiniband \
-							\
-%package -n %{kname}-%{1}-modules-isdn			\
-Summary:	ISDN modules for kernel %{kname}-%{1}	\
-Group:		System/Kernel and hardware		\
-%description -n %{kname}-%{1}-modules-isdn		\
-ISDN modules for kernel %{kname}-%{1}			\
-ISDN (also known as RNIS in France) is an obsolete-ish	\
-telephony network interface. If you don't know what it	\
-is, you don't need it.					\
-%files -n %{kname}-%{1}-modules-isdn			\
-%{_modulesdir}/%{kversion}-%{1}-%{buildrpmrel}/kernel/drivers/isdn \
-%endif							\
-							\
-%if %{with build_devel}					\
-%files -n %{kname}-%{1}-devel -f kernel_devel_files.%{1} \
-%endif							\
-							\
-%if %{with build_debug}					\
-%files -n %{kname}-%{1}-debuginfo -f kernel_debug_files.%{1} \
-%endif
-
-# kernel-desktop: i686, smp-alternatives, 4 GB / x86_64
-#
-%if %{with build_desktop}
-%ifarch %{ix86}
-%define summary_desktop Linux Kernel for desktop use with i686 & 4GB RAM
-%define summary_desktop_clang Clang-built Linux Kernel for desktop use with i686 & 4GB RAM
-%define info_desktop This kernel is compiled for desktop use, single or \
-multiple i686 processor(s)/core(s) and less than 4GB RAM, using HZ_1000, \
-voluntary preempt, CFS cpu scheduler and BFQ i/o scheduler.
+# (tpg) generate subpackages for kernel flavours
+%( for flavour in %{kernel_flavours}; do
+	cat <<EOF
+%package -n %{name}-${flavour}
+Summary:	The heart of the %{distribution} built for ${flavour}
+Version:	%{version}
+Release:	%{release}
+Group:		System/Kernel and hardware
+%if "${flavour}" == "desktop-gcc" || "${flavour}" == "server-gcc"
+BuildRequires:	gcc
+BuildRequires:	gcc-c++
 %else
-%define summary_desktop Linux Kernel for desktop use with %{_arch}
-%define summary_desktop_clang Clang-built Linux Kernel for desktop use with %{_arch}
-%define info_desktop This kernel is compiled for desktop use, single or \
-multiple %{_arch} processor(s)/core(s), using HZ_1000, \
-voluntary preempt, CFS cpu scheduler and BFQ i/o scheduler, ONDEMAND governor.
+Provides:	kernel-release-${flavour}-clang
+Provides:	kernel-release-${flavour}-clang-%{version}-%{release}%{disttag} = %{version}-%{release}
+Provides:	kernel-release-${flavour}-clang%_isa = %{version}-%{release}
 %endif
-%if %{with gcc}
-%mkflavour desktop
+Requires(pre):	kmod >= 27-3
+Recommends:	kernel-firmware
+Provides:	kernel = %{kernelversion}.%{patchlevel}
+Provides:	%{name} = %{version}-%{release}
+Provides:	%{name}-${flavour}-%{version}-%{release}%{disttag}
+Obsoletes:	dkms-r8192se <= 0019.1207.2010-2
+Obsoletes:	dkms-lzma <= 4.43-32
+Obsoletes:	dkms-psb <= 4.41.1-7
+Conflicts:	dkms-broadcom-wl < 5.100.82.112-12
+Conflicts:	dkms-fglrx < 13.200.5-1
+Conflicts:	dkms-nvidia-current < 325.15-1
+Conflicts:	dkms-nvidia-long-lived < 319.49-1
+Conflicts:	dkms-nvidia304 < 304.108-1
+Conflicts:	%{name}-${flavour}-latest <= %{version}-%{release}
+Obsoletes:	%{name}-${flavour}-latest <= %{version}-%{release}
+Provides:	kernel-release
+Provides:	kernel-release-${flavour}
+Provides:	installonlypkg(kernel)
+Recommends:	iw
+%ifarch %{ix86} %{x86_64}
+Requires(post):	grub2 >= 2.02-27
 %endif
-%if %{with clang}
-%mkflavour desktop-clang
+%ifnarch %{armx}
+Recommends:	cpupower
+Recommends:	microcode-intel
+Suggests:	dracut >= 047
 %endif
+%ifarch %{ix86}
+Conflicts:	arch(x86_64)
+Conflicts:	arch(znver1)
+%endif
+%ifnarch %{armx} %{riscv}
+# might be useful too:
+Suggests:	microcode-intel
 %endif
 
-%if %{with build_server}
+%description -n %{name}-${flavour}
+%summary .
+
+%posttrans -n %{name}-${flavour} -f kernel_files.${flavour}-posttrans
+%postun -n %{name}-${flavour} -f kernel_files.${flavour}-postun
+
+%files -n %{name}-${flavour} -f kernel_files.${flavour}
+EOF
+
+%if %{with build_devel}
+	cat <<EOF
+%package -n %{name}-${flavour}-devel
+Summary:	The kernel-devel files for %{name}-${flavour}-%{version}-%{release}%{disttag}
+Version:	%{version}
+Release:	%{release}
+Group:		Development/Kernel
+Requires:	glibc-devel
+Requires:	ncurses-devel
+Requires:	make
+%ifarch %{x86_64}
+Requires:	pkgconfig(libelf)
+%endif
+Provides:	kernel-devel = %{version}-%{release}
+Provides:	%{name}-devel = %{version}-%{release}
+Provides:	%{name}-${flavour}-devel-%{version}-%{release}%{disttag}
+Conflicts:	%{name}-${flavour}-devel-latest <= %{version}-%{release}
+Obsoletes:	%{name}-${flavour}-devel-latest <= %{version}-%{release}
+Provides:	installonlypkg(kernel)
+Requires:	%{name}-${flavour} = %{version}-%{release}
+%rename kernel-release-${flavour}-devel
+AutoReqProv:	no
 %ifarch %{ix86}
-%define summary_server Linux Kernel for server use with i686 & 64GB RAM
-%define summary_server_clang Clang-built Linux Kernel for server use with i686 & 64GB RAM
-%define info_server This kernel is compiled for server use, single or \
-multiple i686 processor(s)/core(s) and up to 64GB RAM using PAE, using \
-no preempt, HZ_300, CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
-%else
-%define summary_server Linux Kernel for server use with %{_arch}
-%define summary_server_clang Clang-built Linux Kernel for server use with %{_arch}
-%define info_server This kernel is compiled for server use, single or \
-CFS cpu scheduler and BFQ i/o scheduler, PERFORMANCE governor.
+Conflicts:	arch(x86_64)
+Conflicts:	arch(znver1)
 %endif
-%if %{with gcc}
-%mkflavour server
+
+%description -n %{name}-${flavour}-devel
+This package contains the kernel files (headers and build tools)
+that should be enough to build additional drivers for
+use with %{name}-${flavour}-%{version}-%{release}%{disttag}.
+If you want to build your own kernel, you need to install the full
+%{name}-source-%{version}-%{release}%{disttag}.
+
+%post -n %{name}-${flavour}-devel -f kernel_devel_files.${flavour}-post
+%preun -n %{name}-${flavour}-devel -f kernel_devel_files.${flavour}-preun
+%postun -n %{name}-${flavour}-devel -f kernel_devel_files.${flavour}-postun
+
+%files -n %{name}-${flavour}-devel -f kernel_devel_files.${flavour}
+EOF
+%endif # end build_devel
+
+%if %{with build_debug}
+	cat <<EOF
+%package -n %{name}-${flavour}-debuginfo
+Summary:	Files with debuginfo for %{name}-${flavour}-%{version}-%{release}%{disttag}
+Version:	%{version}
+Release:	%{release}
+Group:		Development/Debug
+Provides:	kernel-debug = %{version}-%{release}
+Provides:	kernel-${flavour}-%{version}-%{release}%{disttag}-debuginfo
+Provides:	installonlypkg(kernel)
+Requires:	%{name}-${flavour} = %{version}-%{release}
+%rename kernel-release-${flavour}-debuginfo
+AutoReqProv:	no
+%ifarch %{ix86}
+Conflicts:	arch(x86_64)
+Conflicts:	arch(znver1)
 %endif
-%if %{with clang}
-%mkflavour server-clang
-%endif
-%endif
+
+%description -n %{name}-${flavour}-debuginfo
+This package contains the files with debuginfo to aid in debug tasks
+when using %{name}-${flavour}-%{version}-%{release}%{disttag}.
+If you need to look at debug information or use some application that
+needs debugging info from the kernel, this package may help.
+
+%files -n %{name}-${flavour}-debuginfo -f kernel_debug_files.${flavour}
+EOF
+%endif  # end build_debug
+done
+)
+
+%(
+for modules in %{modules_subpackages}; do
+    for flavour in %{kernel_flavours}; do
+	cat <<EOF
+%package -n %{name}-${flavour}-modules-${modules}
+Summary:	 ${modules} for kernel %{name}-${flavour}
+Group:		System/Kernel and hardware
+Requires:	%{name}-${flavour} = %{version}-%{release}
+Provides:	installonlypkg(kernel-module)
+AutoReq:	no
+AutoProv:	yes
+
+%description -n %{name}-${flavour}-modules-${modules}
+%{modules} modules for kernel %{name}-${flavour} .
+
+%files -n %{name}-${flavour}-modules-${modules}
+%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/net/${modules}
+%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/${modules}
+%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/net/${modules}
+
+EOF
+    done
+done
+)
 
 #
 # kernel-source
 #
 %if %{with build_source}
-%package -n %{kname}-source
-Version:	%{kversion}
-Release:	%{rpmrel}
+%package -n %{name}-source
+Summary:	The Linux source code for %{name}-%{version}-%{release}%{disttag}
+Version:	%{version}
+Release:	%{release}
+Group:		Development/Kernel
 Requires:	glibc-devel
 Requires:	ncurses-devel
 Requires:	make
 Requires:	gcc >= 7.2.1_2017.11-3
 Requires:	perl
 Requires:	diffutils
-Summary:	The Linux source code for %{kname}-%{buildrel}
-Group:		Development/Kernel
 Autoreqprov:	no
-Provides:	kernel-source = %{kverrel}
-Provides:	kernel-source-%{buildrel}
+Provides:	kernel-source = %{version}-%{release}
+Provides:	kernel-source-%{version}-%{release}%{disttag}
 Provides:	installonlypkg(kernel)
-Conflicts:	%{kname}-source-latest <= %{kversion}-%{rpmrel}
-Obsoletes:	%{kname}-source-latest <= %{kversion}-%{rpmrel}
+Conflicts:	%{name}-source-latest <= %{version}-%{release}
+Obsoletes:	%{name}-source-latest <= %{version}-%{release}
+Conflicts:	kernel-release-source-latest <= %{version}-%{release}
+Obsoletes:	kernel-release-source-latest <= %{version}-%{release}
+%rename kernel-release-source
 Buildarch:	noarch
 
-%description -n %{kname}-source
-The %{kname}-source package contains the source code files for the OpenMandriva
+%description -n %{name}-source
+The %{name}-source package contains the source code files for the %{distribution}
 kernel. These source files are only needed if you want to build your own
 custom kernel that is better tuned to your particular hardware.
 
@@ -836,15 +646,15 @@ drivers against, install the *-devel rpm that is matching your kernel.
 # kernel-doc: documentation for the Linux kernel
 #
 %if %with build_doc
-%package -n %{kname}-doc
-Version:	%{kversion}
-Release:	%{rpmrel}
-Summary:	Various documentation bits found in the %{kname} source
+%package -n %{name}-doc
+Summary:	Various documentation bits for %{distribution} %{name}
+Version:	%{version}
+Release:	%{release}
 Group:		Documentation
 Buildarch:	noarch
 
-%description -n %{kname}-doc
-This package contains documentation files from the %{kname} source.
+%description -n %{name}-doc
+This package contains documentation files from the %{name} source.
 Various bits of information about the Linux kernel and the device drivers
 shipped with it are documented in these files. You also might want install
 this package if you need a reference to the options that can be passed to
@@ -856,9 +666,9 @@ Linux kernel modules at load time.
 #
 %if %{with perf}
 %package -n perf
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	perf tool and the supporting documentation
+Version:	%{version}
+Release:	%{release}
 Group:		System/Kernel and hardware
 
 %description -n perf
@@ -867,9 +677,9 @@ The perf tool and the supporting documentation.
 
 %if %{with build_cpupower}
 %package -n cpupower
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	The cpupower tools
+Version:	%{version}
+Release:	%{release}
 Group:		System/Kernel and hardware
 Obsoletes:	cpufreq < 2.0-3
 Provides:	cpufreq = 2.0-3
@@ -880,11 +690,11 @@ Provides:	cpufrequtils = 008-6
 The cpupower tools.
 
 %package -n cpupower-devel
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	Devel files for cpupower
+Version:	%{version}
+Release:	%{release}
 Group:		Development/Kernel
-Requires:	cpupower = %{kversion}-%{rpmrel}
+Requires:	cpupower = %{version}-%{release}
 Conflicts:	%{_lib}cpufreq-devel
 
 %description -n cpupower-devel
@@ -893,9 +703,9 @@ This package contains the development files for cpupower.
 
 %if %{with build_x86_energy_perf_policy}
 %package -n x86_energy_perf_policy
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	Tool to control energy vs. performance on recent X86 processors
+Version:	%{version}
+Release:	%{release}
 Group:		System/Kernel and hardware
 
 %description -n x86_energy_perf_policy
@@ -904,9 +714,9 @@ Tool to control energy vs. performance on recent X86 processors.
 
 %if %{with build_turbostat}
 %package -n turbostat
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	Tool to report processor frequency and idle statistics
+Version:	%{version}
+Release:	%{release}
 Group:		System/Kernel and hardware
 
 %description -n turbostat
@@ -944,15 +754,16 @@ of applications which use bpf library from kernel sour
 %endif
 
 %package headers
-Version:	%{kversion}
-Release:	%{rpmrel}
 Summary:	Linux kernel header files mostly used by your C library
+Version:	%{version}
+Release:	%{release}
 Group:		System/Kernel and hardware
 Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
-Provides:	kernel-headers = 1:%{kverrel}
-Obsoletes:	kernel-headers < 1:%{kverrel}
+Provides:	kernel-headers = 1:%{version}-%{release}
+Obsoletes:	kernel-headers < 1:%{version}-%{release}
 %rename linux-userspace-headers
+%rename kernel-release-headers
 
 %description headers
 C header files from the Linux kernel. The header files define
@@ -975,14 +786,15 @@ for i in %{long_cross_header_archs}; do
 	[ "$i" = "%{_target_platform}" ] && continue
 	cat <<EOF
 %package -n cross-${i}-%{name}-headers
-Version:	%{kversion}
-Release:	%{rpmrel}
+Version:	%{version}
+Release:	%{release}
 Summary:	Linux kernel header files for ${i} cross toolchains
 Group:		System/Kernel and hardware
 BuildArch:	noarch
 %if "%{name}" != "kernel"
 Provides:	cross-${i}-kernel-headers = %{EVRD}
 %endif
+%rename cross-${i}-kernel-release-headers
 
 %description -n cross-${i}-%{name}-headers
 C header files from the Linux kernel. The header files define
@@ -1004,19 +816,13 @@ done
 #
 %prep
 
-%setup -q -n linux-%{tar_ver} -a 1003 -a 1004
-%if 0%{sublevel}
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 1003 -a 1004
+%if 0%{?sublevel:1}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
 %autopatch -p1
-
-%ifarch %{aarch64}
-# FIXME SynQuacer workaround
-#patch -p1 -b -z .1002~ <%{S:1002}
-#patch -p1 -b -z .1001~ <%{S:1001}
-%endif
 
 %if %{with saa716x}
 # merge SAA716x DVB driver from extra tarball
@@ -1035,8 +841,10 @@ sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8723DE) += rtl8723de/' Makefile
 cd -
 %endif
 
+%if 0%{?sublevel:1}
 # make sure the kernel has the sublevel we know it has...
 LC_ALL=C sed -i -e "s/^SUBLEVEL.*/SUBLEVEL = %{sublevel}/" Makefile
+%endif
 
 # Pull in some externally maintained modules
 %ifarch %{x86_64}
@@ -1057,7 +865,6 @@ config DRM_VBOXVIDEO
 	help
 	  This is a KMS driver for the virtual Graphics Card used in
 	  Virtual Box virtual machines.
-
 	  Although it is possible to build this driver built-in to the
 	  kernel, it is advised to build it as a module, so that it can
 	  be updated independently of the kernel. Select M to build this
@@ -1102,7 +909,6 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
-patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
@@ -1169,7 +975,7 @@ CONFIG_INIT_STACK_NONE=y
 CONFIG_LTO_CLANG_THIN=y
 CONFIG_CFI_CLANG=y
 CONFIG_CFI_CLANG_SHADOW=y
-# CONFIG_CFI_PERMISSIVE is not set
+CONFIG_CFI_PERMISSIVE=y
 CONFIG_RELR=y
 EOF
 }
@@ -1196,6 +1002,8 @@ amdify() {
 		-e 's,^CONFIG_INTEL_SOC(.*)=(y|m),# CONFIG_INTEL_SOC\1 is not set,' \
 		-e 's,^CONFIG_AGP_(INTEL|SIS|VIA)=(y|m),# CONFIG_AGP_\1 is not set,' \
 		-e 's,^CONFIG_PECI=(y|m),# CONFIG_PECI is not set,' \
+		-e 's,^CONFIG_INTEL_TDX_GUEST=(y|m),# CONFIG_INTEL_TDX_GUEST is not set,' \
+		-e 's,^CONFIG_INTEL_IFS=(y|m),# CONFIG_INTEL_IFS is not set,' \
 		"$1"
 }
 
@@ -1207,7 +1015,7 @@ CreateConfig() {
 	rm -fv .config
 
 	printf '%s\n' "<-- Creating config for kernel type ${type} for ${arch}"
-	if echo $type |grep -q clang; then
+	if echo $type |grep -qv gcc; then
 		CC=clang
 		CXX=clang++
 		BUILD_LD="ld.lld --icf=none --no-gc-sections"
@@ -1226,15 +1034,15 @@ CreateConfig() {
 	case ${arch} in
 	i?86)
 		case ${type} in
-		desktop|desktop-clang)
+		desktop|desktop-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/i686-desktop-gcc-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
-		server|server-clang)
+		server|server-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/i686-server-gcc-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1244,17 +1052,17 @@ CreateConfig() {
 		;;
 	x86_64|x86|znver1)
 		case ${type} in
-		desktop|desktop-clang)
+		desktop|desktop-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/x86_64-desktop-gcc-omv-defconfig .config
 			[ "${arch}" = "znver1" ] && amdify .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
-		server|server-clang)
+		server|server-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/x86_64-server-gcc-omv-defconfig .config
 			[ "${arch}" = "znver1" ] && amdify .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1264,15 +1072,15 @@ CreateConfig() {
 		;;
 	arm)
 		case ${type} in
-		desktop|desktop-clang)
+		desktop|desktop-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/armv7hnl-desktop-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
-		server|server-clang)
+		server|server-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/armv7hnl-desktop-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1282,15 +1090,15 @@ CreateConfig() {
 		;;
 	arm64)
 		case ${type} in
-		desktop|desktop-clang)
+		desktop|desktop-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/aarch64-desktop-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
-		server|server-clang)
+		server|server-gcc)
 			rm -rf .config
 			cp -v ${config_dir}/aarch64-server-omv-defconfig .config
-			echo ${type} |grep -q clang && clangify .config
+			echo ${type} |grep -qv gcc && clangify .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1314,7 +1122,6 @@ CreateConfig() {
 		for i in common common-${type}; do
 			[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
 		done
-
 		for i in ${arch}-common ${arch}-${type}; do
 			[ -e kernel/configs/$i.config ] && CONFIGS="$CONFIGS $i.config"
 		done
@@ -1368,7 +1175,7 @@ BuildKernel() {
 	KernelVer=$1
 	printf '%s\n' "<--- Building kernel $KernelVer"
 
-	if echo $1 |grep -q clang; then
+	if echo $1 |grep -qv gcc; then
 		CC=clang
 		CXX=clang++
 		BUILD_LD="ld.lld --icf=none --no-gc-sections"
@@ -1423,7 +1230,7 @@ BuildKernel() {
 SaveDevel() {
 	devel_flavour=$1
 
-	DevelRoot=/usr/src/linux-%{kversion}-$devel_flavour-%{buildrpmrel}
+	DevelRoot=/usr/src/linux-%{version}-$devel_flavour-%{release}%{disttag}
 	TempDevelRoot=%{temp_root}$DevelRoot
 
 	mkdir -p $TempDevelRoot
@@ -1563,49 +1370,49 @@ $DevelRoot/arch/Kconfig
 EOF
 
 ### Create -devel Post script on the fly
-	cat > $kernel_devel_files-post <<EOF
-if [ -d /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel} ]; then
-	rm -f /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/{build,source}
-	ln -sf $DevelRoot /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/build
-	ln -sf $DevelRoot /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/source
+cat > $kernel_devel_files-post <<EOF
+if [ -d /lib/modules/%{version}-$devel_flavour-%{release}%{disttag} ]; then
+    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/{build,source}
+    ln -sf $DevelRoot /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build
+    ln -sf $DevelRoot /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 EOF
 
 
 ### Create -devel Preun script on the fly
-	cat > $kernel_devel_files-preun <<EOF
-if [ -L /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/build ]; then
-	rm -f /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/build
+cat > $kernel_devel_files-preun <<EOF
+if [ -L /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build ]; then
+    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build
 fi
-if [ -L /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/source ]; then
-	rm -f /lib/modules/%{kversion}-$devel_flavour-%{buildrpmrel}/source
+if [ -L /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source ]; then
+    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 exit 0
 EOF
 
 ### Create -devel Postun script on the fly
-	cat > $kernel_devel_files-postun <<EOF
-rm -rf /usr/src/linux-%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+cat > $kernel_devel_files-postun <<EOF
+rm -rf /usr/src/linux-%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
 EOF
 }
 
 SaveDebug() {
 	debug_flavour=$1
 
-	install -m 644 vmlinux %{temp_boot}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}
+	install -m 644 vmlinux %{temp_boot}/vmlinux-%{version}-$debug_flavour-%{release}%{disttag}
 	kernel_debug_files=kernel_debug_files.$debug_flavour
-	printf '%s\n' "%{_bootdir}/vmlinux-%{kversion}-$debug_flavour-%{buildrpmrel}" >> $kernel_debug_files
+	printf '%s\n' "%{_bootdir}/vmlinux-%{version}-$debug_flavour-%{release}%{disttag}" >> $kernel_debug_files
 
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f -exec strip --strip-debug {} +
-	find %{temp_modules}/%{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko" -type f |while read r; do
+	find %{temp_modules}/%{version}-$debug_flavour-%{release}%{disttag}/kernel -name "*.ko" -type f | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
+	find %{temp_modules}/%{version}-$debug_flavour-%{release}%{disttag}/kernel -name "*.ko" -type f | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
+	find %{temp_modules}/%{version}-$debug_flavour-%{release}%{disttag}/kernel -name "*.ko" -type f -exec strip --strip-debug {} +
+	find %{temp_modules}/%{version}-$debug_flavour-%{release}%{disttag}/kernel -name "*.ko" -type f |while read r; do
 # sign modules after stripping
 		scripts/sign-file sha1 certs/signing_key.pem certs/signing_key.x509 $r
 	done
 
 	cd %{temp_modules}
-	    find %{kversion}-$debug_flavour-%{buildrpmrel}/kernel -name "*.ko.debug" -type f > debug_module_list
+	    find %{version}-$debug_flavour-%{release}%{disttag}/kernel -name "*.ko.debug" -type f > debug_module_list
 	cd -
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%{_modulesdir}/\1|' >> $kernel_debug_files
 	cat %{temp_modules}/debug_module_list | sed 's|\(.*\)|%exclude %{_modulesdir}/\1|' >> ../kernel_exclude_debug_files.$debug_flavour
@@ -1619,21 +1426,21 @@ CreateFiles() {
 	ker="vmlinuz"
 ### Create the kernel_files.*
 	cat > $kernel_files <<EOF
-%{_bootdir}/System.map-%{kversion}-$kernel_flavour-%{buildrpmrel}
-%{_bootdir}/config-%{kversion}-$kernel_flavour-%{buildrpmrel}
-%{_bootdir}/$ker-%{kversion}-$kernel_flavour-%{buildrpmrel}
-%dir %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/
-%{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/net/appletalk
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/net/decnet
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/drivers/infiniband
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/drivers/isdn
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/drivers/net/arcnet
-%exclude %{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/kernel/drivers/net/fddi
-%{_modulesdir}/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.*
+%{_bootdir}/System.map-%{version}-$kernel_flavour-%{release}%{disttag}
+%{_bootdir}/config-%{version}-$kernel_flavour-%{release}%{disttag}
+%{_bootdir}/$ker-%{version}-$kernel_flavour-%{release}%{disttag}
+%dir %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/appletalk
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/decnet
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/infiniband
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/isdn
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/arcnet
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/fddi
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.*
 # device tree binary
 %ifarch %{armx}
-%{_bootdir}/dtb-%{kversion}-$kernel_flavour-%{buildrpmrel}
+%{_bootdir}/dtb-%{version}-$kernel_flavour-%{release}%{disttag}
 %endif
 EOF
 
@@ -1642,12 +1449,12 @@ EOF
 %endif
 
 ### Create kernel Posttrans script
-	cat > $kernel_files-posttrans <<EOF
-[ -x /sbin/depmod ] && /sbin/depmod -a %{kversion}-$kernel_flavour-%{buildrpmrel}
+cat > $kernel_files-posttrans <<EOF
+[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -a %{version}-$kernel_flavour-%{release}%{disttag}
 
 %ifnarch %{armx} %{riscv}
-[ -x /sbin/dracut ] && /sbin/dracut -f --kver %{kversion}-$kernel_flavour-%{buildrpmrel}
-[ -x /usr/sbin/update-grub2 ] && /usr/sbin/update-grub2
+[ -x %{_bindir}/dracut ] && %{_bindir}/dracut -f --kver %{version}-$kernel_flavour-%{release}%{disttag}
+[ -x %{_sbindir}/update-grub2 ] && %{_sbindir}/update-grub2 ||:
 %endif
 
 ## cleanup some werid symlinks we never used anyway
@@ -1655,64 +1462,49 @@ rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
-if [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/{build,source}
-    ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
-    ln -sf /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
+if [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
+    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/{build,source}
+    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build
+    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 
-if [ -x /usr/sbin/dkms_autoinstaller ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
-    /usr/sbin/dkms_autoinstaller start %{kversion}-$kernel_flavour-%{buildrpmrel}
+if [ -x %{_sbindir}/dkms_autoinstaller ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
+    %{_sbindir}/dkms_autoinstaller start %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 
-if [ -x %{_sbindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{kversion}-$kernel_flavour-%{buildrpmrel} ]; then
+if [ -x %{_sbindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
     /bin/systemctl --quiet restart dkms.service
     /bin/systemctl --quiet try-restart loadmodules.service
-    %{_sbindir}/dkms autoinstall --verbose --kernelver %{kversion}-$kernel_flavour-%{buildrpmrel}
+    %{_sbindir}/dkms autoinstall --verbose --kernelver %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 EOF
 
 ### Create kernel Postun script on the fly
 cat > $kernel_files-postun <<EOF
 
-rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
-[ -e /boot/vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel} ] && rm -rf /boot/vmlinuz-%{kversion}-$kernel_flavour-%{buildrpmrel}
-[ -e /boot/initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img ] && rm -rf /boot/initrd-%{kversion}-$kernel_flavour-%{buildrpmrel}.img
+rm -rf /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
+[ -e /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
+[ -e /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img ] && rm -rf /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img
 
-rm -rf /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel} >/dev/null
+rm -rf /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag} >/dev/null
 if [ -d /var/lib/dkms ]; then
-    rm -f /var/lib/dkms/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
-    rm -f /var/lib/dkms-binary/*/kernel-%{kversion}-$devel_flavour-%{buildrpmrel}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms-binary/*/*/%{kversion}-$devel_flavour-%{buildrpmrel} >/dev/null
+    rm -f /var/lib/dkms/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
+    rm -f /var/lib/dkms-binary/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
+    rm -rf /var/lib/dkms-binary/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
 fi
 
 %if %{with build_devel}
-if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build ]; then
-    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/build
+if [ -L /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build ]; then
+    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build
 fi
-if [ -L /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source ]; then
-    rm -f /lib/modules/%{kversion}-$kernel_flavour-%{buildrpmrel}/source
+if [ -L /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source ]; then
+    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 exit 0
 EOF
-}
-
-CreateKernel() {
-	flavour=$1
-
-	PrepareKernel $flavour $flavour-%{buildrpmrel}
-
-	BuildKernel %{kversion}-$flavour-%{buildrpmrel}
-%if %{with build_devel}
-	SaveDevel $flavour
-%endif
-%if %{with build_debug}
-	SaveDebug $flavour
-%endif
-	CreateFiles $flavour
 }
 
 # Create a simulacro of buildroot
@@ -1780,35 +1572,21 @@ done
 unset ARCH
 make mrproper
 
-%if %{with build_desktop}
-%if %{with clang}
-CreateKernel desktop-clang
+# (tpg) build kernels for all flavours
+for flavour in %{kernel_flavours}; do
+    PrepareKernel ${flavour} ${flavour}-%{release}%{disttag}
+    BuildKernel %{version}-${flavour}-%{release}%{disttag}
+%if %{with build_devel}
+	SaveDevel ${flavour}
 %endif
-%if %{with gcc}
-CreateKernel desktop
+%if %{with build_debug}
+	SaveDebug ${flavour}
 %endif
-%endif
-
-%if %{with build_server}
-%if %{with clang}
-CreateKernel server-clang
-%endif
-%if %{with gcc}
-CreateKernel server
-%endif
-%endif
-
-# how to build own flavour
-# if %build_nrjQL_desktop
-# CreateKernel nrjQL-desktop
-# endif
+	CreateFiles ${flavour}
+done
 
 # set extraversion to match srpm to get nice version reported by the tools
-sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
-
-############################################################
-### Linker start3 > Check point to build for omv         ###
-############################################################
+sed -ri "s|^(EXTRAVERSION =).*|\1 -%{release}|" Makefile
 
 # We install all tools here too (rather than in %%install
 # where it really belongs): make mrproper in preparation
@@ -1837,10 +1615,10 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 
 %if %{with bpftool}
 # FIXME As of lld 12.0 and kernel 5.11, lld results in unresolved symbols, ld.bfd works
-%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel} libbpf.a libbpf.pc libbpf.so -j1
-%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel} bpftool -j1
-%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel}
-%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{kversion}-desktop-%{buildrpmrel}
+%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag} libbpf.a libbpf.pc libbpf.so -j1
+%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag} bpftool -j1
+%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag}
+%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag}
 %endif
 
 %if %{with perf}
@@ -1848,10 +1626,6 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} all man
 %make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} install install-man
 %endif
-
-############################################################
-###  Linker end3 > Check point to build for omv          ###
-############################################################
 
 # We don't make to repeat the depend code at the install phase
 %if %{with build_source}
@@ -1900,11 +1674,8 @@ done
 popd
 
 # need to set extraversion to match srpm again to avoid rebuild
-sed -ri "s|^(EXTRAVERSION =).*|\1 -%{rpmrel}|" Makefile
+sed -ri "s|^(EXTRAVERSION =).*|\1 -%{release}|" Makefile
 
-############################################################
-### Linker start4 > Check point to build for omv         ###
-############################################################
 %if %{with build_cpupower}
 rm -f %{buildroot}%{_libdir}/*.{a,la}
 %find_lang cpupower
@@ -1965,12 +1736,8 @@ cd -
 #endif %{with build_source}
 %endif
 
-############################################################
-### Linker start4 > Check point to build for omv         ###
-############################################################
-
 %if %{with build_source}
-%files -n %{kname}-source
+%files -n %{name}-source
 %dir %{_kerneldir}
 %dir %{_kerneldir}/arch
 %dir %{_kerneldir}/include
@@ -2041,7 +1808,7 @@ cd -
 %endif
 
 %if %{with build_doc}
-%files -n %{kname}-doc
+%files -n %{name}-doc
 %doc Documentation/*
 %endif
 
