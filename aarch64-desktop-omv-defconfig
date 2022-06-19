@@ -10899,6 +10899,9 @@ CONFIG_LSM=""
 #
 # Kernel hardening options
 #
+CONFIG_RANDSTRUCT_NONE=y
+# CONFIG_RANDSTRUCT_FULL is not set
+# CONFIG_RANDSTRUCT_PERFORMANCE is not set
 
 #
 # Memory initialization
