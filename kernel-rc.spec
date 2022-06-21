@@ -60,7 +60,7 @@
 %define kernelversion 5
 %define patchlevel 19
 #define sublevel 5
-%define relc 2
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -121,7 +121,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -450,7 +450,7 @@ of the operating system: memory allocation, process allocation, device
 input and output, etc.
 
 # (tpg) generate subpackages for kernel flavours
-%( for flavour in %{kernel_flavours}; do
+%(for flavour in %{kernel_flavours}; do
 	cat <<EOF
 %package -n %{name}-${flavour}
 Summary:	The heart of the %{distribution} built for ${flavour}
@@ -1371,21 +1371,21 @@ EOF
 
 ### Create -devel Post script on the fly
 cat > $kernel_devel_files-post <<EOF
-if [ -d /lib/modules/%{version}-$devel_flavour-%{release}%{disttag} ]; then
-    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/{build,source}
-    ln -sf $DevelRoot /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build
-    ln -sf $DevelRoot /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source
+if [ -d %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag} ]; then
+    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/{build,source}
+    ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
+    ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 EOF
 
 
 ### Create -devel Preun script on the fly
 cat > $kernel_devel_files-preun <<EOF
-if [ -L /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build ]; then
-    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/build
+if [ -L %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build ]; then
+    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
 fi
-if [ -L /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source ]; then
-    rm -f /lib/modules/%{version}-$devel_flavour-%{release}%{disttag}/source
+if [ -L %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source ]; then
+    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 exit 0
 EOF
@@ -1463,9 +1463,9 @@ rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
 if [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/{build,source}
-    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build
-    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source
+    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/{build,source}
+    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
+    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 
@@ -1483,11 +1483,11 @@ EOF
 ### Create kernel Postun script on the fly
 cat > $kernel_files-postun <<EOF
 
-rm -rf /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
+rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
 [ -e /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
 [ -e /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img ] && rm -rf /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img
 
-rm -rf /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag} >/dev/null
+rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag} >/dev/null
 if [ -d /var/lib/dkms ]; then
     rm -f /var/lib/dkms/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
     rm -rf /var/lib/dkms/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
@@ -1496,11 +1496,11 @@ if [ -d /var/lib/dkms ]; then
 fi
 
 %if %{with build_devel}
-if [ -L /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build ]; then
-    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/build
+if [ -L %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build ]; then
+    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
 fi
-if [ -L /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source ]; then
-    rm -f /lib/modules/%{version}-$kernel_flavour-%{release}%{disttag}/source
+if [ -L %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source ]; then
+    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 exit 0
@@ -1652,6 +1652,12 @@ cp -a %{temp_root} %{buildroot}
 for i in %{target_modules}/*; do
     rm -f $i/build $i/source
 done
+
+# binmerge
+%if "%{_bindir}" == "%{_sbindir}"
+mv %{buildroot}%{_prefix}/sbin/* %{buildroot}%{_bindir}/
+rmdir %{buildroot}%{_prefix}/sbin
+%endif
 
 # (tpg) let's compress all modules
 find %{target_modules} -name "*.ko" -type f | %kxargs zstd --format=zstd --ultra -22 -T0 --rm -f -q
