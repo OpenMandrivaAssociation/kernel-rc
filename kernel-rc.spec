@@ -724,7 +724,7 @@ Tool to report processor frequency and idle statistics.
 %endif
 
 %if %{with bpftool}
-%define bpf_major 0
+%define bpf_major 1
 %define libbpf %mklibname bpf %{bpf_major}
 %define libbpfdevel %mklibname bpf -d
 
