@@ -1,10 +1,10 @@
-diff -up linux-5.16/drivers/nvme/host/core.c.12~ linux-5.16/drivers/nvme/host/core.c
---- linux-5.16/drivers/nvme/host/core.c.12~	2022-01-10 11:23:40.255182494 +0100
-+++ linux-5.16/drivers/nvme/host/core.c	2022-01-10 11:25:22.607566090 +0100
-@@ -2504,7 +2504,16 @@ static const struct nvme_core_quirk_entr
- 		.vid = 0x1e0f,
- 		.mn = "KCD6XVUL6T40",
- 		.quirks = NVME_QUIRK_NO_APST,
+diff -up linux-5.19-rc4/drivers/nvme/host/core.c.9~ linux-5.19-rc4/drivers/nvme/host/core.c
+--- linux-5.19-rc4/drivers/nvme/host/core.c.9~	2022-06-28 19:39:58.396745616 +0200
++++ linux-5.19-rc4/drivers/nvme/host/core.c	2022-06-28 20:00:06.421069676 +0200
+@@ -2560,7 +2560,16 @@ static const struct nvme_core_quirk_entr
+ 		.quirks = NVME_QUIRK_DELAY_BEFORE_CHK_RDY |
+ 			  NVME_QUIRK_NO_DEEPEST_PS |
+ 			  NVME_QUIRK_IGNORE_DEV_SUBNQN,
 -	}
 +	},
 +        {
