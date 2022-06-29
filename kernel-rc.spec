@@ -1283,7 +1283,7 @@ SaveDevel() {
 	sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
 	sed -i -e '/rtl8723cs.*/d' $TempDevelRoot/drivers/staging/{Makefile,Kconfig}
 
-	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
+	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 loongarch m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
 		rm -rf $TempDevelRoot/arch/$i
 	done
@@ -1345,6 +1345,7 @@ $DevelRoot/include/sound
 $DevelRoot/include/target
 $DevelRoot/include/trace
 $DevelRoot/include/uapi
+$DevelRoot/include/ufs
 $DevelRoot/include/vdso
 $DevelRoot/include/video
 $DevelRoot/include/xen
@@ -1706,7 +1707,7 @@ rm -f %{target_source}/*_files.* %{target_source}/README.kernel-sources
 
 # we remove all the source files that we don't ship
 # first architecture files
-for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
+for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 loongarch m32r m68k m68knommu metag microblaze \
 	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
     rm -rf %{target_source}/arch/$i
     rm -rf %{target_source}/scripts/dtc/include-prefixes/$i
@@ -1787,6 +1788,7 @@ cd -
 %{_kerneldir}/include/target
 %{_kerneldir}/include/trace
 %{_kerneldir}/include/uapi
+%{_kerneldir}/include/ufs
 %{_kerneldir}/include/vdso
 %{_kerneldir}/include/video
 %{_kerneldir}/include/xen
