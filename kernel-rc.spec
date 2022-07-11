@@ -60,7 +60,7 @@
 %define kernelversion 5
 %define patchlevel 19
 #define sublevel 0
-%define relc 5
+%define relc 6
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -68,8 +68,11 @@
 %define build_dir ${RPM_BUILD_DIR}/%{top_dir_name}
 
 # Common target directories
-%define _kerneldir /usr/src/linux-%{version}-%{release}%{disttag}
+%define _kerneldir %{_prefix}/src/linux-%{version}-%{release}%{disttag}
 %define _bootdir /boot
+# Should really be %{_prefix}/lib/modules, but there's a few hardcodes
+# inside kernel Makefiles and it doesn't really matter given /lib is
+# a symlink to %{_prefix}/lib anyway
 %define _modulesdir /lib/modules
 
 # Directories definition needed for building
@@ -445,7 +448,7 @@ BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.10
 
 %description
 The kernel package contains the Linux kernel (vmlinuz), the core of your
-%{distriubution} operating system. The kernel handles the basic functions
+%{distribution} operating system. The kernel handles the basic functions
 of the operating system: memory allocation, process allocation, device
 input and output, etc.
 
@@ -1195,6 +1198,7 @@ BuildKernel() {
 	TARGETS="${IMAGE} modules"
 %else
 %ifarch %{aarch64}
+# (tpg) when booting with UEFI then uboot-tools is looking for a vmlinuz in PE-COFF format
 	IMAGE=Image
 	TARGETS="${IMAGE} modules dtbs"
 %else
@@ -1202,25 +1206,29 @@ BuildKernel() {
 	TARGETS="${IMAGE} modules"
 %endif
 %endif
-
 	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $TARGETS
 
 # Start installing stuff
 	install -d %{temp_boot}
-	install -m 644 System.map %{temp_boot}/System.map-$KernelVer
-	install -m 644 .config %{temp_boot}/config-$KernelVer
+	install -d %{temp_modules}/$KernelVer
 
+	install -m 644 System.map %{temp_modules}/$KernelVer/System.map
+	install -m 644 .config %{temp_modules}/$KernelVer/config
 	cp -f arch/%{target_arch}/boot/$IMAGE %{temp_boot}/vmlinuz-$KernelVer
+	ln -s %{_bootdir}/vmlinuz-$KernelVer %{temp_modules}/$KernelVer/vmlinuz
+	ln -s %{_modulesdir}/$KernelVer/System.map %{temp_boot}/System.map-$KernelVer
+	ln -s %{_modulesdir}/$KernelVer/config %{temp_boot}/config-$KernelVer
 
 # modules
 	install -d %{temp_modules}/$KernelVer
-	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_MOD_STRIP=1 modules_install
+	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" DEPMOD=/bin/true INSTALL_MOD_STRIP=1 modules_install
 
 # headers
 	%make_build V=0 VERBOSE=0 INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
 %ifarch %{armx} %{ppc}
-	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_boot}/dtb-$KernelVer dtbs_install
+	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_modules}/$KernelVer/dtb dtbs_install
+	ln -s %{_modulesdir}/$KernelVer/dtb %{temp_boot}/dtb-$KernelVer
 %endif
 
 # remove /lib/firmware, we use a separate kernel-firmware
@@ -1424,13 +1432,15 @@ CreateFiles() {
 	kernel_flavour=$1
 	kernel_files=kernel_files.$kernel_flavour
 
-	ker="vmlinuz"
 ### Create the kernel_files.*
 	cat > $kernel_files <<EOF
 %{_bootdir}/System.map-%{version}-$kernel_flavour-%{release}%{disttag}
 %{_bootdir}/config-%{version}-$kernel_flavour-%{release}%{disttag}
-%{_bootdir}/$ker-%{version}-$kernel_flavour-%{release}%{disttag}
-%dir %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/
+%{_bootdir}/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
+%dir %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/System.map
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/config
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/appletalk
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/decnet
@@ -1442,6 +1452,7 @@ CreateFiles() {
 # device tree binary
 %ifarch %{armx}
 %{_bootdir}/dtb-%{version}-$kernel_flavour-%{release}%{disttag}
+%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/dtb
 %endif
 EOF
 
@@ -1455,11 +1466,17 @@ cat > $kernel_files-posttrans <<EOF
 
 %ifnarch %{armx} %{riscv}
 [ -x %{_bindir}/dracut ] && %{_bindir}/dracut -f --kver %{version}-$kernel_flavour-%{release}%{disttag}
-[ -x %{_sbindir}/update-grub2 ] && %{_sbindir}/update-grub2 ||:
+[ -x %{_bindir}/update-grub2 ] && %{_bindir}/update-grub2 ||:
+%endif
+
+%ifarch %{aarch64}
+if [ -d /boot/efi ] && [ -x %{_bindir}/kernel-install ]; then
+    %{_bindir}/kernel-install add %{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
+fi
 %endif
 
 ## cleanup some werid symlinks we never used anyway
-rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop}
+rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop} || :
 
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
@@ -1470,14 +1487,14 @@ if [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
 fi
 %endif
 
-if [ -x %{_sbindir}/dkms_autoinstaller ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    %{_sbindir}/dkms_autoinstaller start %{version}-$kernel_flavour-%{release}%{disttag}
+if [ -x %{_bindir}/dkms_autoinstaller ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
+    %{_bindir}/dkms_autoinstaller start %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 
-if [ -x %{_sbindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    /bin/systemctl --quiet restart dkms.service
-    /bin/systemctl --quiet try-restart loadmodules.service
-    %{_sbindir}/dkms autoinstall --verbose --kernelver %{version}-$kernel_flavour-%{release}%{disttag}
+if [ -x %{_bindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
+    %{_bindir}/systemctl --quiet restart dkms.service
+    %{_bindir}/systemctl --quiet try-restart loadmodules.service
+    %{_bindir}/dkms autoinstall --verbose --kernelver %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 EOF
 
@@ -1487,6 +1504,15 @@ cat > $kernel_files-postun <<EOF
 rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
 [ -e /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
 [ -e /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img ] && rm -rf /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img
+[ -e /boot/System.map-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/System.map-%{version}-$kernel_flavour-%{release}%{disttag}
+[ -e /boot/config-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/config-%{version}-$kernel_flavour-%{release}%{disttag}
+[ -e /boot/dtb-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/dtb-%{version}-$kernel_flavour-%{release}%{disttag}
+
+%ifarch %{aarch64}
+if [ -d /boot/efi ] && [ -x %{_bindir}/kernel-install ]; then
+    %{_bindir}/kernel-install remove %{version}-$kernel_flavour-%{release}%{disttag} || :
+fi
+%endif
 
 rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag} >/dev/null
 if [ -d /var/lib/dkms ]; then
@@ -1616,16 +1642,17 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 
 %if %{with bpftool}
 # FIXME As of lld 12.0 and kernel 5.11, lld results in unresolved symbols, ld.bfd works
-%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag} libbpf.a libbpf.pc libbpf.so -j1
-%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag} bpftool -j1
-%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag}
-%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} VMLINUX_BPF=%{temp_root}%{_bootdir}/$ker-%{version}-desktop-%{release}%{disttag}
+%make_build -C tools/lib/bpf CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/vmlinuz-%{version}-desktop-%{release}%{disttag} libbpf.a libbpf.pc libbpf.so -j1
+%make_build -C tools/bpf/bpftool CC=clang LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/vmlinuz-%{version}-desktop-%{release}%{disttag} bpftool -j1
+%make_install -C tools/lib/bpf install_headers DESTDIR=%{temp_root} prefix=%{_prefix} libdir=%{_libdir} CC=clang CXX=clang++ LD=ld.bfd HOSTLD=ld.bfd VMLINUX_BPF=%{temp_root}%{_bootdir}/vmlinuz-%{version}-desktop-%{release}%{disttag}
+%make_install -C tools/bpf/bpftool CC=clang CXX=clang++ LD=ld.bfd HOSTCC=clang HOSTLD=ld.bfd DESTDIR=%{temp_root} prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} VMLINUX_BPF=%{temp_root}%{_bootdir}/vmlinuz-%{version}-desktop-%{release}%{disttag}
 %endif
 
 %if %{with perf}
 [ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
 %make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} all man
-%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} install install-man
+# Not SMP safe
+make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} install install-man
 %endif
 
 # We don't make to repeat the depend code at the install phase
@@ -1667,7 +1694,7 @@ find %{target_modules} -name "*.ko" -type f | %kxargs zstd --format=zstd --ultra
 # we really need the depmod -ae here
 pushd %{target_modules}
 for i in *; do
-    /sbin/depmod -ae -b %{buildroot} -F %{target_boot}/System.map-"$i" "$i"
+    %{_bindir}/depmod -ae -b %{buildroot} -F %{target_modules}/"$i"/System.map "$i"
     echo $?
 done
 
@@ -1675,7 +1702,7 @@ for i in *; do
     pushd $i
 	printf '%s\n' "Creating modules.description for $i"
 	modules=$(find . -name "*.ko.[gxz]*[z|st]" -type f)
-	echo $modules | %kxargs /sbin/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
+	echo $modules | %kxargs %{_bindir}/modinfo | perl -lne 'print "$name\t$1" if $name && /^description:\s*(.*)/; $name = $1 if m!^filename:\s*(.*)\.k?o!; $name =~ s!.*/!!' > modules.description
     popd
 done
 popd
@@ -1881,7 +1908,7 @@ cd -
 
 %if %{with bpftool}
 %files -n bpftool
-%{_sbindir}/bpftool
+%{_bindir}/bpftool
 %{_sysconfdir}/bash_completion.d/bpftool
 
 %files -n %{libbpf}
