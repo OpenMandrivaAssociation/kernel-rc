@@ -60,7 +60,7 @@
 %define kernelversion 5
 %define patchlevel 19
 #define sublevel 0
-%define relc 6
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -351,7 +351,6 @@ Patch901:	0102-increase-the-ext4-default-commit-age.patch
 Patch902:	0103-silence-rapl.patch
 Patch903:	0104-pci-pme-wakeups.patch
 Patch904:	0105-ksm-wakeups.patch
-Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
