@@ -57,10 +57,10 @@
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
-%define kernelversion 5
-%define patchlevel 19
-#define sublevel 0
-%define relc 7
+%define kernelversion 6
+%define patchlevel 0
+%define sublevel 0
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -171,7 +171,7 @@ Source31:	cpupower.config
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%autopatch -p1
 
-%if 0%{?sublevel:1}
+%if 0%{?sublevel:%{sublevel}}
 # The big upstream patch is added as source rather than patch
 # because "git apply" is needed to handle binary patches it
 # frequently contains (firmware updates etc.)
@@ -186,7 +186,6 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 Source1001:	revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
 Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
-Patch30:	linux-5.6-fix-disassembler-4args-detection.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch34:	kernel-5.6-kvm-gcc10.patch
@@ -255,9 +254,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1007:	vboxnet-clang.patch
-
-# Better support for newer x86 processors
-Patch211:	https://raw.githubusercontent.com/sirlucjan/kernel-patches/master/5.17/cpu-patches/0001-cpu-patches.patch
 
 # Assorted fixes
 
@@ -351,6 +347,7 @@ Patch901:	0102-increase-the-ext4-default-commit-age.patch
 Patch902:	0103-silence-rapl.patch
 Patch903:	0104-pci-pme-wakeups.patch
 Patch904:	0105-ksm-wakeups.patch
+#Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
@@ -424,7 +421,7 @@ BuildRequires:	pkgconfig(libnewt)
 BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:	pkgconfig(python)
 BuildRequires:	pkgconfig(zlib)
-BuildRequires:	pkgconfig(babeltrace)
+BuildRequires:	pkgconfig(babeltrace2)
 BuildRequires:	jdk-current
 BuildRequires:	perl-devel
 BuildRequires:	perl(ExtUtils::Embed)
@@ -819,7 +816,7 @@ done
 %prep
 
 %setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 1003 -a 1004
-%if 0%{?sublevel:1}
+%if 0%{?sublevel:%{sublevel}}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
@@ -1214,7 +1211,7 @@ BuildKernel() {
 	install -m 644 System.map %{temp_modules}/$KernelVer/System.map
 	install -m 644 .config %{temp_modules}/$KernelVer/config
 	cp -f arch/%{target_arch}/boot/$IMAGE %{temp_boot}/vmlinuz-$KernelVer
-	ln -s %{_bootdir}/vmlinuz-$KernelVer %{temp_modules}/$KernelVer/vmlinuz
+	ln -sr %{_bootdir}/vmlinuz-$KernelVer %{temp_modules}/$KernelVer/vmlinuz
 	ln -s %{_modulesdir}/$KernelVer/System.map %{temp_boot}/System.map-$KernelVer
 	ln -s %{_modulesdir}/$KernelVer/config %{temp_boot}/config-$KernelVer
 
@@ -1500,7 +1497,7 @@ EOF
 ### Create kernel Postun script on the fly
 cat > $kernel_files-postun <<EOF
 
-rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
+[ -e %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.{alias{,.bin},builtin.bin,dep{,.bin},devname,softdep,symbols{,.bin}} ||:
 [ -e /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
 [ -e /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img ] && rm -rf /boot/initrd-%{version}-$kernel_flavour-%{release}%{disttag}.img
 [ -e /boot/System.map-%{version}-$kernel_flavour-%{release}%{disttag} ] && rm -rf /boot/System.map-%{version}-$kernel_flavour-%{release}%{disttag}

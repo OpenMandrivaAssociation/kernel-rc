@@ -1,6 +1,6 @@
-diff -up linux-5.19-rc2/scripts/Makefile.8~ linux-5.19-rc2/scripts/Makefile
---- linux-5.19-rc2/scripts/Makefile.8~	2022-06-18 17:56:19.820332682 +0200
-+++ linux-5.19-rc2/scripts/Makefile	2022-06-18 17:57:16.016692598 +0200
+diff -up linux-5.19/scripts/Makefile.8~ linux-5.19/scripts/Makefile
+--- linux-5.19/scripts/Makefile.8~	2022-08-01 21:19:18.131885545 +0200
++++ linux-5.19/scripts/Makefile	2022-08-01 21:22:58.109685458 +0200
 @@ -13,6 +13,7 @@ hostprogs-always-$(CONFIG_SYSTEM_EXTRA_C
  
  HOSTCFLAGS_sorttable.o = -I$(srctree)/tools/include

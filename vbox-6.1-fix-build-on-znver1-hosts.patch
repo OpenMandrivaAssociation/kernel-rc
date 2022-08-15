@@ -1,38 +1,36 @@
-diff -up linux-5.4/drivers/net/vboxnetadp/Makefile-footer.gmk.omv~ linux-5.4/drivers/net/vboxnetadp/Makefile-footer.gmk
-diff -up linux-5.4/drivers/net/vboxnetadp/Makefile-header.gmk.omv~ linux-5.4/drivers/net/vboxnetadp/Makefile-header.gmk
---- linux-5.4/drivers/net/vboxnetadp/Makefile-header.gmk.omv~	2020-01-10 04:53:22.802591600 +0100
-+++ linux-5.4/drivers/net/vboxnetadp/Makefile-header.gmk	2020-01-10 05:03:53.869705397 +0100
-@@ -45,7 +45,7 @@
- # (We have to support basic cross building (ARCH=i386|x86_64).)
- # While at it, warn about BUILD_* vars found to help with user problems.
+diff -up linux-5.19/drivers/net/vboxnetadp/Makefile-header.gmk.1005~ linux-5.19/drivers/net/vboxnetadp/Makefile-header.gmk
+--- linux-5.19/drivers/net/vboxnetadp/Makefile-header.gmk.1005~	2022-08-03 19:04:38.657271905 +0200
++++ linux-5.19/drivers/net/vboxnetadp/Makefile-header.gmk	2022-08-03 19:10:42.930549625 +0200
+@@ -50,7 +50,7 @@
  #
+ 
+ # VBOX_KBUILD_TARGET_ARCH = amd64|x86
 -ifeq ($(filter-out x86_64 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
 +ifeq ($(filter-out x86_64 znver1 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
-  BUILD_TARGET_ARCH_DEF := amd64
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := amd64
  else
-  BUILD_TARGET_ARCH_DEF := x86
-diff -up linux-5.4/drivers/net/vboxnetadp/Makefile.omv~ linux-5.4/drivers/net/vboxnetadp/Makefile
-diff -up linux-5.4/drivers/net/vboxnetflt/Makefile-header.gmk.omv~ linux-5.4/drivers/net/vboxnetflt/Makefile-header.gmk
---- linux-5.4/drivers/net/vboxnetflt/Makefile-header.gmk.omv~	2020-01-10 05:05:55.430922624 +0100
-+++ linux-5.4/drivers/net/vboxnetflt/Makefile-header.gmk	2020-01-10 05:06:03.820937637 +0100
-@@ -45,7 +45,7 @@
- # (We have to support basic cross building (ARCH=i386|x86_64).)
- # While at it, warn about BUILD_* vars found to help with user problems.
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := x86
+diff -up linux-5.19/drivers/net/vboxnetflt/Makefile-header.gmk.1005~ linux-5.19/drivers/net/vboxnetflt/Makefile-header.gmk
+--- linux-5.19/drivers/net/vboxnetflt/Makefile-header.gmk.1005~	2022-08-03 19:04:38.658271914 +0200
++++ linux-5.19/drivers/net/vboxnetflt/Makefile-header.gmk	2022-08-03 19:10:55.337660864 +0200
+@@ -50,7 +50,7 @@
  #
+ 
+ # VBOX_KBUILD_TARGET_ARCH = amd64|x86
 -ifeq ($(filter-out x86_64 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
 +ifeq ($(filter-out x86_64 znver1 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
-  BUILD_TARGET_ARCH_DEF := amd64
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := amd64
  else
-  BUILD_TARGET_ARCH_DEF := x86
-diff -up linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk.omv~ linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk
---- linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk.omv~	2020-01-10 05:06:25.343976157 +0100
-+++ linux-5.4/drivers/virt/vboxdrv/Makefile-header.gmk	2020-01-10 05:06:31.955987995 +0100
-@@ -45,7 +45,7 @@
- # (We have to support basic cross building (ARCH=i386|x86_64).)
- # While at it, warn about BUILD_* vars found to help with user problems.
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := x86
+diff -up linux-5.19/drivers/virt/vboxdrv/Makefile-header.gmk.1005~ linux-5.19/drivers/virt/vboxdrv/Makefile-header.gmk
+--- linux-5.19/drivers/virt/vboxdrv/Makefile-header.gmk.1005~	2022-08-03 19:04:38.658271914 +0200
++++ linux-5.19/drivers/virt/vboxdrv/Makefile-header.gmk	2022-08-03 19:11:13.765826050 +0200
+@@ -50,7 +50,7 @@
  #
+ 
+ # VBOX_KBUILD_TARGET_ARCH = amd64|x86
 -ifeq ($(filter-out x86_64 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
 +ifeq ($(filter-out x86_64 znver1 amd64 AMD64,$(shell rpm --eval %_target_cpu)),)
-  BUILD_TARGET_ARCH_DEF := amd64
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := amd64
  else
-  BUILD_TARGET_ARCH_DEF := x86
+  VBOX_KBUILD_TARGET_ARCH_DEFAULT := x86
