@@ -419,7 +419,8 @@ BuildRequires:	flex
 BuildRequires:	pkgconfig(libunwind)
 BuildRequires:	pkgconfig(libnewt)
 BuildRequires:	pkgconfig(gtk+-2.0)
-BuildRequires:	pkgconfig(python)
+BuildRequires:	pkgconfig(python3)
+BuildRequires:	python%{py_ver}dist(setuptools)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(babeltrace2)
 BuildRequires:	jdk-current
