@@ -186,6 +186,23 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 Source1001:	revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
 Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
+# MGLRU
+# https://lkml.org/lkml/2022/8/15/149
+Patch10:	https://lkml.org/lkml/diff/2022/8/15/150/1#/MGLRU-01.patch
+Patch11:	https://lkml.org/lkml/diff/2022/8/15/151/1#/MGLRU-02.patch
+Patch12:	https://lkml.org/lkml/diff/2022/8/15/153/1#/MGLRU-03.patch
+Patch13:	https://lkml.org/lkml/diff/2022/8/15/152/1#/MGLRU-04.patch
+Patch14:	https://lkml.org/lkml/diff/2022/8/15/154/1#/MGLRU-05.patch
+Patch15:	https://lkml.org/lkml/diff/2022/8/15/155/1#/MGLRU-06.patch
+Patch16:	https://lkml.org/lkml/diff/2022/8/15/156/1#/MGLRU-07.patch
+Patch17:	https://lkml.org/lkml/diff/2022/8/15/161/1#/MGLRU-08.patch
+Patch18:	https://lkml.org/lkml/diff/2022/8/15/159/1#/MGLRU-09.patch
+Patch19:	https://lkml.org/lkml/diff/2022/8/15/158/1#/MGLRU-10.patch
+Patch20:	https://lkml.org/lkml/diff/2022/8/15/160/1#/MGLRU-11.patch
+Patch21:	https://lkml.org/lkml/diff/2022/8/15/157/1#/MGLRU-12.patch
+Patch22:	https://lkml.org/lkml/diff/2022/8/15/162/1#/MGLRU-13.patch
+Patch23:	https://lkml.org/lkml/diff/2022/8/15/164/1#/MGLRU-14.patch
+
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch34:	kernel-5.6-kvm-gcc10.patch
