@@ -48,10 +48,10 @@
 %endif
 
 # (tpg) package these kernel modules as subpackages
-%ifarch aarch64
-%define modules_subpackages appletalk decnet fddi
+%ifarch %{aarch64}
+%define modules_subpackages appletalk decnet fddi can
 %else
-%define modules_subpackages appletalk arcnet infiniband isdn
+%define modules_subpackages appletalk arcnet infiniband isdn can
 %endif
 
 # IMPORTANT
@@ -1344,6 +1344,7 @@ $DevelRoot/include/net
 $DevelRoot/include/pcmcia
 $DevelRoot/include/ras
 $DevelRoot/include/rdma
+$DevelRoot/include/rv
 $DevelRoot/include/scsi
 $DevelRoot/include/soc
 $DevelRoot/include/sound
@@ -1355,6 +1356,7 @@ $DevelRoot/include/vdso
 $DevelRoot/include/video
 $DevelRoot/include/xen
 $DevelRoot/init
+$DevelRoot/io_uring
 $DevelRoot/ipc
 $DevelRoot/kernel
 $DevelRoot/lib
@@ -1440,10 +1442,12 @@ CreateFiles() {
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/appletalk
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/can
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/decnet
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/infiniband
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/isdn
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/arcnet
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/can
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/fddi
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.*
 # device tree binary
@@ -1806,6 +1810,7 @@ cd -
 %{_kerneldir}/include/pcmcia
 %{_kerneldir}/include/ras
 %{_kerneldir}/include/rdma
+%{_kerneldir}/include/rv
 %{_kerneldir}/include/scsi
 %{_kerneldir}/include/soc
 %{_kerneldir}/include/sound
@@ -1817,6 +1822,7 @@ cd -
 %{_kerneldir}/include/video
 %{_kerneldir}/include/xen
 %{_kerneldir}/init
+%{_kerneldir}/io_uring
 %{_kerneldir}/ipc
 %{_kerneldir}/kernel
 %{_kerneldir}/lib
