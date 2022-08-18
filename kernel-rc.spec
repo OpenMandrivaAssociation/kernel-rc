@@ -41,8 +41,8 @@
 
 
 # (tpg) define here per arch which kernel flavours you would like to build
-%ifarch aarch64
-%define kernel_flavours server
+%ifarch %{aarch64}
+%define kernel_flavours desktop server
 %else
 %define kernel_flavours desktop server desktop-gcc server-gcc
 %endif
@@ -106,11 +106,6 @@
 %else
 # cpupower is currently x86 only
 %bcond_with build_cpupower
-%endif
-# ARM builds
-%ifarch %{armx}
-%bcond_with build_desktop
-%bcond_without build_server
 %endif
 
 # End of user definitions
