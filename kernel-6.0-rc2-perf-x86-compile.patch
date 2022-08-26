@@ -1,0 +1,17 @@
+diff -up linux-6.0-rc2/tools/arch/x86/include/asm/atomic.h.omv~ linux-6.0-rc2/tools/arch/x86/include/asm/atomic.h
+--- linux-6.0-rc2/tools/arch/x86/include/asm/atomic.h.omv~	2022-08-26 22:53:14.263896403 +0200
++++ linux-6.0-rc2/tools/arch/x86/include/asm/atomic.h	2022-08-26 22:53:25.632978104 +0200
+@@ -60,10 +60,12 @@ static inline void atomic_inc(atomic_t *
+  * returns true if the result is 0, or false for all other
+  * cases.
+  */
++#ifdef __KERNEL__
+ static inline int atomic_dec_and_test(atomic_t *v)
+ {
+ 	GEN_UNARY_RMWcc(LOCK_PREFIX "decl", v->counter, "%0", "e");
+ }
++#endif
+ 
+ static __always_inline int atomic_cmpxchg(atomic_t *v, int old, int new)
+ {
+diff -up linux-6.0-rc2/tools/include/asm/atomic.h.omv~ linux-6.0-rc2/tools/include/asm/atomic.h

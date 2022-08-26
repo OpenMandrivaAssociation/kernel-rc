@@ -322,6 +322,7 @@ Patch298:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/maste
 Patch300:	add-board-orangepi-4.patch
 Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 #Patch304:	rtl8723cs-compile.patch
+Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 
 Patch350:	rtla-5.17-fix-make-clean.patch
 
