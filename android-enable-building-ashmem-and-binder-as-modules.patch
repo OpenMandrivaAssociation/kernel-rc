@@ -1,6 +1,6 @@
-diff -up linux-5.11-rc1/drivers/android/binder_alloc.c.33~ linux-5.11-rc1/drivers/android/binder_alloc.c
---- linux-5.11-rc1/drivers/android/binder_alloc.c.33~	2020-12-28 00:30:22.000000000 +0100
-+++ linux-5.11-rc1/drivers/android/binder_alloc.c	2020-12-28 16:28:43.472973746 +0100
+diff -up linux-6.0-rc4/drivers/android/binder_alloc.c.26~ linux-6.0-rc4/drivers/android/binder_alloc.c
+--- linux-6.0-rc4/drivers/android/binder_alloc.c.26~	2022-09-04 22:10:01.000000000 +0200
++++ linux-6.0-rc4/drivers/android/binder_alloc.c	2022-09-08 18:26:47.579376479 +0200
 @@ -38,7 +38,7 @@ enum {
  };
  static uint32_t binder_alloc_debug_mask = BINDER_DEBUG_USER_ERROR;
@@ -10,11 +10,11 @@ diff -up linux-5.11-rc1/drivers/android/binder_alloc.c.33~ linux-5.11-rc1/driver
  		   uint, 0644);
  
  #define binder_alloc_debug(mask, x...) \
-diff -up linux-5.11-rc1/drivers/android/Kconfig.33~ linux-5.11-rc1/drivers/android/Kconfig
---- linux-5.11-rc1/drivers/android/Kconfig.33~	2020-12-28 00:30:22.000000000 +0100
-+++ linux-5.11-rc1/drivers/android/Kconfig	2020-12-28 16:28:43.472973746 +0100
-@@ -9,7 +9,7 @@ config ANDROID
- if ANDROID
+diff -up linux-6.0-rc4/drivers/android/Kconfig.26~ linux-6.0-rc4/drivers/android/Kconfig
+--- linux-6.0-rc4/drivers/android/Kconfig.26~	2022-09-08 18:26:47.579376479 +0200
++++ linux-6.0-rc4/drivers/android/Kconfig	2022-09-08 18:27:08.453098362 +0200
+@@ -2,7 +2,7 @@
+ menu "Android"
  
  config ANDROID_BINDER_IPC
 -	bool "Android Binder IPC Driver"
@@ -22,9 +22,9 @@ diff -up linux-5.11-rc1/drivers/android/Kconfig.33~ linux-5.11-rc1/drivers/andro
  	depends on MMU
  	default n
  	help
-diff -up linux-5.11-rc1/drivers/android/Makefile.33~ linux-5.11-rc1/drivers/android/Makefile
---- linux-5.11-rc1/drivers/android/Makefile.33~	2020-12-28 00:30:22.000000000 +0100
-+++ linux-5.11-rc1/drivers/android/Makefile	2020-12-28 16:28:43.473973693 +0100
+diff -up linux-6.0-rc4/drivers/android/Makefile.26~ linux-6.0-rc4/drivers/android/Makefile
+--- linux-6.0-rc4/drivers/android/Makefile.26~	2022-09-04 22:10:01.000000000 +0200
++++ linux-6.0-rc4/drivers/android/Makefile	2022-09-08 18:26:47.579376479 +0200
 @@ -1,6 +1,7 @@
  # SPDX-License-Identifier: GPL-2.0-only
  ccflags-y += -I$(src)			# needed for trace events
@@ -36,9 +36,9 @@ diff -up linux-5.11-rc1/drivers/android/Makefile.33~ linux-5.11-rc1/drivers/andr
 +binder_linux-y := binder.o binder_alloc.o
 +binder_linux-$(CONFIG_ANDROID_BINDERFS)	+= binderfs.o
 +binder_linux-$(CONFIG_ANDROID_BINDER_IPC_SELFTEST) += binder_alloc_selftest.o
-diff -up linux-5.11-rc1/drivers/staging/android/ashmem.c.33~ linux-5.11-rc1/drivers/staging/android/ashmem.c
---- linux-5.11-rc1/drivers/staging/android/ashmem.c.33~	2020-12-28 00:30:22.000000000 +0100
-+++ linux-5.11-rc1/drivers/staging/android/ashmem.c	2020-12-28 16:28:43.473973693 +0100
+diff -up linux-6.0-rc4/drivers/staging/android/ashmem.c.26~ linux-6.0-rc4/drivers/staging/android/ashmem.c
+--- linux-6.0-rc4/drivers/staging/android/ashmem.c.26~	2022-09-08 18:26:47.558376758 +0200
++++ linux-6.0-rc4/drivers/staging/android/ashmem.c	2022-09-08 18:26:47.580376465 +0200
 @@ -24,6 +24,7 @@
  #include <linux/bitops.h>
  #include <linux/mutex.h>
@@ -47,15 +47,15 @@ diff -up linux-5.11-rc1/drivers/staging/android/ashmem.c.33~ linux-5.11-rc1/driv
  #include "ashmem.h"
  
  #define ASHMEM_NAME_PREFIX "dev/ashmem/"
-@@ -965,3 +966,5 @@ out:
+@@ -968,3 +969,5 @@ out:
  	return ret;
  }
  device_initcall(ashmem_init);
 +
 +MODULE_LICENSE("GPL v2");
-diff -up linux-5.11-rc1/drivers/staging/android/Kconfig.33~ linux-5.11-rc1/drivers/staging/android/Kconfig
---- linux-5.11-rc1/drivers/staging/android/Kconfig.33~	2020-12-28 00:30:22.000000000 +0100
-+++ linux-5.11-rc1/drivers/staging/android/Kconfig	2020-12-28 16:28:43.473973693 +0100
+diff -up linux-6.0-rc4/drivers/staging/android/Kconfig.26~ linux-6.0-rc4/drivers/staging/android/Kconfig
+--- linux-6.0-rc4/drivers/staging/android/Kconfig.26~	2022-09-08 18:26:47.558376758 +0200
++++ linux-6.0-rc4/drivers/staging/android/Kconfig	2022-09-08 18:26:47.580376465 +0200
 @@ -4,7 +4,7 @@ menu "Android"
  if ANDROID
  
@@ -65,9 +65,9 @@ diff -up linux-5.11-rc1/drivers/staging/android/Kconfig.33~ linux-5.11-rc1/drive
  	depends on SHMEM
  	help
  	  The ashmem subsystem is a new shared memory allocator, similar to
-diff -up linux-5.11-rc1/drivers/staging/android/Makefile.33~ linux-5.11-rc1/drivers/staging/android/Makefile
---- linux-5.11-rc1/drivers/staging/android/Makefile.33~	2020-12-28 16:28:43.473973693 +0100
-+++ linux-5.11-rc1/drivers/staging/android/Makefile	2020-12-28 16:31:08.019727102 +0100
+diff -up linux-6.0-rc4/drivers/staging/android/Makefile.26~ linux-6.0-rc4/drivers/staging/android/Makefile
+--- linux-6.0-rc4/drivers/staging/android/Makefile.26~	2022-09-08 18:26:47.558376758 +0200
++++ linux-6.0-rc4/drivers/staging/android/Makefile	2022-09-08 18:26:47.580376465 +0200
 @@ -1,4 +1,5 @@
  # SPDX-License-Identifier: GPL-2.0
  ccflags-y += -I$(src)			# needed for trace events
