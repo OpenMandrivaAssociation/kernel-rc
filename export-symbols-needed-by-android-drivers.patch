@@ -1,17 +1,17 @@
-diff -up linux-5.13/fs/file.c.33~ linux-5.13/fs/file.c
---- linux-5.13/fs/file.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/fs/file.c	2021-06-30 02:07:58.205142411 +0200
-@@ -788,6 +788,7 @@ int close_fd_get_file(unsigned int fd, s
+diff -up linux-5.19/fs/file.c.29~ linux-5.19/fs/file.c
+--- linux-5.19/fs/file.c.29~	2022-09-08 15:55:44.097318572 +0200
++++ linux-5.19/fs/file.c	2022-09-08 15:56:15.849895645 +0200
+@@ -813,6 +813,7 @@ struct file *close_fd_get_file(unsigned
  
- 	return ret;
+ 	return file;
  }
 +EXPORT_SYMBOL_GPL(close_fd_get_file);
  
  void do_close_on_exec(struct files_struct *files)
  {
-diff -up linux-5.13/ipc/msgutil.c.33~ linux-5.13/ipc/msgutil.c
---- linux-5.13/ipc/msgutil.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/ipc/msgutil.c	2021-06-30 02:07:58.208475800 +0200
+diff -up linux-5.19/ipc/msgutil.c.29~ linux-5.19/ipc/msgutil.c
+--- linux-5.19/ipc/msgutil.c.29~	2022-07-31 23:03:01.000000000 +0200
++++ linux-5.19/ipc/msgutil.c	2022-09-08 15:55:44.097318572 +0200
 @@ -33,6 +33,7 @@ struct ipc_namespace init_ipc_ns = {
  	.ns.ops = &ipcns_operations,
  #endif
@@ -20,10 +20,10 @@ diff -up linux-5.13/ipc/msgutil.c.33~ linux-5.13/ipc/msgutil.c
  
  struct msg_msgseg {
  	struct msg_msgseg *next;
-diff -up linux-5.13/ipc/namespace.c.33~ linux-5.13/ipc/namespace.c
---- linux-5.13/ipc/namespace.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/ipc/namespace.c	2021-06-30 02:07:58.208475800 +0200
-@@ -172,6 +172,7 @@ void put_ipc_ns(struct ipc_namespace *ns
+diff -up linux-5.19/ipc/namespace.c.29~ linux-5.19/ipc/namespace.c
+--- linux-5.19/ipc/namespace.c.29~	2022-07-31 23:03:01.000000000 +0200
++++ linux-5.19/ipc/namespace.c	2022-09-08 15:55:44.097318572 +0200
+@@ -185,6 +185,7 @@ void put_ipc_ns(struct ipc_namespace *ns
  			schedule_work(&free_ipc_work);
  	}
  }
@@ -31,10 +31,10 @@ diff -up linux-5.13/ipc/namespace.c.33~ linux-5.13/ipc/namespace.c
  
  static inline struct ipc_namespace *to_ipc_ns(struct ns_common *ns)
  {
-diff -up linux-5.13/kernel/fork.c.33~ linux-5.13/kernel/fork.c
---- linux-5.13/kernel/fork.c.33~	2021-06-30 02:07:58.168475129 +0200
-+++ linux-5.13/kernel/fork.c	2021-06-30 02:07:58.208475800 +0200
-@@ -1134,6 +1134,7 @@ void mmput_async(struct mm_struct *mm)
+diff -up linux-5.19/kernel/fork.c.29~ linux-5.19/kernel/fork.c
+--- linux-5.19/kernel/fork.c.29~	2022-07-31 23:03:01.000000000 +0200
++++ linux-5.19/kernel/fork.c	2022-09-08 15:55:44.098318558 +0200
+@@ -1225,6 +1225,7 @@ void mmput_async(struct mm_struct *mm)
  		schedule_work(&mm->async_put_work);
  	}
  }
@@ -42,32 +42,32 @@ diff -up linux-5.13/kernel/fork.c.33~ linux-5.13/kernel/fork.c
  #endif
  
  /**
-diff -up linux-5.13/kernel/sched/core.c.33~ linux-5.13/kernel/sched/core.c
---- linux-5.13/kernel/sched/core.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/kernel/sched/core.c	2021-06-30 02:07:58.208475800 +0200
-@@ -5770,6 +5770,7 @@ int can_nice(const struct task_struct *p
- 	return (nice_rlim <= task_rlimit(p, RLIMIT_NICE) ||
- 		capable(CAP_SYS_NICE));
+diff -up linux-5.19/kernel/sched/core.c.29~ linux-5.19/kernel/sched/core.c
+--- linux-5.19/kernel/sched/core.c.29~	2022-09-08 15:55:44.099318545 +0200
++++ linux-5.19/kernel/sched/core.c	2022-09-08 15:56:40.669564489 +0200
+@@ -7036,6 +7036,7 @@ int can_nice(const struct task_struct *p
+ {
+ 	return is_nice_reduction(p, nice) || capable(CAP_SYS_NICE);
  }
 +EXPORT_SYMBOL_GPL(can_nice);
  
  #ifdef __ARCH_WANT_SYS_NICE
  
-diff -up linux-5.13/kernel/signal.c.33~ linux-5.13/kernel/signal.c
---- linux-5.13/kernel/signal.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/kernel/signal.c	2021-06-30 02:07:58.208475800 +0200
-@@ -1399,6 +1399,7 @@ struct sighand_struct *__lock_task_sigha
+diff -up linux-5.19/kernel/signal.c.29~ linux-5.19/kernel/signal.c
+--- linux-5.19/kernel/signal.c.29~	2022-09-08 15:55:44.100318532 +0200
++++ linux-5.19/kernel/signal.c	2022-09-08 15:57:02.379274455 +0200
+@@ -1411,6 +1411,7 @@ struct sighand_struct *__lock_task_sigha
  
  	return sighand;
  }
 +EXPORT_SYMBOL_GPL(__lock_task_sighand);
  
- /*
-  * send signal info to all the members of a group
-diff -up linux-5.13/kernel/task_work.c.33~ linux-5.13/kernel/task_work.c
---- linux-5.13/kernel/task_work.c.33~	2021-06-30 02:07:58.208475800 +0200
-+++ linux-5.13/kernel/task_work.c	2021-06-30 02:08:26.845633654 +0200
-@@ -60,6 +60,7 @@ int task_work_add(struct task_struct *ta
+ #ifdef CONFIG_LOCKDEP
+ void lockdep_assert_task_sighand_held(struct task_struct *task)
+diff -up linux-5.19/kernel/task_work.c.29~ linux-5.19/kernel/task_work.c
+--- linux-5.19/kernel/task_work.c.29~	2022-07-31 23:03:01.000000000 +0200
++++ linux-5.19/kernel/task_work.c	2022-09-08 15:55:44.100318532 +0200
+@@ -73,6 +73,7 @@ int task_work_add(struct task_struct *ta
  
  	return 0;
  }
@@ -75,10 +75,10 @@ diff -up linux-5.13/kernel/task_work.c.33~ linux-5.13/kernel/task_work.c
  
  /**
   * task_work_cancel_match - cancel a pending work added by task_work_add()
-diff -up linux-5.13/mm/memory.c.33~ linux-5.13/mm/memory.c
---- linux-5.13/mm/memory.c.33~	2021-06-30 02:07:58.168475129 +0200
-+++ linux-5.13/mm/memory.c	2021-06-30 02:07:58.211809189 +0200
-@@ -1586,6 +1586,7 @@ void zap_page_range(struct vm_area_struc
+diff -up linux-5.19/mm/memory.c.29~ linux-5.19/mm/memory.c
+--- linux-5.19/mm/memory.c.29~	2022-07-31 23:03:01.000000000 +0200
++++ linux-5.19/mm/memory.c	2022-09-08 15:55:44.101318518 +0200
+@@ -1749,6 +1749,7 @@ void zap_page_range(struct vm_area_struc
  	mmu_notifier_invalidate_range_end(&range);
  	tlb_finish_mmu(&tlb);
  }
@@ -86,10 +86,10 @@ diff -up linux-5.13/mm/memory.c.33~ linux-5.13/mm/memory.c
  
  /**
   * zap_page_range_single - remove user pages in a given range
-diff -up linux-5.13/mm/shmem.c.33~ linux-5.13/mm/shmem.c
---- linux-5.13/mm/shmem.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/mm/shmem.c	2021-06-30 02:07:58.211809189 +0200
-@@ -4232,6 +4232,7 @@ int shmem_zero_setup(struct vm_area_stru
+diff -up linux-5.19/mm/shmem.c.29~ linux-5.19/mm/shmem.c
+--- linux-5.19/mm/shmem.c.29~	2022-09-08 15:55:43.804322470 +0200
++++ linux-5.19/mm/shmem.c	2022-09-08 15:55:44.101318518 +0200
+@@ -4173,6 +4173,7 @@ int shmem_zero_setup(struct vm_area_stru
  
  	return 0;
  }
@@ -97,10 +97,10 @@ diff -up linux-5.13/mm/shmem.c.33~ linux-5.13/mm/shmem.c
  
  /**
   * shmem_read_mapping_page_gfp - read into page cache, using specified page allocation flags.
-diff -up linux-5.13/mm/vmalloc.c.33~ linux-5.13/mm/vmalloc.c
---- linux-5.13/mm/vmalloc.c.33~	2021-06-30 02:07:58.201809021 +0200
-+++ linux-5.13/mm/vmalloc.c	2021-06-30 02:07:58.211809189 +0200
-@@ -2408,6 +2408,7 @@ struct vm_struct *get_vm_area(unsigned l
+diff -up linux-5.19/mm/vmalloc.c.29~ linux-5.19/mm/vmalloc.c
+--- linux-5.19/mm/vmalloc.c.29~	2022-09-08 15:55:43.805322457 +0200
++++ linux-5.19/mm/vmalloc.c	2022-09-08 15:55:44.101318518 +0200
+@@ -2499,6 +2499,7 @@ struct vm_struct *get_vm_area(unsigned l
  				  NUMA_NO_NODE, GFP_KERNEL,
  				  __builtin_return_address(0));
  }
@@ -108,31 +108,31 @@ diff -up linux-5.13/mm/vmalloc.c.33~ linux-5.13/mm/vmalloc.c
  
  struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
  				const void *caller)
-diff -up linux-5.13/security/security.c.33~ linux-5.13/security/security.c
---- linux-5.13/security/security.c.33~	2021-06-28 00:21:11.000000000 +0200
-+++ linux-5.13/security/security.c	2021-06-30 02:07:58.211809189 +0200
-@@ -750,24 +750,28 @@ int security_binder_set_context_mgr(stru
+diff -up linux-5.19/security/security.c.29~ linux-5.19/security/security.c
+--- linux-5.19/security/security.c.29~	2022-09-08 15:55:44.102318505 +0200
++++ linux-5.19/security/security.c	2022-09-08 15:57:59.885504578 +0200
+@@ -752,24 +752,28 @@ int security_binder_set_context_mgr(cons
  {
  	return call_int_hook(binder_set_context_mgr, 0, mgr);
  }
 +EXPORT_SYMBOL_GPL(security_binder_set_context_mgr);
  
- int security_binder_transaction(struct task_struct *from,
- 				struct task_struct *to)
+ int security_binder_transaction(const struct cred *from,
+ 				const struct cred *to)
  {
  	return call_int_hook(binder_transaction, 0, from, to);
  }
 +EXPORT_SYMBOL_GPL(security_binder_transaction);
  
- int security_binder_transfer_binder(struct task_struct *from,
- 				    struct task_struct *to)
+ int security_binder_transfer_binder(const struct cred *from,
+ 				    const struct cred *to)
  {
  	return call_int_hook(binder_transfer_binder, 0, from, to);
  }
 +EXPORT_SYMBOL_GPL(security_binder_transfer_binder);
  
- int security_binder_transfer_file(struct task_struct *from,
- 				  struct task_struct *to, struct file *file)
+ int security_binder_transfer_file(const struct cred *from,
+ 				  const struct cred *to, struct file *file)
  {
  	return call_int_hook(binder_transfer_file, 0, from, to, file);
  }
