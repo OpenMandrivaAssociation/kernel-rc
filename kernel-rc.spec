@@ -119,7 +119,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}3
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -435,9 +435,9 @@ BuildRequires:	uboot-mkimage
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{x86_64}
-BuildRequires:	virtualbox-kernel-module-sources >= 6.1.10
+BuildRequires:	virtualbox-kernel-module-sources >= 6.1.38
 %if %{with vbox_orig_mods}
-BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.10
+BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.38
 %endif
 %endif
 
@@ -757,11 +757,13 @@ Version:	%{version}
 Release:	%{release}
 Group:		System/Kernel and hardware
 Epoch:		1
+%if 0%{?relc:1}
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{version}-%{release}
 Obsoletes:	kernel-headers < 1:%{version}-%{release}
 %rename linux-userspace-headers
 %rename kernel-release-headers
+%endif
 
 %description headers
 C header files from the Linux kernel. The header files define
