@@ -1,0 +1,62 @@
+diff -up linux-5.19/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.omv~ linux-5.19/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+--- linux-5.19/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.omv~	2022-09-10 21:20:04.053588398 +0200
++++ linux-5.19/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c	2022-09-10 23:22:04.094361596 +0200
+@@ -558,18 +558,13 @@ module_param_named(timeout_period, amdgp
+ /**
+  * DOC: si_support (int)
+  * Set SI support driver. This parameter works after set config CONFIG_DRM_AMDGPU_SI. For SI asic, when radeon driver is enabled,
+- * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using radeon driver when it available,
+- * otherwise using amdgpu driver.
++ * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using
++ * the amdgpu driver.
+  */
+ #ifdef CONFIG_DRM_AMDGPU_SI
+ 
+-#if defined(CONFIG_DRM_RADEON) || defined(CONFIG_DRM_RADEON_MODULE)
+-int amdgpu_si_support = 0;
+-MODULE_PARM_DESC(si_support, "SI support (1 = enabled, 0 = disabled (default))");
+-#else
+ int amdgpu_si_support = 1;
+ MODULE_PARM_DESC(si_support, "SI support (1 = enabled (default), 0 = disabled)");
+-#endif
+ 
+ module_param_named(si_support, amdgpu_si_support, int, 0444);
+ #endif
+@@ -577,18 +572,13 @@ module_param_named(si_support, amdgpu_si
+ /**
+  * DOC: cik_support (int)
+  * Set CIK support driver. This parameter works after set config CONFIG_DRM_AMDGPU_CIK. For CIK asic, when radeon driver is enabled,
+- * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using radeon driver when it available,
+- * otherwise using amdgpu driver.
++ * set value 0 to use radeon driver, while set value 1 to use amdgpu driver. The default is using
++ * the amdgpu driver.
+  */
+ #ifdef CONFIG_DRM_AMDGPU_CIK
+ 
+-#if defined(CONFIG_DRM_RADEON) || defined(CONFIG_DRM_RADEON_MODULE)
+-int amdgpu_cik_support = 0;
+-MODULE_PARM_DESC(cik_support, "CIK support (1 = enabled, 0 = disabled (default))");
+-#else
+ int amdgpu_cik_support = 1;
+ MODULE_PARM_DESC(cik_support, "CIK support (1 = enabled (default), 0 = disabled)");
+-#endif
+ 
+ module_param_named(cik_support, amdgpu_cik_support, int, 0444);
+ #endif
+diff -up linux-5.19/drivers/gpu/drm/radeon/radeon_drv.c.omv~ linux-5.19/drivers/gpu/drm/radeon/radeon_drv.c
+--- linux-5.19/drivers/gpu/drm/radeon/radeon_drv.c.omv~	2022-09-10 23:22:12.934195195 +0200
++++ linux-5.19/drivers/gpu/drm/radeon/radeon_drv.c	2022-09-10 23:22:29.469884268 +0200
+@@ -272,11 +272,11 @@ module_param_named(uvd, radeon_uvd, int,
+ MODULE_PARM_DESC(vce, "vce enable/disable vce support (1 = enable, 0 = disable)");
+ module_param_named(vce, radeon_vce, int, 0444);
+ 
+-int radeon_si_support = 1;
++int radeon_si_support = 0;
+ MODULE_PARM_DESC(si_support, "SI support (1 = enabled (default), 0 = disabled)");
+ module_param_named(si_support, radeon_si_support, int, 0444);
+ 
+-int radeon_cik_support = 1;
++int radeon_cik_support = 0;
+ MODULE_PARM_DESC(cik_support, "CIK support (1 = enabled (default), 0 = disabled)");
+ module_param_named(cik_support, radeon_cik_support, int, 0444);
+ 
