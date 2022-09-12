@@ -31,17 +31,6 @@ diff -up linux-5.19/ipc/namespace.c.29~ linux-5.19/ipc/namespace.c
  
  static inline struct ipc_namespace *to_ipc_ns(struct ns_common *ns)
  {
-diff -up linux-5.19/kernel/fork.c.29~ linux-5.19/kernel/fork.c
---- linux-5.19/kernel/fork.c.29~	2022-07-31 23:03:01.000000000 +0200
-+++ linux-5.19/kernel/fork.c	2022-09-08 15:55:44.098318558 +0200
-@@ -1225,6 +1225,7 @@ void mmput_async(struct mm_struct *mm)
- 		schedule_work(&mm->async_put_work);
- 	}
- }
-+EXPORT_SYMBOL_GPL(mmput_async);
- #endif
- 
- /**
 diff -up linux-5.19/kernel/sched/core.c.29~ linux-5.19/kernel/sched/core.c
 --- linux-5.19/kernel/sched/core.c.29~	2022-09-08 15:55:44.099318545 +0200
 +++ linux-5.19/kernel/sched/core.c	2022-09-08 15:56:40.669564489 +0200
