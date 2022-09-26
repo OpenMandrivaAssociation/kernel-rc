@@ -119,7 +119,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -259,6 +259,8 @@ Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
 Patch215:	linux-5.19-prefer-amdgpu-over-radeon.patch
+Patch216:	https://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git/patch/?id=e400ad8b7e6a1b9102123c6240289a811501f7d9#/speed-up-amd-boxes.patch
+Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
 
 # Fix CPU frequency governor mess caused by recent Intel patches
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
