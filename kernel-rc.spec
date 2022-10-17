@@ -58,9 +58,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 0
+%define patchlevel 1
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -101,6 +101,9 @@
 %bcond_without bpftool
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
+%ifarch %{ix86} %{x86_64} %{aarch64}
+%bcond_without hyperv
+%endif
 %ifarch %{ix86} %{x86_64}
 %bcond_without build_cpupower
 %else
@@ -259,7 +262,6 @@ Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
 Patch215:	linux-5.19-prefer-amdgpu-over-radeon.patch
-Patch216:	https://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git/patch/?id=e400ad8b7e6a1b9102123c6240289a811501f7d9#/speed-up-amd-boxes.patch
 Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
 
 # Fix CPU frequency governor mess caused by recent Intel patches
@@ -725,6 +727,33 @@ Group:		System/Kernel and hardware
 Tool to report processor frequency and idle statistics.
 %endif
 
+%if %{with hyperv}
+%package -n hyperv-tools
+Summary:	Tools needed to communicate with a Hyper-V host
+Source7000:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervkvpd.service
+Source7001:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervkvp.rules
+Source7002:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervvssd.service
+Source7003:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervvss.rules
+Source7004:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervfcopyd.service
+Source7005:	https://src.fedoraproject.org/rpms/hyperv-daemons/raw/rawhide/f/hypervfcopy.rules
+
+%description -n hyperv-tools
+Tools needed to communicate with a Hyper-V host
+
+%files -n hyperv-tools
+%{_sbindir}/hv_kvp_daemon
+%{_unitdir}/hypervkvpd.service
+%{_udevrulesdir}/70-hypervkvp.rules
+%{_sbindir}/hv_vss_daemon
+%{_unitdir}/hypervvssd.service
+%{_udevrulesdir}/70-hypervvss.rules
+%{_sbindir}/hv_fcopy_daemon
+%{_unitdir}/hypervfcopyd.service
+%{_udevrulesdir}/70-hypervfcopy.rules
+%{_sbindir}/lsvmbus
+%{_libexecdir}/hypervkvpd
+%endif
+
 %if %{with bpftool}
 %define bpf_major 1
 %define libbpf %mklibname bpf %{bpf_major}
@@ -765,8 +794,6 @@ Epoch:		1
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{version}-%{release}
 Obsoletes:	kernel-headers < 1:%{version}-%{release}
-%rename linux-userspace-headers
-%rename kernel-release-headers
 %endif
 
 %description headers
@@ -1660,9 +1687,20 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} install install-man
 %endif
 
+%if %{with hyperv}
+%make_build -C tools/hv -s CC=%{__cc} HOSTCC=%{__cc} prefix=%{_prefix} sbindir=%{_sbindir}
+%make_install -C tools/hv -s CC=%{__cc} HOSTCC=%{__cc} prefix=%{_prefix} sbindir=%{_sbindir} DESTDIR=%{temp_root}
+mkdir -p %{temp_root}%{_unitdir}
+install -c -m 644 %{S:7000} %{S:7002} %{S:7004} %{temp_root}%{_unitdir}/
+mkdir -p %{temp_root}%{_udevrulesdir}
+install -c -m 644 %{S:7001} %{temp_root}%{_udevrulesdir}/70-hypervkvp.rules
+install -c -m 644 %{S:7003} %{temp_root}%{_udevrulesdir}/70-hypervvss.rules
+install -c -m 644 %{S:7005} %{temp_root}%{_udevrulesdir}/70-hypervfcopy.rules
+%endif
+
 # We don't make to repeat the depend code at the install phase
 %if %{with build_source}
-PrepareKernel "" %{buildrpmrel}custom
+PrepareKernel "" %{release}custom
 %make_build -s mrproper
 %endif
 
