@@ -1393,6 +1393,7 @@ $DevelRoot/kernel
 $DevelRoot/lib
 $DevelRoot/mm
 $DevelRoot/net
+$DevelRoot/rust
 $DevelRoot/samples
 $DevelRoot/scripts
 $DevelRoot/security
@@ -1870,13 +1871,15 @@ cd -
 %{_kerneldir}/lib
 %{_kerneldir}/mm
 %{_kerneldir}/net
-%{_kerneldir}/virt
+%{_kerneldir}/rust
+%{_kerneldir}/.rustfmt.toml
 %{_kerneldir}/samples
 %{_kerneldir}/scripts
 %{_kerneldir}/security
 %{_kerneldir}/sound
 %{_kerneldir}/tools
 %{_kerneldir}/usr
+%{_kerneldir}/virt
 %{_kerneldir}/COPYING
 %{_kerneldir}/CREDITS
 %{_kerneldir}/Kbuild
