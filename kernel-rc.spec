@@ -1901,15 +1901,6 @@ cd -
 %optional %{_bindir}/perf-read-vdso32
 %endif
 %{_bindir}/trace
-%ifarch %{x86_64}
-%dir %{_libdir}/traceevent
-%dir %{_libdir}/traceevent/plugins
-%{_libdir}/traceevent/plugins/plugin_*
-%else
-%dir %{_prefix}/lib/traceevent
-%dir %{_prefix}/lib/traceevent/plugins
-%{_prefix}/lib/traceevent/plugins/plugin_*
-%endif
 %dir %{_prefix}/libexec/perf-core
 %{_prefix}/libexec/perf-core/*
 %doc %{_mandir}/man[1-8]/perf*
