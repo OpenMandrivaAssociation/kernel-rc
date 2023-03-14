@@ -250,6 +250,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
+Source1006:	vbox-kernel-6.3.patch
 Source1007:	vboxnet-clang.patch
 
 # Assorted fixes
@@ -941,6 +942,7 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
+patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
