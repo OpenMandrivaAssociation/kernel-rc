@@ -1,0 +1,90 @@
+diff -up linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_drv.h.omv~ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_drv.h
+--- linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_drv.h.omv~	2023-03-14 05:47:42.731608382 +0100
++++ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_drv.h	2023-03-14 05:47:52.964779554 +0100
+@@ -167,8 +167,7 @@
+ # include <drm/drm_gem.h>
+ #endif
+ 
+-#include <drm/ttm/ttm_bo_api.h>
+-#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_bo.h>
+ #include <drm/ttm/ttm_placement.h>
+ #if RTLNX_VER_MAX(5,13,0) && !RTLNX_RHEL_RANGE(8,6, 8,99)
+ # include <drm/ttm/ttm_memory.h>
+diff -up linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_fb.c
+--- linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~	2023-03-14 05:48:01.068916725 +0100
++++ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_fb.c	2023-03-14 05:50:03.912119725 +0100
+@@ -340,13 +340,6 @@ static int vboxfb_create(struct drm_fb_h
+ 	info->flags = FBINFO_DEFAULT | FBINFO_MISC_ALWAYS_SETPAR;
+ 	info->fbops = &vboxfb_ops;
+ 
+-	/*
+-	 * This seems to be done for safety checking that the framebuffer
+-	 * is not registered twice by different drivers.
+-	 */
+-	info->apertures->ranges[0].base = pci_resource_start(VBOX_DRM_TO_PCI_DEV(dev), 0);
+-	info->apertures->ranges[0].size = pci_resource_len(VBOX_DRM_TO_PCI_DEV(dev), 0);
+-
+ #if RTLNX_VER_MIN(5,2,0) || RTLNX_RHEL_MAJ_PREREQ(8,2)
+ 		/*
+ 		 * The corresponding 5.2-rc1 Linux DRM kernel changes have been
+@@ -455,7 +448,7 @@ int vbox_fbdev_init(struct drm_device *d
+ #if RTLNX_VER_MAX(3,17,0) && !RTLNX_RHEL_MAJ_PREREQ(7,2)
+ 	fbdev->helper.funcs = &vbox_fb_helper_funcs;
+ #else
+-	drm_fb_helper_prepare(dev, &fbdev->helper, &vbox_fb_helper_funcs);
++	drm_fb_helper_prepare(dev, &fbdev->helper, 32, &vbox_fb_helper_funcs);
+ #endif
+ #if RTLNX_VER_MIN(5,7,0) || RTLNX_RHEL_MIN(8,4) || RTLNX_SUSE_MAJ_PREREQ(15,3)
+ 		ret = drm_fb_helper_init(dev, &fbdev->helper);
+@@ -478,7 +471,7 @@ int vbox_fbdev_init(struct drm_device *d
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	ret = drm_fb_helper_initial_config(&fbdev->helper, 32);
++	ret = drm_fb_helper_initial_config(&fbdev->helper);
+ 	if (ret)
+ 		goto err_fini;
+ 
+@@ -493,6 +486,6 @@ void vbox_fbdev_set_base(struct vbox_pri
+ {
+ 	struct fb_info *fbdev = VBOX_FBDEV_INFO(vbox->fbdev->helper);
+ 
+-	fbdev->fix.smem_start = fbdev->apertures->ranges[0].base + gpu_addr;
++	fbdev->fix.smem_start = pci_resource_start(VBOX_DRM_TO_PCI_DEV(vbox->fbdev->helper.dev), 0) + gpu_addr;
+ 	fbdev->fix.smem_len = vbox->available_vram_size - gpu_addr;
+ }
+diff -up linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_main.c.omv~ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_main.c
+--- linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_main.c.omv~	2023-03-14 05:50:14.681320519 +0100
++++ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_main.c	2023-03-14 05:50:26.079533935 +0100
+@@ -30,6 +30,7 @@
+ #include "vbox_drv.h"
+ #include <drm/drm_fb_helper.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_modeset_helper.h>
+ 
+ #include "vboxvideo_guest.h"
+ #include "vboxvideo_vbe.h"
+diff -up linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_mode.c.omv~ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_mode.c
+--- linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_mode.c.omv~	2023-03-14 05:50:29.463597463 +0100
++++ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_mode.c	2023-03-14 05:50:58.487145096 +0100
+@@ -34,6 +34,8 @@
+ #include "vbox_drv.h"
+ #include <linux/export.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_modeset_helper_vtables.h>
++#include <drm/drm_modeset_helper.h>
+ #if RTLNX_VER_MIN(3,18,0) || RTLNX_RHEL_MAJ_PREREQ(7,2)
+ # include <drm/drm_plane_helper.h>
+ #endif
+diff -up linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_ttm.c.omv~ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_ttm.c
+--- linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_ttm.c.omv~	2023-03-14 05:51:02.316217683 +0100
++++ linux-6.3-rc2/drivers/gpu/drm/vboxvideo/vbox_ttm.c	2023-03-14 05:51:25.480658264 +0100
+@@ -28,6 +28,7 @@
+  *          Michael Thayer <michael.thayer@oracle.com>
+  */
+ #include "vbox_drv.h"
++#include <drm/ttm/ttm_tt.h>
+ #if RTLNX_VER_MIN(5,11,0) || RTLNX_RHEL_MAJ_PREREQ(8,5)
+ # include <drm/drm_gem.h>
+ # include <drm/drm_gem_ttm_helper.h>

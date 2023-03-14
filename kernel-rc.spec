@@ -252,6 +252,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1006:	vbox-kernel-6.3.patch
 Source1007:	vboxnet-clang.patch
+Source1008:	vboxvideo-kernel-6.3.patch
 
 # Assorted fixes
 
@@ -906,6 +907,7 @@ config DRM_VBOXVIDEO
 EOF
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile*
+patch -p1 -z .1008~ -b <%{S:1008}
 %endif
 
 # 800x600 is too small to be useful -- even calamares doesn't
