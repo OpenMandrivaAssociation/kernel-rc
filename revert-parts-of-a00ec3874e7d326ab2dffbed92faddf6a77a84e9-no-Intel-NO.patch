@@ -1,10 +1,9 @@
-diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index 85de313ddec2..1b2a7160981c 100644
---- a/drivers/cpufreq/Kconfig
-+++ b/drivers/cpufreq/Kconfig
+diff -up linux-6.3-rc2/drivers/cpufreq/Kconfig.30~ linux-6.3-rc2/drivers/cpufreq/Kconfig
+--- linux-6.3-rc2/drivers/cpufreq/Kconfig.30~	2023-03-14 03:14:36.283808459 +0100
++++ linux-6.3-rc2/drivers/cpufreq/Kconfig	2023-03-14 03:15:13.760132232 +0100
 @@ -38,7 +38,6 @@ choice
  	prompt "Default CPUFreq governor"
- 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1100_CPUFREQ || ARM_SA1110_CPUFREQ
+ 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1110_CPUFREQ
  	default CPU_FREQ_DEFAULT_GOV_SCHEDUTIL if ARM64 || ARM
 -	default CPU_FREQ_DEFAULT_GOV_SCHEDUTIL if X86_INTEL_PSTATE && SMP
  	default CPU_FREQ_DEFAULT_GOV_PERFORMANCE

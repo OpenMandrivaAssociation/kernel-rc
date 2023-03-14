@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 2
+%define patchlevel 3
 %define sublevel 0
-%define relc 8
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -231,7 +231,7 @@ Source1003:	saa716x-driver.tar.xz
 Patch200:	0023-tda18212-Added-2-extra-options.-Based-on-CrazyCat-re.patch
 Patch201:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
 Patch202:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
-Patch203:	0124-Extend-FEC-enum.patch
+#Patch203:	0124-Extend-FEC-enum.patch
 Patch204:	saa716x-driver-integration.patch
 Patch205:	saa716x-4.15.patch
 Patch206:	saa716x-linux-4.19.patch
@@ -295,7 +295,7 @@ Patch253:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch254:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-rp64-rng.patch
 
 # (tpg) Manjaro ARM Patches
-Patch260:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/1005-panfrost-Silence-Panfrost-gem-shrinker-loggin.patch
+#Patch260:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/1005-panfrost-Silence-Panfrost-gem-shrinker-loggin.patch
 
 # Other ARM64 patches
 Patch261:	https://raw.githubusercontent.com/immortalwrt/immortalwrt/master/target/linux/rockchip/patches-5.15/992-rockchip-rk3399-overclock-to-2.2-1.8-GHz.patch

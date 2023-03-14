@@ -1,13 +1,13 @@
-diff -Naur a/fs/f2fs/data.c b/fs/f2fs/data.c
---- a/fs/f2fs/data.c	2022-12-11 22:15:18.000000000 +0000
-+++ b/fs/f2fs/data.c	2023-02-14 18:58:46.292402673 +0000
-@@ -1316,18 +1316,14 @@
+diff -up linux-6.3-rc2/fs/f2fs/data.c.32~ linux-6.3-rc2/fs/f2fs/data.c
+--- linux-6.3-rc2/fs/f2fs/data.c.32~	2023-03-14 03:15:59.849529893 +0100
++++ linux-6.3-rc2/fs/f2fs/data.c	2023-03-14 03:18:19.298730014 +0100
+@@ -1329,18 +1329,14 @@ struct page *f2fs_get_lock_data_page(str
  {
  	struct address_space *mapping = inode->i_mapping;
  	struct page *page;
 -repeat:
 +
- 	page = f2fs_get_read_data_page(inode, index, 0, for_write);
+ 	page = f2fs_get_read_data_page(inode, index, 0, for_write, NULL);
  	if (IS_ERR(page))
  		return page;
  

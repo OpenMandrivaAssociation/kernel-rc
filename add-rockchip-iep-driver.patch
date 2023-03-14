@@ -1,7 +1,7 @@
-diff -up linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3328.dtsi.42~ linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3328.dtsi
---- linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3328.dtsi.42~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3328.dtsi	2021-11-18 20:49:54.789545498 +0100
-@@ -702,6 +702,28 @@
+diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3328.dtsi.45~ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+--- linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3328.dtsi.45~	2023-03-13 00:36:44.000000000 +0100
++++ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3328.dtsi	2023-03-14 03:24:14.726774043 +0100
+@@ -721,6 +721,28 @@
  		status = "disabled";
  	};
  
@@ -30,10 +30,10 @@ diff -up linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3328.dtsi.42~ linux-5.16-
  	hdmi: hdmi@ff3c0000 {
  		compatible = "rockchip,rk3328-dw-hdmi";
  		reg = <0x0 0xff3c0000 0x0 0x20000>;
-diff -up linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3399.dtsi.42~ linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3399.dtsi
---- linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3399.dtsi.42~	2021-11-18 20:49:54.779545481 +0100
-+++ linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3399.dtsi	2021-11-18 20:51:29.464710844 +0100
-@@ -1338,11 +1338,24 @@
+diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi.45~ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+--- linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi.45~	2023-03-14 03:24:14.722774008 +0100
++++ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi	2023-03-14 03:24:14.726774043 +0100
+@@ -1379,11 +1379,24 @@
  		#iommu-cells = <0>;
  	};
  
@@ -58,11 +58,11 @@ diff -up linux-5.16-rc1/arch/arm64/boot/dts/rockchip/rk3399.dtsi.42~ linux-5.16-
  		clock-names = "aclk", "iface";
  		#iommu-cells = <0>;
  		status = "disabled";
-diff -up linux-5.16-rc1/arch/arm/boot/dts/rk3288.dtsi.42~ linux-5.16-rc1/arch/arm/boot/dts/rk3288.dtsi
---- linux-5.16-rc1/arch/arm/boot/dts/rk3288.dtsi.42~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/arch/arm/boot/dts/rk3288.dtsi	2021-11-18 20:49:54.790545500 +0100
-@@ -983,14 +983,25 @@
- 		status = "okay";
+diff -up linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi.45~ linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi
+--- linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi.45~	2023-03-13 00:36:44.000000000 +0100
++++ linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi	2023-03-14 03:24:14.727774051 +0100
+@@ -984,14 +984,25 @@
+ 		reset-names = "crypto-rst";
  	};
  
 +	iep: iep@ff90000 {
@@ -88,9 +88,9 @@ diff -up linux-5.16-rc1/arch/arm/boot/dts/rk3288.dtsi.42~ linux-5.16-rc1/arch/ar
  	};
  
  	isp_mmu: iommu@ff914000 {
-diff -up linux-5.16-rc1/Documentation/devicetree/bindings/media/rockchip-iep.yaml.42~ linux-5.16-rc1/Documentation/devicetree/bindings/media/rockchip-iep.yaml
---- linux-5.16-rc1/Documentation/devicetree/bindings/media/rockchip-iep.yaml.42~	2021-11-18 20:49:54.790545500 +0100
-+++ linux-5.16-rc1/Documentation/devicetree/bindings/media/rockchip-iep.yaml	2021-11-18 20:49:54.790545500 +0100
+diff -up linux-6.3-rc2/Documentation/devicetree/bindings/media/rockchip-iep.yaml.45~ linux-6.3-rc2/Documentation/devicetree/bindings/media/rockchip-iep.yaml
+--- linux-6.3-rc2/Documentation/devicetree/bindings/media/rockchip-iep.yaml.45~	2023-03-14 03:24:14.726774043 +0100
++++ linux-6.3-rc2/Documentation/devicetree/bindings/media/rockchip-iep.yaml	2023-03-14 03:24:14.726774043 +0100
 @@ -0,0 +1,73 @@
 +# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
 +%YAML 1.2
@@ -165,44 +165,9 @@ diff -up linux-5.16-rc1/Documentation/devicetree/bindings/media/rockchip-iep.yam
 +      iommus = <&iep_mmu>;
 +      power-domains = <&power RK3228_PD_VIO>;
 +    };
-diff -up linux-5.16-rc1/drivers/media/platform/Kconfig.42~ linux-5.16-rc1/drivers/media/platform/Kconfig
---- linux-5.16-rc1/drivers/media/platform/Kconfig.42~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/drivers/media/platform/Kconfig	2021-11-18 20:49:54.790545500 +0100
-@@ -546,6 +546,20 @@ config VIDEO_RENESAS_VSP1
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called vsp1.
- 
-+config VIDEO_ROCKCHIP_IEP
-+	tristate "Rockchip Image Enhancement Processor"
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on ARCH_ROCKCHIP || COMPILE_TEST
-+	select VIDEOBUF2_DMA_CONTIG
-+	select V4L2_MEM2MEM_DEV
-+	help
-+	  This is a v4l2 driver for Rockchip Image Enhancement Processor (IEP)
-+	  found in most Rockchip RK3xxx SoCs.
-+	  Rockchip IEP supports various enhancement operations for RGB and YUV
-+	  images. The driver currently implements YUV deinterlacing only.
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called rockchip-iep
-+
- config VIDEO_ROCKCHIP_RGA
- 	tristate "Rockchip Raster 2d Graphic Acceleration Unit"
- 	depends on VIDEO_DEV && VIDEO_V4L2
-diff -up linux-5.16-rc1/drivers/media/platform/Makefile.42~ linux-5.16-rc1/drivers/media/platform/Makefile
---- linux-5.16-rc1/drivers/media/platform/Makefile.42~	2021-11-14 22:56:52.000000000 +0100
-+++ linux-5.16-rc1/drivers/media/platform/Makefile	2021-11-18 20:49:54.790545500 +0100
-@@ -54,6 +54,7 @@ obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar
- obj-$(CONFIG_VIDEO_RENESAS_JPU)		+= rcar_jpu.o
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
- 
-+obj-$(CONFIG_VIDEO_ROCKCHIP_IEP)	+= rockchip/iep/
- obj-$(CONFIG_VIDEO_ROCKCHIP_ISP1)	+= rockchip/rkisp1/
- obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+= rockchip/rga/
- 
-diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.c.42~ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.c
---- linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.c.42~	2021-11-18 20:49:54.791545502 +0100
-+++ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.c	2021-11-18 20:49:54.791545502 +0100
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.c.45~ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.c
+--- linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.c.45~	2023-03-14 03:24:14.727774051 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.c	2023-03-14 03:24:14.727774051 +0100
 @@ -0,0 +1,1089 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
@@ -1293,9 +1258,9 @@ diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.c.42~ linux-5.16
 +MODULE_AUTHOR("Alex Bee <knaerzche@gmail.com>");
 +MODULE_DESCRIPTION("Rockchip Image Enhancement Processor");
 +MODULE_LICENSE("GPL v2");
-diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.h.42~ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.h
---- linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.h.42~	2021-11-18 20:49:54.791545502 +0100
-+++ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.h	2021-11-18 20:49:54.791545502 +0100
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.h.45~ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.h
+--- linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.h.45~	2023-03-14 03:24:14.727774051 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep.h	2023-03-14 03:24:14.727774051 +0100
 @@ -0,0 +1,112 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
@@ -1409,9 +1374,9 @@ diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep.h.42~ linux-5.16
 +};
 +
 +#endif
-diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep-regs.h.42~ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep-regs.h
---- linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep-regs.h.42~	2021-11-18 20:49:54.791545502 +0100
-+++ linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep-regs.h	2021-11-18 20:49:54.791545502 +0100
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep-regs.h.45~ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep-regs.h
+--- linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep-regs.h.45~	2023-03-14 03:24:14.727774051 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/iep/iep-regs.h	2023-03-14 03:24:14.727774051 +0100
 @@ -0,0 +1,291 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
@@ -1704,12 +1669,42 @@ diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/iep-regs.h.42~ linux
 +#define YUV_SIN_HUE(v) ((v << IEP_YUV_SIN_HUE_SHFT) & IEP_YUV_SIN_HUE_MASK)
 +
 +#endif
-diff -up linux-5.16-rc1/drivers/media/platform/rockchip/iep/Makefile.42~ linux-5.16-rc1/drivers/media/platform/rockchip/iep/Makefile
---- linux-5.16-rc1/drivers/media/platform/rockchip/iep/Makefile.42~	2021-11-18 20:49:54.791545502 +0100
-+++ linux-5.16-rc1/drivers/media/platform/rockchip/iep/Makefile	2021-11-18 20:49:54.791545502 +0100
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/iep/Makefile.45~ linux-6.3-rc2/drivers/media/platform/rockchip/iep/Makefile
+--- linux-6.3-rc2/drivers/media/platform/rockchip/iep/Makefile.45~	2023-03-14 03:24:14.727774051 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/iep/Makefile	2023-03-14 03:24:14.727774051 +0100
 @@ -0,0 +1,5 @@
 +# SPDX-License-Identifier: GPL-2.0-only
 +
 +rockchip-iep-objs := iep.o
 +
 +obj-$(CONFIG_VIDEO_ROCKCHIP_IEP) += rockchip-iep.o
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/Kconfig.45~ linux-6.3-rc2/drivers/media/platform/rockchip/Kconfig
+--- linux-6.3-rc2/drivers/media/platform/rockchip/Kconfig.45~	2023-03-14 03:24:14.726774043 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/Kconfig	2023-03-14 03:25:42.101520127 +0100
+@@ -4,3 +4,17 @@ comment "Rockchip media platform drivers
+ 
+ source "drivers/media/platform/rockchip/rga/Kconfig"
+ source "drivers/media/platform/rockchip/rkisp1/Kconfig"
++
++config VIDEO_ROCKCHIP_IEP
++	tristate "Rockchip Image Enhancement Processor"
++	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on ARCH_ROCKCHIP || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	help
++	  This is a v4l2 driver for Rockchip Image Enhancement Processor (IEP)
++	  found in most Rockchip RK3xxx SoCs.
++	  Rockchip IEP supports various enhancement operations for RGB and YUV
++	  images. The driver currently implements YUV deinterlacing only.
++	  To compile this driver as a module, choose M here: the module
++	  will be called rockchip-iep
+diff -up linux-6.3-rc2/drivers/media/platform/rockchip/Makefile.45~ linux-6.3-rc2/drivers/media/platform/rockchip/Makefile
+--- linux-6.3-rc2/drivers/media/platform/rockchip/Makefile.45~	2023-03-14 03:24:14.726774043 +0100
++++ linux-6.3-rc2/drivers/media/platform/rockchip/Makefile	2023-03-14 03:24:58.329146442 +0100
+@@ -1,3 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ obj-y += rga/
+ obj-y += rkisp1/
++
++obj-$(CONFIG_VIDEO_ROCKCHIP_IEP) += iep/
