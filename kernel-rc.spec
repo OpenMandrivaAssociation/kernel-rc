@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 3
 %define sublevel 0
-%define relc 2
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -858,6 +858,13 @@ rm -rf .git
 %endif
 %autopatch -p1
 
+# Apparently, vm_clean was added in tools/Makefile before tools/vm was added
+if [ -d tools/vm ]; then
+	echo "Remove the vm_clean workaround, it should work now"
+	exit 1
+fi
+sed -i -e 's,vm_clean ,,' tools/Makefile
+
 %if %{with saa716x}
 # merge SAA716x DVB driver from extra tarball
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
@@ -1076,8 +1083,11 @@ CreateConfig() {
 	if printf '%s\n' ${type} | grep -qv gcc; then
 		CC=clang
 		CXX=clang++
-		BUILD_LD="ld.lld --icf=none --no-gc-sections"
-		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
+		# Workaround for LLD 16 BTF generation problem
+		BUILD_LD=ld.bfd
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		#BUILD_LD="ld.lld --icf=none --no-gc-sections"
+		#BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
 		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
 	else
 		CC=gcc
@@ -1229,8 +1239,11 @@ BuildKernel() {
 		CC=clang
 		CXX=clang++
 		BUILD_OPT_CFLAGS="-O3 %{pollyflags}"
-		BUILD_LD="ld.lld --icf=none --no-gc-sections"
-		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
+		# Workaround for LLD 16 BTF generation problem
+		BUILD_LD=ld.bfd
+		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		#BUILD_LD="ld.lld --icf=none --no-gc-sections"
+		#BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
 		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
 	else
 		CC=gcc
@@ -1922,6 +1935,7 @@ cd -
 %if %{with perf}
 %files -n perf
 %{_bindir}/perf
+%optional %{_bindir}/perf-read-vdso32
 %{_bindir}/trace
 %dir %{_prefix}/libexec/perf-core
 %{_prefix}/libexec/perf-core/*
