@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 3
 %define sublevel 0
-%define relc 3
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
