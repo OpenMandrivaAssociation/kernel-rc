@@ -129,3 +129,14 @@ diff -up linux-6.3-rc1/security/security.c.26~ linux-6.3-rc1/security/security.c
  
  int security_ptrace_access_check(struct task_struct *child, unsigned int mode)
  {
+diff -up linux-6.3-rc7/mm/memory.c.omv~ linux-6.3-rc7/mm/memory.c
+--- linux-6.3-rc7/mm/memory.c.omv~	2023-04-20 22:37:01.551471000 +0100
++++ linux-6.3-rc7/mm/memory.c	2023-04-20 22:37:20.391495989 +0100
+@@ -1728,6 +1728,7 @@ void zap_page_range_single(struct vm_are
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
+ }
++EXPORT_SYMBOL_GPL(zap_page_range_single);
+ 
+ /**
+  * zap_vma_ptes - remove ptes mapping the vma
