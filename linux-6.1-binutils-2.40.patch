@@ -1,0 +1,12 @@
+diff -up linux-6.1/scripts/pahole-flags.sh.omv~ linux-6.1/scripts/pahole-flags.sh
+--- linux-6.1/scripts/pahole-flags.sh.omv~	2023-01-27 22:34:46.096264581 +0100
++++ linux-6.1/scripts/pahole-flags.sh	2023-01-27 22:34:55.373347079 +0100
+@@ -19,5 +19,8 @@ fi
+ if [ "${pahole_ver}" -ge "122" ]; then
+ 	extra_paholeopt="${extra_paholeopt} -j"
+ fi
++if [ "${pahole_ver}" -ge "124" ]; then
++	extra_paholeopt="${extra_paholeopt} --lang_exclude asm"
++fi
+ 
+ echo ${extra_paholeopt}

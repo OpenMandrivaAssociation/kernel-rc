@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 3
+%define patchlevel 4
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -250,7 +250,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
-Source1006:	vbox-kernel-6.3.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vboxvideo-kernel-6.3.patch
 
@@ -286,7 +285,6 @@ Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
 Patch244:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-inno-usb2-phy-init.patch
 Patch245:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-unlock-temperature.patch
-Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
 Patch247:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-rk808-configurable-switch-voltage-steps.patch
 Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-sd-drive-level-8ma.patch
 Patch249:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
@@ -385,6 +383,7 @@ BuildRequires:	pkgconfig(libelf)
 %if %{with bpftool}
 # for bpf
 BuildRequires:	pahole
+BuildRequires:	pkgconfig(libbpf)
 %endif
 
 # for perf
@@ -756,10 +755,6 @@ Tools needed to communicate with a Hyper-V host.
 %endif
 
 %if %{with bpftool}
-%define bpf_major 1
-%define libbpf %mklibname bpf %{bpf_major}
-%define libbpfdevel %mklibname bpf -d
-
 %package -n bpftool
 Summary:	Inspection and simple manipulation of eBPF programs and maps
 Group:		System/Kernel and hardware
@@ -767,22 +762,6 @@ Group:		System/Kernel and hardware
 %description -n bpftool
 This package contains the bpftool, which allows inspection and simple
 manipulation of eBPF programs and maps.
-
-%package -n %{libbpf}
-Summary:	The bpf library from kernel source
-Group:		System/Libraries
-
-%description -n %{libbpf}
-This package contains the kernel source bpf library.
-
-%package -n %{libbpfdevel}
-Summary:	Developement files for the bpf library from kernel source
-Group:		Development/Kernel
-Requires:	%{libbpf} = %{EVRD}
-
-%description -n %{libbpfdevel}
-This package includes libraries and header files needed for development
-of applications which use bpf library from kernel sour
 %endif
 
 %package headers
@@ -951,7 +930,6 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
-patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
@@ -1080,22 +1058,30 @@ CreateConfig() {
 	rm -fv .config
 
 	printf '%s\n' "<-- Creating config for kernel type ${type} for ${arch}"
-	if printf '%s\n' ${type} | grep -qv gcc; then
-		CC=clang
-		CXX=clang++
-		# Workaround for LLD 16 BTF generation problem
-		BUILD_LD=ld.bfd
-		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
-		#BUILD_LD="ld.lld --icf=none --no-gc-sections"
-		#BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
-		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
-	else
+	if printf '%s' ${type} | grep -q gcc; then
 		CC=gcc
 		CXX=g++
 		# force ld.bfd, Kbuild logic issues when ld is linked to something else
 		BUILD_LD="%{_target_platform}-ld.bfd"
 		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
 		BUILD_TOOLS=""
+	else
+		CC=clang
+		CXX=clang++
+		# Workaround for LLD 16 BTF generation problem
+		#BUILD_LD=ld.bfd
+		#BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		BUILD_LD="ld.lld --icf=none --no-gc-sections"
+		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
+%ifarch %{aarch64}
+		# Using objcopy rather than llvm-objcopy is a workaround for a BTF
+		# generation problem on aarch64
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1 OBJCOPY=objcopy'
+%else
+		# Using objcopy rather than llvm-objcopy is a workaround for a BTF
+		# generation problem on aarch64
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
+%endif
 	fi
 
 # (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
@@ -1105,8 +1091,8 @@ CreateConfig() {
 		desktop|desktop-gcc|server|server-gcc)
 			rm -f .config
 			cp -v ${config_dir}/i686-omv-defconfig .config
-			printf '%s\n' ${type} | grep -q gcc || clangify .config
-			printf '%s\n' ${type} | grep -q server && serverize .config
+			printf '%s' ${type} | grep -q gcc || clangify .config
+			printf '%s' ${type} | grep -q server && serverize .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1120,8 +1106,8 @@ CreateConfig() {
 			rm -f .config
 			cp -v ${config_dir}/x86_64-omv-defconfig .config
 			[ "${arch}" = "znver1" ] && amdify .config
-			printf '%s\n' ${type} | grep -q gcc || clangify .config
-			printf '%s\n' ${type} | grep -q server && serverize .config
+			printf '%s' ${type} | grep -q gcc || clangify .config
+			printf '%s' ${type} | grep -q server && serverize .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1134,8 +1120,8 @@ CreateConfig() {
 		desktop|desktop-gcc|server|server-gcc)
 			rm -f .config
 			cp -v ${config_dir}/armv7hnl-omv-defconfig .config
-			printf '%s\n' ${type} | grep -q gcc || clangify .config
-			printf '%s\n' ${type} | grep -q server && serverize .config
+			printf '%s' ${type} | grep -q gcc || clangify .config
+			printf '%s' ${type} | grep -q server && serverize .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1148,8 +1134,8 @@ CreateConfig() {
 		desktop|desktop-gcc|server|server-gcc)
 			rm -f .config
 			cp -v ${config_dir}/aarch64-omv-defconfig .config
-			printf '%s\n' ${type} | grep -q gcc || clangify .config
-			printf '%s\n' ${type} | grep -q server && serverize .config
+			printf '%s' ${type} | grep -q gcc || clangify .config
+			printf '%s' ${type} | grep -q server && serverize .config
 			;;
 		*)
 			printf '%s\n' "ERROR: no such type ${type} for ${arch}"
@@ -1235,17 +1221,7 @@ BuildKernel() {
 	KernelVer=$1
 	printf '%s\n' "<--- Building kernel $KernelVer"
 
-	if printf '%s\n' ${KernelVer} | grep -qv gcc; then
-		CC=clang
-		CXX=clang++
-		BUILD_OPT_CFLAGS="-O3 %{pollyflags}"
-		# Workaround for LLD 16 BTF generation problem
-		BUILD_LD=ld.bfd
-		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
-		#BUILD_LD="ld.lld --icf=none --no-gc-sections"
-		#BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
-		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
-	else
+	if printf '%s' ${KernelVer} | grep -q gcc; then
 		CC=gcc
 		CXX=g++
 		BUILD_OPT_CFLAGS="-O3"
@@ -1253,6 +1229,22 @@ BuildKernel() {
 		BUILD_LD="%{_target_platform}-ld.bfd"
 		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
 		BUILD_TOOLS=""
+	else
+		CC=clang
+		CXX=clang++
+		BUILD_OPT_CFLAGS="-O3 %{pollyflags}"
+		# Workaround for LLD 16 BTF generation problem
+		#BUILD_LD=ld.bfd
+		#BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
+		BUILD_LD="ld.lld --icf=none --no-gc-sections"
+		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
+%ifarch %{aarch64}
+		# Using objcopy rather than llvm-objcopy is a workaround for a BTF
+		# generation problem on aarch64
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1 OBJCOPY=objcopy'
+%else
+		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
+%endif
 	fi
 
 %ifarch %{arm}
@@ -1350,7 +1342,7 @@ SaveDevel() {
 # Needed for lirc_gpio (#39004)
 	cp -fRu drivers/media/pci/bt8xx/bttv{,p}.h $TempDevelRoot/drivers/media/pci/bt8xx/
 	cp -fRu drivers/media/pci/bt8xx/bt848.h $TempDevelRoot/drivers/media/pci/bt8xx/
-	cp -fRu drivers/media/common/btcx-risc.h $TempDevelRoot/drivers/media/common/
+	cp -fRu drivers/media/pci/bt8xx/btcx-risc.h $TempDevelRoot/drivers/media/common/
 
 # Needed for external dvb tree (#41418)
 	cp -fRu drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
@@ -1713,15 +1705,13 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %if %{with bpftool}
 %make_build -C tools/bpf/bpftool CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd DESTDIR="%{temp_root}" V=0 VERBOSE=0
 %make_install -C tools/bpf/bpftool DESTDIR="%{temp_root}" prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} install V=0 VERBOSE=0
-%make_build -C tools/lib/bpf CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd V=0 VERBOSE=0
-%make_install -C tools/lib/bpf DESTDIR="%{temp_root}" prefix=%{_prefix} libdir=%{_libdir} install install_headers V=0 VERBOSE=0
 %endif
 
 %if %{with perf}
 [ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
-%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} V=0 VERBOSE=0 all man
+%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} WERROR=0 prefix=%{_prefix} V=0 VERBOSE=0 all man
 # Not SMP safe
-make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} V=0 VERBOSE=0 install install-man
+make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} V=0 VERBOSE=0 install install-man
 %endif
 
 %if %{with hyperv}
@@ -1984,13 +1974,4 @@ cd -
 %files -n bpftool
 %{_bindir}/bpftool
 %{_sysconfdir}/bash_completion.d/bpftool
-
-%files -n %{libbpf}
-%{_libdir}/libbpf.so.%{bpf_major}*
-
-%files -n %{libbpfdevel}
-%{_libdir}/libbpf.so
-%{_libdir}/pkgconfig/*.pc
-%dir %{_includedir}/bpf
-%{_includedir}/bpf/*.h
 %endif
