@@ -315,6 +315,21 @@ Source400:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loop
 Source401:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.h
 Source402:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback_formats.h
 
+# PineTab 2 support
+# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2_stable
+Patch500:	https://github.com/torvalds/linux/commit/e9acd1df352b33eb534b3cbfd8d7ef24b21d815a.patch
+Patch501:	https://github.com/torvalds/linux/commit/d05b277c97409dd9c768e2cb05ccce9c1447d33c.patch
+# aea0c80864ba43731e2702dd632c8f46cdd38ab4 seems unnecessary, already fixed
+# differently in 6.4-rc5
+# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2
+Patch502:	https://github.com/torvalds/linux/commit/bce3bcec6afe5cf1baee033945c7fd1c4b5743c7.patch
+Patch503:	https://github.com/torvalds/linux/commit/2c1f22c933699f13c1bb565951a6181b13642abc.patch
+Patch504:	https://github.com/torvalds/linux/commit/6d54a89e9c8f9ac03eea90f04eef1d9337368f40.patch
+Patch505:	https://github.com/torvalds/linux/commit/e69e4daf3c9f83f74a9b0d2959ae199418180677.patch
+# 9ca800f9cbf28857d3f063cda1bb7b46a52f9215 conflicts with e9acd1df352b33eb534b3cbfd8d7ef24b21d815a
+# 3e3193f926c1e10c324cf23bffbce535708d057f is the same as d05b277c97409dd9c768e2cb05ccce9c1447d33c
+# ef5a3a76389a85bab15ed470ec200677af551ba5 is the same as aea0c80864ba43731e2702dd632c8f46cdd38ab4
+
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
 # being touched aren't in the tree at the time %%autopatch -p1
