@@ -329,6 +329,8 @@ Patch505:	https://github.com/torvalds/linux/commit/e69e4daf3c9f83f74a9b0d2959ae1
 # 9ca800f9cbf28857d3f063cda1bb7b46a52f9215 conflicts with e9acd1df352b33eb534b3cbfd8d7ef24b21d815a
 # 3e3193f926c1e10c324cf23bffbce535708d057f is the same as d05b277c97409dd9c768e2cb05ccce9c1447d33c
 # ef5a3a76389a85bab15ed470ec200677af551ba5 is the same as aea0c80864ba43731e2702dd632c8f46cdd38ab4
+# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2_display-oc
+Patch506:	https://github.com/torvalds/linux/commit/d1b1b2eb6b7150df6b00ffec8aacc045f8550584.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
