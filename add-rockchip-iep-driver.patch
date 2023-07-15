@@ -58,9 +58,9 @@ diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi.45~ linux-6.3-rc
  		clock-names = "aclk", "iface";
  		#iommu-cells = <0>;
  		status = "disabled";
-diff -up linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi.45~ linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi
---- linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi.45~	2023-03-13 00:36:44.000000000 +0100
-+++ linux-6.3-rc2/arch/arm/boot/dts/rk3288.dtsi	2023-03-14 03:24:14.727774051 +0100
+diff -up linux-6.3-rc2/arch/arm/boot/dts/rockchip/rk3288.dtsi.45~ linux-6.3-rc2/arch/arm/boot/dts/rrockchip/k3288.dtsi
+--- linux-6.3-rc2/arch/arm/boot/dts/rockchip/rk3288.dtsi.45~	2023-03-13 00:36:44.000000000 +0100
++++ linux-6.3-rc2/arch/arm/boot/dts/rockchip/rk3288.dtsi	2023-03-14 03:24:14.727774051 +0100
 @@ -984,14 +984,25 @@
  		reset-names = "crypto-rst";
  	};

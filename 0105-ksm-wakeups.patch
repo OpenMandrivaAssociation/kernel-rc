@@ -1,35 +1,19 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Arjan van de Ven <arjan@linux.intel.com>
-Date: Mon, 6 May 2019 12:57:09 -0500
-Subject: [PATCH] ksm-wakeups
-
-reduce wakeups in ksm by adding rounding (aligning) when
-the sleep times are 1 second or longer
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
----
- kernel/watchdog.c |  2 +-
- mm/ksm.c          | 11 ++++++++---
- 2 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 71109065bd8e..44ae1e267d48 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -41,7 +41,7 @@ unsigned long __read_mostly watchdog_enabled;
+diff -up linux-6.5-rc1/kernel/watchdog.c.57~ linux-6.5-rc1/kernel/watchdog.c
+--- linux-6.5-rc1/kernel/watchdog.c.57~	2023-07-11 11:53:38.614648058 +0200
++++ linux-6.5-rc1/kernel/watchdog.c	2023-07-11 11:54:46.804317748 +0200
+@@ -39,7 +39,7 @@ unsigned long __read_mostly watchdog_ena
  int __read_mostly watchdog_user_enabled = 1;
- int __read_mostly nmi_watchdog_user_enabled = NMI_WATCHDOG_DEFAULT;
- int __read_mostly soft_watchdog_user_enabled = 1;
+ static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
+ static int __read_mostly watchdog_softlockup_user_enabled = 1;
 -int __read_mostly watchdog_thresh = 10;
 +int __read_mostly watchdog_thresh = 40;
- static int __read_mostly nmi_watchdog_available;
+ static int __read_mostly watchdog_hardlockup_available;
  
  struct cpumask watchdog_cpumask __read_mostly;
-diff --git a/mm/ksm.c b/mm/ksm.c
-index 0960750bb316..3c51c716b8c5 100644
---- a/mm/ksm.c
-+++ b/mm/ksm.c
-@@ -2423,9 +2423,14 @@ static int ksm_scan_thread(void *nothing)
+diff -up linux-6.5-rc1/mm/ksm.c.57~ linux-6.5-rc1/mm/ksm.c
+--- linux-6.5-rc1/mm/ksm.c.57~	2023-07-09 22:53:13.000000000 +0200
++++ linux-6.5-rc1/mm/ksm.c	2023-07-11 11:53:38.617648088 +0200
+@@ -2500,9 +2500,14 @@ static int ksm_scan_thread(void *nothing
  
  		if (ksmd_should_run()) {
  			sleep_ms = READ_ONCE(ksm_thread_sleep_millisecs);
@@ -47,6 +31,3 @@ index 0960750bb316..3c51c716b8c5 100644
  		} else {
  			wait_event_freezable(ksm_thread_wait,
  				ksmd_should_run() || kthread_should_stop());
--- 
-https://clearlinux.org
-

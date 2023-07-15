@@ -1,11 +1,11 @@
-diff -up linux-6.3-rc2/drivers/cpufreq/Kconfig.30~ linux-6.3-rc2/drivers/cpufreq/Kconfig
---- linux-6.3-rc2/drivers/cpufreq/Kconfig.30~	2023-03-14 03:14:36.283808459 +0100
-+++ linux-6.3-rc2/drivers/cpufreq/Kconfig	2023-03-14 03:15:13.760132232 +0100
+diff -up linux-6.5-rc1/drivers/cpufreq/Kconfig.30~ linux-6.5-rc1/drivers/cpufreq/Kconfig
+--- linux-6.5-rc1/drivers/cpufreq/Kconfig.30~	2023-07-11 11:43:14.274842995 +0200
++++ linux-6.5-rc1/drivers/cpufreq/Kconfig	2023-07-11 11:45:19.299344290 +0200
 @@ -38,7 +38,6 @@ choice
  	prompt "Default CPUFreq governor"
  	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1110_CPUFREQ
  	default CPU_FREQ_DEFAULT_GOV_SCHEDUTIL if ARM64 || ARM
--	default CPU_FREQ_DEFAULT_GOV_SCHEDUTIL if X86_INTEL_PSTATE && SMP
+-	default CPU_FREQ_DEFAULT_GOV_SCHEDUTIL if (X86_INTEL_PSTATE || X86_AMD_PSTATE) && SMP
  	default CPU_FREQ_DEFAULT_GOV_PERFORMANCE
  	help
  	  This option sets which CPUFreq governor shall be loaded at

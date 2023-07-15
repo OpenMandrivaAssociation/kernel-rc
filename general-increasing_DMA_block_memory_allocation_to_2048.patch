@@ -1,0 +1,12 @@
+diff -up linux-6.4/kernel/dma/pool.c.40~ linux-6.4/kernel/dma/pool.c
+--- linux-6.4/kernel/dma/pool.c.40~	2023-06-27 13:38:23.032647398 +0200
++++ linux-6.4/kernel/dma/pool.c	2023-06-27 13:41:36.204933529 +0200
+@@ -195,7 +195,7 @@ static int __init dma_atomic_pool_init(v
+ 	if (!atomic_pool_size) {
+ 		unsigned long pages = totalram_pages() / (SZ_1G / SZ_128K);
+ 		pages = min_t(unsigned long, pages, MAX_ORDER_NR_PAGES);
+-		atomic_pool_size = max_t(size_t, pages << PAGE_SHIFT, SZ_128K);
++		atomic_pool_size = max_t(size_t, pages << PAGE_SHIFT, SZ_2M);
+ 	}
+ 	INIT_WORK(&atomic_pool_work, atomic_pool_work_fn);
+ 

@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 4
-%define sublevel 0
-%define relc 5
+%define patchlevel 5
+#define sublevel 3
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -100,8 +100,13 @@
 %bcond_with saa716x
 %bcond_with rtl8821ce
 # build perf and cpupower tools
-%bcond_without perf
+%if %{cross_compiling}
+%bcond_with bpftool
+%bcond_with perf
+%else
 %bcond_without bpftool
+%bcond_without perf
+%endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
 %ifarch %{ix86} %{x86_64} %{aarch64}
@@ -125,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -177,7 +182,7 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 
 # FIXME git bisect shows upstream commit
 # 7a8b64d17e35810dc3176fe61208b45c15d25402 breaks
-# booting SynQuacer from USB flash drives.
+# booting SynQuacer from USB flash drives on old firmware
 # 9d55bebd9816903b821a403a69a94190442ac043 builds on
 # 7a8b64d17e35810dc3176fe61208b45c15d25402.
 Source1001:	revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
@@ -252,6 +257,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vboxvideo-kernel-6.3.patch
+Source1009:	virtualbox-kernel-6.5.patch
 
 # Assorted fixes
 
@@ -285,6 +291,7 @@ Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
 Patch244:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-inno-usb2-phy-init.patch
 Patch245:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-unlock-temperature.patch
+Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
 Patch247:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-rk808-configurable-switch-voltage-steps.patch
 Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-sd-drive-level-8ma.patch
 Patch249:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
@@ -315,22 +322,25 @@ Source400:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loop
 Source401:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.h
 Source402:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback_formats.h
 
-# PineTab 2 support
-# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2_stable
-Patch500:	https://github.com/torvalds/linux/commit/e9acd1df352b33eb534b3cbfd8d7ef24b21d815a.patch
-Patch501:	https://github.com/torvalds/linux/commit/d05b277c97409dd9c768e2cb05ccce9c1447d33c.patch
-# aea0c80864ba43731e2702dd632c8f46cdd38ab4 seems unnecessary, already fixed
-# differently in 6.4-rc5
-# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2
-Patch502:	https://github.com/torvalds/linux/commit/bce3bcec6afe5cf1baee033945c7fd1c4b5743c7.patch
-Patch503:	https://github.com/torvalds/linux/commit/2c1f22c933699f13c1bb565951a6181b13642abc.patch
-Patch504:	https://github.com/torvalds/linux/commit/6d54a89e9c8f9ac03eea90f04eef1d9337368f40.patch
-Patch505:	https://github.com/torvalds/linux/commit/e69e4daf3c9f83f74a9b0d2959ae199418180677.patch
-# 9ca800f9cbf28857d3f063cda1bb7b46a52f9215 conflicts with e9acd1df352b33eb534b3cbfd8d7ef24b21d815a
-# 3e3193f926c1e10c324cf23bffbce535708d057f is the same as d05b277c97409dd9c768e2cb05ccce9c1447d33c
-# ef5a3a76389a85bab15ed470ec200677af551ba5 is the same as aea0c80864ba43731e2702dd632c8f46cdd38ab4
-# https://github.com/torvalds/linux/compare/master...TuxThePenguin0:linux:device/pine64-pinetab2_display-oc
-Patch506:	https://github.com/torvalds/linux/commit/d1b1b2eb6b7150df6b00ffec8aacc045f8550584.patch
+# Imagination DRM driver
+# https://patchwork.kernel.org/project/dri-devel/list/?series=765738
+Patch500:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142424.111465-1-sarah.walker@imgtec.com/raw/#/imagination-drm-1.patch
+Patch501:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142526.111569-1-sarah.walker@imgtec.com/raw/#/imagination-drm-2.patch
+Patch502:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142543.111625-1-sarah.walker@imgtec.com/raw/#/imagination-drm-3.patch
+Patch503:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142602.111681-1-sarah.walker@imgtec.com/raw/#/imagination-drm-4.patch
+Patch504:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142618.111746-1-sarah.walker@imgtec.com/raw/#/imagination-drm-5.patch
+# There is no part 6/17 upstream... Let's leave patch 505 blank in case it gets added...
+Patch506:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142700.111897-1-sarah.walker@imgtec.com/raw/#/imagination-drm-7.patch
+Patch507:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142717.111957-1-sarah.walker@imgtec.com/raw/#/imagination-drm-8.patch
+Patch508:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142734.112014-1-sarah.walker@imgtec.com/raw/#/imagination-drm-9.patch
+Patch509:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142750.112108-1-sarah.walker@imgtec.com/raw/#/imagination-drm-10.patch
+Patch510:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142806.112191-1-sarah.walker@imgtec.com/raw/#/imagination-drm-11.patch
+Patch511:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142823.112255-1-sarah.walker@imgtec.com/raw/#/imagination-drm-12.patch
+Patch512:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142839.112307-1-sarah.walker@imgtec.com/raw/#/imagination-drm-13.patch
+Patch513:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142855.112362-1-sarah.walker@imgtec.com/raw/#/imagination-drm-14.patch
+Patch514:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142913.112440-1-sarah.walker@imgtec.com/raw/#/imagination-drm-15.patch
+Patch515:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143015.112562-1-sarah.walker@imgtec.com/raw/#/imagination-drm-16.patch
+Patch516:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143033.112624-1-sarah.walker@imgtec.com/raw/#/imagination-drm-17.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -342,7 +352,6 @@ Patch506:	https://github.com/torvalds/linux/commit/d1b1b2eb6b7150df6b00ffec8aacc
 # https://github.com/clearlinux-pkgs/linux/
 Patch900:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch901:	0102-increase-the-ext4-default-commit-age.patch
-Patch902:	0103-silence-rapl.patch
 Patch903:	0104-pci-pme-wakeups.patch
 Patch904:	0105-ksm-wakeups.patch
 #Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
@@ -400,7 +409,6 @@ BuildRequires:	pkgconfig(libelf)
 %if %{with bpftool}
 # for bpf
 BuildRequires:	pahole
-BuildRequires:	pkgconfig(libbpf)
 %endif
 
 # for perf
@@ -425,6 +433,7 @@ BuildRequires:	pkgconfig(babeltrace2)
 BuildRequires:	jdk-current
 BuildRequires:	perl-devel
 BuildRequires:	perl(ExtUtils::Embed)
+BuildRequires:	%mklibname pfm
 %endif
 
 %ifarch %{arm}
@@ -436,9 +445,9 @@ BuildRequires:	uboot-mkimage
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{x86_64}
-BuildRequires:	virtualbox-kernel-module-sources >= 6.1.38
+BuildRequires:	virtualbox-kernel-module-sources >= 7.0.8b
 %if %{with vbox_orig_mods}
-BuildRequires:	virtualbox-guest-kernel-module-sources >= 6.1.38
+BuildRequires:	virtualbox-guest-kernel-module-sources >= 7.0.8b
 %endif
 %endif
 
@@ -948,6 +957,7 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1007~ -b <%{S:1007}
+patch -p1 -z .1009~ -b <%{S:1009}
 %endif
 
 # V4L2 loopback support
@@ -1011,6 +1021,10 @@ clangify() {
 		-e '/^CONFIG_LD_IS_BFD=/d' \
 		-e '/^CONFIG_GCC_PLUGINS=/d' \
 		"$1"
+	# FIXME: CONFIG_CFI_CLANG and friends are turned off on x86_64
+	# because as of kernel 6.4.3 and VirtualBox 7.0, enabling any
+	# form of CFI breaks starting a VM in VirtualBox.
+	# If this ever gets fixed, CFI should be reenabled.
 	cat >>"$1" <<'EOF'
 CONFIG_CC_IS_CLANG=y
 CONFIG_CC_HAS_ASM_GOTO_OUTPUT=y
@@ -1023,9 +1037,15 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_LTO_NONE is not set
 # CONFIG_LTO_CLANG_FULL is not set
 CONFIG_LTO_CLANG_THIN=y
+%ifarch %{x86_64}
+# CONFIG_CFI_CLANG is not set
+# CONFIG_CFI_CLANG_SHADOW is not set
+# CONFIG_CFI_PERMISSIVE is not set
+%else
 CONFIG_CFI_CLANG=y
 CONFIG_CFI_CLANG_SHADOW=y
 CONFIG_CFI_PERMISSIVE=y
+%endif
 CONFIG_RELR=y
 EOF
 }
@@ -1267,7 +1287,7 @@ BuildKernel() {
 %ifarch %{arm}
 	IMAGE=zImage
 %else
-%ifarch %{aarch64}
+%ifarch %{aarch64} %{riscv}
 # (tpg) when booting with UEFI then uboot-tools is looking for a vmlinuz in PE-COFF format
 	IMAGE=Image
 	DTBS="dtbs"
@@ -1720,15 +1740,15 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %endif
 
 %if %{with bpftool}
-%make_build -C tools/bpf/bpftool CC=%{__cc} HOSTCC=%{__cc} LD=ld.bfd HOSTLD=ld.bfd DESTDIR="%{temp_root}" V=0 VERBOSE=0
-%make_install -C tools/bpf/bpftool DESTDIR="%{temp_root}" prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} install V=0 VERBOSE=0
+%make_build -C tools/bpf/bpftool CC=%{__cc} HOSTCC=%{__cc} ARCH=%{target_arch} LLVM=1 DESTDIR="%{temp_root}" V=0 VERBOSE=0
+%make_install -C tools/bpf/bpftool DESTDIR="%{temp_root}" prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} ARCH=%{target_arch} LLVM=1 install V=0 VERBOSE=0
 %endif
 
 %if %{with perf}
 [ -e %{_sysconfdir}/profile.d/90java.sh ] && . %{_sysconfdir}/profile.d/90java.sh
-%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} WERROR=0 prefix=%{_prefix} V=0 VERBOSE=0 all man
+%make_build -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.lld HOSTLD=ld.lld WERROR=0 prefix=%{_prefix} V=0 VERBOSE=0 all man
 # Not SMP safe
-make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} V=0 VERBOSE=0 install install-man
+make -C tools/perf -s HAVE_CPLUS_DEMANGLE=1 NO_LIBTRACEEVENT=1 CC=%{__cc} HOSTCC=%{__cc} LD=ld.lld HOSTLD=ld.lld WERROR=0 prefix=%{_prefix} DESTDIR_SQ=%{temp_root} DESTDIR=%{temp_root} V=0 VERBOSE=0 install install-man
 %endif
 
 %if %{with hyperv}
@@ -1838,6 +1858,8 @@ cd %{buildroot}%{_kerneldir}
 # lots of gitignore files
 find -iname ".gitignore" -delete
 # clean tools tree
+# (mkdir below is just so "make clean" can remove it again without erroring out)
+mkdir -p tools/counter/include/linux
 %make_build -C tools clean -j1 V=0 VERBOSE=0
 %make_build -C tools/build clean -j1 V=0 VERBOSE=0
 %make_build -C tools/build/feature clean -j1 V=0 VERBOSE=0
