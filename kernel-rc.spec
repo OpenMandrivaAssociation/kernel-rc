@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 5
 #define sublevel 3
-%define relc 1
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -329,7 +329,7 @@ Patch501:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142526.11
 Patch502:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142543.111625-1-sarah.walker@imgtec.com/raw/#/imagination-drm-3.patch
 Patch503:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142602.111681-1-sarah.walker@imgtec.com/raw/#/imagination-drm-4.patch
 Patch504:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142618.111746-1-sarah.walker@imgtec.com/raw/#/imagination-drm-5.patch
-# There is no part 6/17 upstream... Let's leave patch 505 blank in case it gets added...
+Patch505:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142645.111844-1-sarah.walker@imgtec.com/raw/#/imagination-drm-6.patch
 Patch506:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142700.111897-1-sarah.walker@imgtec.com/raw/#/imagination-drm-7.patch
 Patch507:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142717.111957-1-sarah.walker@imgtec.com/raw/#/imagination-drm-8.patch
 Patch508:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142734.112014-1-sarah.walker@imgtec.com/raw/#/imagination-drm-9.patch
