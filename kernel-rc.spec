@@ -257,7 +257,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vboxvideo-kernel-6.3.patch
-Source1009:	virtualbox-kernel-6.5.patch
 
 # Assorted fixes
 
@@ -957,7 +956,6 @@ echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1007~ -b <%{S:1007}
-patch -p1 -z .1009~ -b <%{S:1009}
 %endif
 
 # V4L2 loopback support
