@@ -62,8 +62,8 @@
 # compose tar.xz name and release
 %define kernelversion 6
 %define patchlevel 5
-#define sublevel 3
-%define relc 3
+%define sublevel 0
+%define relc 4
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
