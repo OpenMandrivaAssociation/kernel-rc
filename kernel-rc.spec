@@ -341,6 +341,8 @@ Patch514:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142913.11
 Patch515:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143015.112562-1-sarah.walker@imgtec.com/raw/#/imagination-drm-16.patch
 Patch516:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143033.112624-1-sarah.walker@imgtec.com/raw/#/imagination-drm-17.patch
 
+Patch550:	https://github.com/ClangBuiltLinux/linux/commit/150c42407f87463c27a2459e06845965291d9973.patch
+
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
 # being touched aren't in the tree at the time %%autopatch -p1
