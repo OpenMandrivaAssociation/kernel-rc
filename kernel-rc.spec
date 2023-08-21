@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 5
 %define sublevel 0
-%define relc 6
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -340,8 +340,6 @@ Patch513:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142855.11
 Patch514:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142913.112440-1-sarah.walker@imgtec.com/raw/#/imagination-drm-15.patch
 Patch515:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143015.112562-1-sarah.walker@imgtec.com/raw/#/imagination-drm-16.patch
 Patch516:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143033.112624-1-sarah.walker@imgtec.com/raw/#/imagination-drm-17.patch
-
-Patch550:	https://github.com/ClangBuiltLinux/linux/commit/150c42407f87463c27a2459e06845965291d9973.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
