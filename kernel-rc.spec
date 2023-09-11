@@ -1962,7 +1962,6 @@ cd -
 %{_prefix}/libexec/perf-core/*
 %doc %{_mandir}/man[1-8]/perf*
 %{_sysconfdir}/bash_completion.d/perf
-%{_prefix}/lib/perf
 %ifarch %{x86_64}
 %{_libdir}/libperf-jvmti.so
 %else
@@ -1975,7 +1974,7 @@ cd -
 %if %{with build_cpupower}
 %files -n cpupower -f cpupower.lang
 %{_bindir}/cpupower
-%{_libdir}/libcpupower.so.0
+%{_libdir}/libcpupower.so.1
 %{_libdir}/libcpupower.so.0.0.1
 %{_unitdir}/cpupower.service
 %doc %{_mandir}/man[1-8]/cpupower*
