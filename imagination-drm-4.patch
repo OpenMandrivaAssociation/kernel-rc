@@ -1,8 +1,7 @@
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4c3bcc68f152..9371dc92e6b5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10105,6 +10105,7 @@ M:	Sarah Walker <sarah.walker@imgtec.com>
+diff -up linux-6.6-rc1/MAINTAINERS.55~ linux-6.6-rc1/MAINTAINERS
+--- linux-6.6-rc1/MAINTAINERS.55~	2023-09-11 14:05:09.485968136 +0200
++++ linux-6.6-rc1/MAINTAINERS	2023-09-11 14:05:09.492968210 +0200
+@@ -10230,6 +10230,7 @@ M:	Sarah Walker <sarah.walker@imgtec.com
  M:	Donald Robson <donald.robson@imgtec.com>
  S:	Supported
  F:	Documentation/devicetree/bindings/gpu/img,powervr.yaml
@@ -10,11 +9,10 @@ index 4c3bcc68f152..9371dc92e6b5 100644
  F:	include/uapi/drm/pvr_drm.h
  
  IMON SOUNDGRAPH USB IR RECEIVER
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index afb3b2f5f425..603a57bb2596 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -363,6 +363,8 @@ source "drivers/gpu/drm/solomon/Kconfig"
+diff -up linux-6.6-rc1/drivers/gpu/drm/Kconfig.55~ linux-6.6-rc1/drivers/gpu/drm/Kconfig
+--- linux-6.6-rc1/drivers/gpu/drm/Kconfig.55~	2023-09-11 01:28:41.000000000 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/Kconfig	2023-09-11 14:05:09.493968221 +0200
+@@ -387,6 +387,8 @@ source "drivers/gpu/drm/solomon/Kconfig"
  
  source "drivers/gpu/drm/sprd/Kconfig"
  
@@ -23,20 +21,17 @@ index afb3b2f5f425..603a57bb2596 100644
  config DRM_HYPERV
  	tristate "DRM Support for Hyper-V synthetic video device"
  	depends on DRM && PCI && MMU && HYPERV
-diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-index 2fcaff2e378b..7fe29ba2e769 100644
---- a/drivers/gpu/drm/Makefile
-+++ b/drivers/gpu/drm/Makefile
-@@ -195,3 +195,4 @@ obj-y			+= gud/
- obj-$(CONFIG_DRM_HYPERV) += hyperv/
+diff -up linux-6.6-rc1/drivers/gpu/drm/Makefile.55~ linux-6.6-rc1/drivers/gpu/drm/Makefile
+--- linux-6.6-rc1/drivers/gpu/drm/Makefile.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/Makefile	2023-09-11 14:06:04.221552670 +0200
+@@ -198,3 +198,4 @@ obj-$(CONFIG_DRM_HYPERV) += hyperv/
  obj-y			+= solomon/
  obj-$(CONFIG_DRM_SPRD) += sprd/
+ obj-$(CONFIG_DRM_LOONGSON) += loongson/
 +obj-$(CONFIG_DRM_POWERVR) += imagination/
-diff --git a/drivers/gpu/drm/imagination/Kconfig b/drivers/gpu/drm/imagination/Kconfig
-new file mode 100644
-index 000000000000..15efe67f13e1
---- /dev/null
-+++ b/drivers/gpu/drm/imagination/Kconfig
+diff -up linux-6.6-rc1/drivers/gpu/drm/imagination/Kconfig.55~ linux-6.6-rc1/drivers/gpu/drm/imagination/Kconfig
+--- linux-6.6-rc1/drivers/gpu/drm/imagination/Kconfig.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/imagination/Kconfig	2023-09-11 14:05:09.493968221 +0200
 @@ -0,0 +1,15 @@
 +# SPDX-License-Identifier: GPL-2.0 OR MIT
 +# Copyright (c) 2022 Imagination Technologies Ltd.
@@ -53,11 +48,9 @@ index 000000000000..15efe67f13e1
 +	  Technologies PowerVR GPU (Series 6 or later).
 +
 +	  If "M" is selected, the module will be called powervr.
-diff --git a/drivers/gpu/drm/imagination/Makefile b/drivers/gpu/drm/imagination/Makefile
-new file mode 100644
-index 000000000000..62ccf0ccbd51
---- /dev/null
-+++ b/drivers/gpu/drm/imagination/Makefile
+diff -up linux-6.6-rc1/drivers/gpu/drm/imagination/Makefile.55~ linux-6.6-rc1/drivers/gpu/drm/imagination/Makefile
+--- linux-6.6-rc1/drivers/gpu/drm/imagination/Makefile.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/imagination/Makefile	2023-09-11 14:05:09.493968221 +0200
 @@ -0,0 +1,9 @@
 +# SPDX-License-Identifier: GPL-2.0 OR MIT
 +# Copyright (c) 2022 Imagination Technologies Ltd.
@@ -68,11 +61,9 @@ index 000000000000..62ccf0ccbd51
 +	pvr_drv.o \
 +
 +obj-$(CONFIG_DRM_POWERVR) += powervr.o
-diff --git a/drivers/gpu/drm/imagination/pvr_device.h b/drivers/gpu/drm/imagination/pvr_device.h
-new file mode 100644
-index 000000000000..42224b5247df
---- /dev/null
-+++ b/drivers/gpu/drm/imagination/pvr_device.h
+diff -up linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_device.h.55~ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_device.h
+--- linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_device.h.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_device.h	2023-09-11 14:05:09.493968221 +0200
 @@ -0,0 +1,153 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR MIT */
 +/* Copyright (c) 2022 Imagination Technologies Ltd. */
@@ -227,11 +218,9 @@ index 000000000000..42224b5247df
 +	})
 +
 +#endif /* PVR_DEVICE_H */
-diff --git a/drivers/gpu/drm/imagination/pvr_drv.c b/drivers/gpu/drm/imagination/pvr_drv.c
-new file mode 100644
-index 000000000000..2035131e6177
---- /dev/null
-+++ b/drivers/gpu/drm/imagination/pvr_drv.c
+diff -up linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.c.55~ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.c
+--- linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.c.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.c	2023-09-11 14:05:09.493968221 +0200
 @@ -0,0 +1,510 @@
 +// SPDX-License-Identifier: GPL-2.0 OR MIT
 +/* Copyright (c) 2022 Imagination Technologies Ltd. */
@@ -743,11 +732,9 @@ index 000000000000..2035131e6177
 +MODULE_DESCRIPTION(PVR_DRIVER_DESC);
 +MODULE_LICENSE("Dual MIT/GPL");
 +MODULE_IMPORT_NS(DMA_BUF);
-diff --git a/drivers/gpu/drm/imagination/pvr_drv.h b/drivers/gpu/drm/imagination/pvr_drv.h
-new file mode 100644
-index 000000000000..55e9b4ad608d
---- /dev/null
-+++ b/drivers/gpu/drm/imagination/pvr_drv.h
+diff -up linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.h.55~ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.h
+--- linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.h.55~	2023-09-11 14:05:09.493968221 +0200
++++ linux-6.6-rc1/drivers/gpu/drm/imagination/pvr_drv.h	2023-09-11 14:05:09.493968221 +0200
 @@ -0,0 +1,22 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR MIT */
 +/* Copyright (c) 2022 Imagination Technologies Ltd. */

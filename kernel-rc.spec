@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 5
+%define patchlevel 6
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -276,12 +276,6 @@ Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871
 # Fix perf
 Patch230:	linux-5.11-perf-compile.patch
 #Patch231:	ce71038e673ee8291c64631359e56c48c8616dc7.patch
-
-# (tpg) F2FS is somehow corrupted https://bugzilla.kernel.org/show_bug.cgi?id=216050
-Patch231:	f2fs-fix-bug-216050.patch
-
-# (tpg) fix build bpftool with LLVM/clang
-Patch232:	bpftool-use-a-local-bpf_perf_event_value-to-fix-accessing-its-fields.patch
 
 # (tpg) Armbian ARM Patches
 Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-emmc.patch
