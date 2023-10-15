@@ -47,7 +47,7 @@
 %define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/')
 
 # (tpg) define here per arch which kernel flavours you would like to build
-%define kernel_flavours desktop server
+%define kernel_flavours desktop server desktop-gcc server-gcc
 # possible options are: desktop-gcc server-gcc
 
 # (tpg) package these kernel modules as subpackages
@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 6
 %define sublevel 0
-%define relc 5
+%define relc 6
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
