@@ -48,7 +48,7 @@
 
 # (tpg) define here per arch which kernel flavours you would like to build
 %define kernel_flavours desktop server desktop-gcc server-gcc
-# possible options are: desktop-gcc server-gcc
+# possible options are: desktop server desktop-gcc server-gcc
 
 # (tpg) package these kernel modules as subpackages
 %ifarch %{aarch64}
@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 6
 %define sublevel 0
-%define relc 6
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
