@@ -1775,7 +1775,6 @@ done
 %ifnarch %{armx}
     rm -rf %{buildroot}%{_kerneldir}/include/kvm/arm*
     rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/arm*
-    rm -rf %{buildroot}%{_kerneldir}/tools/arch/arm*
 %endif
 
 # other misc files
