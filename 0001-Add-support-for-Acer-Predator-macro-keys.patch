@@ -1,6 +1,6 @@
-diff -up linux-5.15/drivers/platform/x86/acer-wmi.c.4~ linux-5.15/drivers/platform/x86/acer-wmi.c
---- linux-5.15/drivers/platform/x86/acer-wmi.c.4~	2021-10-31 21:53:10.000000000 +0100
-+++ linux-5.15/drivers/platform/x86/acer-wmi.c	2021-11-03 20:17:25.582117524 +0100
+diff -up linux-6.8-rc3/drivers/platform/x86/acer-wmi.c.3~ linux-6.8-rc3/drivers/platform/x86/acer-wmi.c
+--- linux-6.8-rc3/drivers/platform/x86/acer-wmi.c.3~	2024-02-04 13:20:36.000000000 +0100
++++ linux-6.8-rc3/drivers/platform/x86/acer-wmi.c	2024-02-09 15:06:51.167375341 +0100
 @@ -7,6 +7,9 @@
   *  Based on acer_acpi:
   *    Copyright (C) 2005-2007	E.M. Smith
@@ -11,7 +11,7 @@ diff -up linux-5.15/drivers/platform/x86/acer-wmi.c.4~ linux-5.15/drivers/platfo
   */
  
  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -87,7 +90,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
+@@ -95,7 +98,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
  enum acer_wmi_event_ids {
  	WMID_HOTKEY_EVENT = 0x1,
  	WMID_ACCEL_OR_KBD_DOCK_EVENT = 0x5,
@@ -19,8 +19,8 @@ diff -up linux-5.15/drivers/platform/x86/acer-wmi.c.4~ linux-5.15/drivers/platfo
 +	WMID_GAMING_KEY_EVENT = 0x7,
  };
  
- static const struct key_entry acer_wmi_keymap[] __initconst = {
-@@ -125,6 +128,26 @@ static const struct key_entry acer_wmi_k
+ enum acer_wmi_predator_v4_sys_info_command {
+@@ -146,6 +149,26 @@ static const struct key_entry acer_wmi_k
  	{KE_KEY, 0x85, {KEY_TOUCHPAD_TOGGLE} },
  	{KE_KEY, 0x86, {KEY_WLAN} },
  	{KE_KEY, 0x87, {KEY_POWER} },
@@ -47,23 +47,22 @@ diff -up linux-5.15/drivers/platform/x86/acer-wmi.c.4~ linux-5.15/drivers/platfo
  	{KE_END, 0}
  };
  
-@@ -252,6 +275,7 @@ static bool ec_raw_mode;
+@@ -275,6 +298,7 @@ static bool ec_raw_mode;
  static bool has_type_aa;
  static u16 commun_func_bitmap;
  static u8 commun_fn_key_number;
 +static u8 macro_key_state = 0;
+ static bool cycle_gaming_thermal_profile = true;
  
  module_param(mailled, int, 0444);
- module_param(brightness, int, 0444);
-@@ -2047,9 +2071,32 @@ static void acer_wmi_notify(u32 value, v
+@@ -2270,10 +2294,28 @@ static void acer_wmi_notify(u32 value, v
  		acer_gsensor_event();
  		acer_kbd_dock_event(&return_value);
  		break;
 -	case WMID_GAMING_TURBO_KEY_EVENT:
 -		if (return_value.key_num == 0x4)
 +	case WMID_GAMING_KEY_EVENT:
-+		switch(return_value.key_num) {
-+		case 0x1:
++		if (return_value.key_num == 0x1) {
 +			/*
 +			 * This is the macro toggle key on Acer Predator
 +			 * laptops (it switches colors and selects which
@@ -75,18 +74,16 @@ diff -up linux-5.15/drivers/platform/x86/acer-wmi.c.4~ linux-5.15/drivers/platfo
 +			else
 +				pr_warn("macro key state %d requested (only values 1 to 3 are known)\n", return_value.device_state);
 +			break;
-+		case 0x2:
++		} else if (return_value.key_num == 0x2) {
 +			if(return_value.device_state >= 1 && return_value.device_state <= 5)
 +				sparse_keymap_report_event(acer_wmi_input_dev, 0xda00 + (macro_key_state<<4) + return_value.device_state-1, 1, true);
 +			else
 +				pr_warn("macro key %d pressed (only 1 to 5 are known)\n", return_value.device_state);
 +			break;
-+		case 0x4:
++		} else if (return_value.key_num == 0x4)
  			acer_toggle_turbo();
-+			break;
-+		default:
-+			pr_warn("Unknown Acer gaming key pressed - %d\n", return_value.key_num);
-+		}
+-		if (return_value.key_num == 0x5 && has_cap(ACER_CAP_PLATFORM_PROFILE))
++		else if (return_value.key_num == 0x5 && has_cap(ACER_CAP_PLATFORM_PROFILE))
+ 			acer_thermal_profile_change();
  		break;
  	default:
- 		pr_warn("Unknown function number - %d - %d\n",

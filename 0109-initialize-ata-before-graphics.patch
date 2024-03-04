@@ -1,7 +1,7 @@
-diff -up linux-5.15/drivers/Makefile.78~ linux-5.15/drivers/Makefile
---- linux-5.15/drivers/Makefile.78~	2021-10-31 21:53:10.000000000 +0100
-+++ linux-5.15/drivers/Makefile	2021-11-03 20:42:22.304893882 +0100
-@@ -60,15 +60,8 @@ obj-y				+= char/
+diff -up linux-6.8-rc3/drivers/Makefile.57~ linux-6.8-rc3/drivers/Makefile
+--- linux-6.8-rc3/drivers/Makefile.57~	2024-02-04 13:20:36.000000000 +0100
++++ linux-6.8-rc3/drivers/Makefile	2024-02-09 15:19:15.282465061 +0100
+@@ -66,14 +66,8 @@ obj-y				+= char/
  # iommu/ comes before gpu as gpu are using iommu controllers
  obj-y				+= iommu/
  
@@ -10,14 +10,13 @@ diff -up linux-5.15/drivers/Makefile.78~ linux-5.15/drivers/Makefile
 -
  obj-$(CONFIG_CONNECTOR)		+= connector/
  
--# i810fb and intelfb depend on char/agp/
+-# i810fb depends on char/agp/
 -obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
--obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
 -
  obj-$(CONFIG_PARPORT)		+= parport/
  obj-y				+= base/ block/ misc/ mfd/ nfc/
  obj-$(CONFIG_LIBNVDIMM)		+= nvdimm/
-@@ -80,6 +73,14 @@ obj-y				+= macintosh/
+@@ -85,6 +79,13 @@ obj-y				+= macintosh/
  obj-y				+= scsi/
  obj-y				+= nvme/
  obj-$(CONFIG_ATA)		+= ata/
@@ -25,9 +24,8 @@ diff -up linux-5.15/drivers/Makefile.78~ linux-5.15/drivers/Makefile
 +# gpu/ comes after char for AGP vs DRM startup and after iommu
 +obj-y				+= gpu/
 +
-+# i810fb and intelfb depend on char/agp/
++# i810fb depends on char/agp/
 +obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
-+obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
 +
  obj-$(CONFIG_TARGET_CORE)	+= target/
  obj-$(CONFIG_MTD)		+= mtd/

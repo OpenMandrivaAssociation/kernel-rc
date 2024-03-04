@@ -3,7 +3,7 @@
  * v4l2loopback.c  --  video4linux2 loopback driver
  *
  * Copyright (C) 2005-2009 Vasily Levin (vasaka@gmail.com)
- * Copyright (C) 2010-2019 IOhannes m zmoelnig (zmoelnig@iem.at)
+ * Copyright (C) 2010-2023 IOhannes m zmoelnig (zmoelnig@iem.at)
  * Copyright (C) 2011 Stefan Diewald (stefan.diewald@mytum.de)
  * Copyright (C) 2012 Anton Novikov (random.plant@gmail.com)
  *
@@ -26,21 +26,19 @@
 #include <linux/eventpoll.h>
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-common.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 29)
-#define HAVE__V4L2_DEVICE
 #include <media/v4l2-device.h>
-#endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 36)
-#define HAVE__V4L2_CTRLS
 #include <media/v4l2-ctrls.h>
-#endif
 #include <media/v4l2-event.h>
 
 #include <linux/miscdevice.h>
 #include "v4l2loopback.h"
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 1)
-#define kstrtoul strict_strtoul
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 0, 0)
+#error This module is not supported on kernels before 4.0.0.
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 3, 0)
+#define strscpy strlcpy
 #endif
 
 #if defined(timer_setup) && defined(from_timer)
@@ -61,123 +59,54 @@ MODULE_AUTHOR("Vasily Levin, "
 	      "Stefan Diewald,"
 	      "Anton Novikov"
 	      "et al.");
-MODULE_VERSION("0.12.5");
+#ifdef SNAPSHOT_VERSION
+MODULE_VERSION(__stringify(SNAPSHOT_VERSION));
+#else
+MODULE_VERSION("" __stringify(V4L2LOOPBACK_VERSION_MAJOR) "." __stringify(
+	V4L2LOOPBACK_VERSION_MINOR) "." __stringify(V4L2LOOPBACK_VERSION_BUGFIX));
+#endif
 MODULE_LICENSE("GPL");
 
 /*
  * helpers
  */
-#define STRINGIFY(s) #s
-#define STRINGIFY2(s) STRINGIFY(s)
-
-#define dprintk(fmt, args...)                                                  \
-	do {                                                                   \
-		if (debug > 0) {                                               \
-			printk(KERN_INFO "v4l2-loopback[" STRINGIFY2(          \
-				       __LINE__) "]: " fmt,                    \
-			       ##args);                                        \
-		}                                                              \
+#define dprintk(fmt, args...)                                          \
+	do {                                                           \
+		if (debug > 0) {                                       \
+			printk(KERN_INFO "v4l2-loopback[" __stringify( \
+				       __LINE__) "], pid(%d):  " fmt,  \
+			       task_pid_nr(current), ##args);          \
+		}                                                      \
 	} while (0)
 
-#define MARK()                                                                 \
-	do {                                                                   \
-		if (debug > 1) {                                               \
-			printk(KERN_INFO "%s:%d[%s]\n", __FILE__, __LINE__,    \
-			       __func__);                                      \
-		}                                                              \
+#define MARK()                                                             \
+	do {                                                               \
+		if (debug > 1) {                                           \
+			printk(KERN_INFO "%s:%d[%s], pid(%d)\n", __FILE__, \
+			       __LINE__, __func__, task_pid_nr(current));  \
+		}                                                          \
 	} while (0)
 
-#define dprintkrw(fmt, args...)                                                \
-	do {                                                                   \
-		if (debug > 2) {                                               \
-			printk(KERN_INFO "v4l2-loopback[" STRINGIFY2(          \
-				       __LINE__) "]: " fmt,                    \
-			       ##args);                                        \
-		}                                                              \
+#define dprintkrw(fmt, args...)                                        \
+	do {                                                           \
+		if (debug > 2) {                                       \
+			printk(KERN_INFO "v4l2-loopback[" __stringify( \
+				       __LINE__) "], pid(%d): " fmt,   \
+			       task_pid_nr(current), ##args);          \
+		}                                                      \
 	} while (0)
-
-/*
- * compatibility hacks
- */
-
-#ifndef HAVE__V4L2_CTRLS
-struct v4l2_ctrl_handler {
-	int error;
-};
-struct v4l2_ctrl_config {
-	void *ops;
-	u32 id;
-	const char *name;
-	int type;
-	s32 min;
-	s32 max;
-	u32 step;
-	s32 def;
-};
-int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
-			   unsigned nr_of_controls_hint)
-{
-	hdl->error = 0;
-	return 0;
-}
-void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
-{
-}
-void *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
-			   const struct v4l2_ctrl_config *conf, void *priv)
-{
-	return NULL;
-}
-#endif /* HAVE__V4L2_CTRLS */
-
-#ifndef HAVE__V4L2_DEVICE
-/* dummy v4l2_device struct/functions */
-#define V4L2_DEVICE_NAME_SIZE (20 + 16)
-struct v4l2_device {
-	char name[V4L2_DEVICE_NAME_SIZE];
-	struct v4l2_ctrl_handler *ctrl_handler;
-};
-static inline int v4l2_device_register(void *dev, void *v4l2_dev)
-{
-	return 0;
-}
-static inline void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
-{
-	return;
-}
-#endif /*  HAVE__V4L2_DEVICE */
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29)
-#define v4l2_file_operations file_operations
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37)
-void *v4l2l_vzalloc(unsigned long size)
-{
-	void *data = vmalloc(size);
-
-	memset(data, 0, size);
-	return data;
-}
-#else
-#define v4l2l_vzalloc vzalloc
-#endif
 
 static inline void v4l2l_get_timestamp(struct v4l2_buffer *b)
 {
-	/* ktime_get_ts is considered deprecated, so use ktime_get_ts64 if possible */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)
-	struct timespec ts;
-	ktime_get_ts(&ts);
-#else
 	struct timespec64 ts;
 	ktime_get_ts64(&ts);
-#endif
 
 	b->timestamp.tv_sec = ts.tv_sec;
 	b->timestamp.tv_usec = (ts.tv_nsec / NSEC_PER_USEC);
+	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
 }
 
-#if !defined(__poll_t)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0)
 typedef unsigned __poll_t;
 #endif
 
@@ -216,7 +145,7 @@ MODULE_PARM_DESC(debug, "debugging level (higher values == more verbose)");
 static int max_buffers = V4L2LOOPBACK_DEFAULT_MAX_BUFFERS;
 module_param(max_buffers, int, S_IRUGO);
 MODULE_PARM_DESC(max_buffers,
-		 "how many buffers should be allocated [DEFAULT: " STRINGIFY2(
+		 "how many buffers should be allocated [DEFAULT: " __stringify(
 			 V4L2LOOPBACK_DEFAULT_MAX_BUFFERS) "]");
 
 /* how many times a device can be opened
@@ -232,7 +161,7 @@ static int max_openers = V4L2LOOPBACK_DEFAULT_MAX_OPENERS;
 module_param(max_openers, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(
 	max_openers,
-	"how many users can open the loopback device [DEFAULT: " STRINGIFY2(
+	"how many users can open the loopback device [DEFAULT: " __stringify(
 		V4L2LOOPBACK_DEFAULT_MAX_OPENERS) "]");
 
 static int devices = -1;
@@ -255,12 +184,12 @@ module_param_array(exclusive_caps, bool, NULL, 0444);
 /* FIXXME: wording */
 MODULE_PARM_DESC(
 	exclusive_caps,
-	"whether to announce OUTPUT/CAPTURE capabilities exclusively or not  [DEFAULT: " STRINGIFY2(
+	"whether to announce OUTPUT/CAPTURE capabilities exclusively or not  [DEFAULT: " __stringify(
 		V4L2LOOPBACK_DEFAULT_EXCLUSIVECAPS) "]");
 
 /* format specifications */
-#define V4L2LOOPBACK_SIZE_MIN_WIDTH 48
-#define V4L2LOOPBACK_SIZE_MIN_HEIGHT 32
+#define V4L2LOOPBACK_SIZE_MIN_WIDTH 2
+#define V4L2LOOPBACK_SIZE_MIN_HEIGHT 1
 #define V4L2LOOPBACK_SIZE_DEFAULT_MAX_WIDTH 8192
 #define V4L2LOOPBACK_SIZE_DEFAULT_MAX_HEIGHT 8192
 
@@ -269,27 +198,24 @@ MODULE_PARM_DESC(
 
 static int max_width = V4L2LOOPBACK_SIZE_DEFAULT_MAX_WIDTH;
 module_param(max_width, int, S_IRUGO);
-MODULE_PARM_DESC(max_width, "maximum allowed frame width [DEFAULT: " STRINGIFY2(
-				    V4L2LOOPBACK_SIZE_DEFAULT_MAX_WIDTH) "]");
+MODULE_PARM_DESC(max_width,
+		 "maximum allowed frame width [DEFAULT: " __stringify(
+			 V4L2LOOPBACK_SIZE_DEFAULT_MAX_WIDTH) "]");
 static int max_height = V4L2LOOPBACK_SIZE_DEFAULT_MAX_HEIGHT;
 module_param(max_height, int, S_IRUGO);
 MODULE_PARM_DESC(max_height,
-		 "maximum allowed frame height [DEFAULT: " STRINGIFY2(
+		 "maximum allowed frame height [DEFAULT: " __stringify(
 			 V4L2LOOPBACK_SIZE_DEFAULT_MAX_HEIGHT) "]");
 
 static DEFINE_IDR(v4l2loopback_index_idr);
 static DEFINE_MUTEX(v4l2loopback_ctl_mutex);
 
 /* frame intervals */
-#define V4L2LOOPBACK_FPS_MIN 1
+#define V4L2LOOPBACK_FPS_MIN 0
 #define V4L2LOOPBACK_FPS_MAX 1000
 
 /* control IDs */
-#ifndef HAVE__V4L2_CTRLS
-#define V4L2LOOPBACK_CID_BASE (V4L2_CID_PRIVATE_BASE)
-#else
 #define V4L2LOOPBACK_CID_BASE (V4L2_CID_USER_BASE | 0xf000)
-#endif
 #define CID_KEEP_FORMAT (V4L2LOOPBACK_CID_BASE + 0)
 #define CID_SUSTAIN_FRAMERATE (V4L2LOOPBACK_CID_BASE + 1)
 #define CID_TIMEOUT (V4L2LOOPBACK_CID_BASE + 2)
@@ -340,7 +266,7 @@ static const struct v4l2_ctrl_config v4l2loopback_ctrl_timeoutimageio = {
 	.ops	= &v4l2loopback_ctrl_ops,
 	.id	= CID_TIMEOUT_IMAGE_IO,
 	.name	= "timeout_image_io",
-	.type	= V4L2_CTRL_TYPE_BOOLEAN,
+	.type	= V4L2_CTRL_TYPE_BUTTON,
 	.min	= 0,
 	.max	= 1,
 	.step	= 1,
@@ -369,6 +295,7 @@ struct v4l2_loopback_device {
 	struct video_device *vdev;
 	/* pixel and stream format */
 	struct v4l2_pix_format pix_format;
+	bool pix_format_has_valid_sizeimage;
 	struct v4l2_captureparm capture_param;
 	unsigned long frame_jiffies;
 
@@ -386,7 +313,7 @@ struct v4l2_loopback_device {
 	int used_buffers; /* number of the actually used buffers */
 	int max_openers; /* how many times can this device be opened */
 
-	int write_position; /* number of last written frame + 1 */
+	s64 write_position; /* number of last written frame + 1 */
 	struct list_head outbufs_list; /* buffers in output DQBUF order */
 	int bufpos2index
 		[MAX_BUFFERS]; /* mapping of (read/write_position % used_buffers)
@@ -414,17 +341,18 @@ struct v4l2_loopback_device {
 	int ready_for_output; /* set to true when no writer is currently attached
 			       * this differs slightly from !ready_for_capture,
 			       * e.g. when using fallback images */
+	int active_readers; /* increase if any reader starts streaming */
 	int announce_all_caps; /* set to false, if device caps (OUTPUT/CAPTURE)
                                 * should only be announced if the resp. "ready"
                                 * flag is set; default=TRUE */
 
-	int max_width;
-	int max_height;
+	int min_width, max_width;
+	int min_height, max_height;
 
 	char card_label[32];
 
 	wait_queue_head_t read_event;
-	spinlock_t lock;
+	spinlock_t lock, list_lock;
 };
 
 /* types of opener shows what opener wants to do with loopback */
@@ -439,7 +367,7 @@ enum opener_type {
 /* struct keeping state and type of opener */
 struct v4l2_loopback_opener {
 	enum opener_type type;
-	int read_position; /* number of last processed frame + 1 or
+	s64 read_position; /* number of last processed frame + 1 or
 			    * write_position - 1 if reader went out of sync */
 	unsigned int reread_count;
 	struct v4l2_buffer *buffers;
@@ -463,6 +391,26 @@ struct v4l2l_format {
 #define FORMAT_FLAGS_COMPRESSED 0x02
 
 #include "v4l2loopback_formats.h"
+
+#ifndef V4L2_TYPE_IS_CAPTURE
+#define V4L2_TYPE_IS_CAPTURE(type)                \
+	((type) == V4L2_BUF_TYPE_VIDEO_CAPTURE || \
+	 (type) == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+#endif /* V4L2_TYPE_IS_CAPTURE */
+#ifndef V4L2_TYPE_IS_OUTPUT
+#define V4L2_TYPE_IS_OUTPUT(type)                \
+	((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT || \
+	 (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+#endif /* V4L2_TYPE_IS_OUTPUT */
+
+/* whether the format can be changed */
+/* the format is fixated if we
+   - have writers (ready_for_capture>0)
+   - and/or have readers (active_readers>0)
+*/
+#define V4L2LOOPBACK_IS_FIXED_FMT(device)                               \
+	(device->ready_for_capture > 0 || device->active_readers > 0 || \
+	 device->keep_format)
 
 static const unsigned int FORMATS = ARRAY_SIZE(formats);
 
@@ -511,6 +459,171 @@ static void pix_format_set_size(struct v4l2_pix_format *f,
 	}
 }
 
+static int v4l2l_fill_format(struct v4l2_format *fmt, int capture,
+			     const u32 minwidth, const u32 maxwidth,
+			     const u32 minheight, const u32 maxheight)
+{
+	u32 width = fmt->fmt.pix.width, height = fmt->fmt.pix.height;
+	u32 pixelformat = fmt->fmt.pix.pixelformat;
+	struct v4l2_format fmt0 = *fmt;
+	u32 bytesperline = 0, sizeimage = 0;
+	if (!width)
+		width = V4L2LOOPBACK_SIZE_DEFAULT_WIDTH;
+	if (!height)
+		height = V4L2LOOPBACK_SIZE_DEFAULT_HEIGHT;
+	if (width < minwidth)
+		width = minwidth;
+	if (width > maxwidth)
+		width = maxwidth;
+	if (height < minheight)
+		height = minheight;
+	if (height > maxheight)
+		height = maxheight;
+
+	/* sets: width,height,pixelformat,bytesperline,sizeimage */
+	if (!(V4L2_TYPE_IS_MULTIPLANAR(fmt0.type))) {
+		fmt0.fmt.pix.bytesperline = 0;
+		fmt0.fmt.pix.sizeimage = 0;
+	}
+
+	if (0) {
+		;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+	} else if (!v4l2_fill_pixfmt(&fmt0.fmt.pix, pixelformat, width,
+				     height)) {
+		;
+	} else if (!v4l2_fill_pixfmt_mp(&fmt0.fmt.pix_mp, pixelformat, width,
+					height)) {
+		;
+#endif
+	} else {
+		const struct v4l2l_format *format =
+			format_by_fourcc(pixelformat);
+		if (!format)
+			return -EINVAL;
+		pix_format_set_size(&fmt0.fmt.pix, format, width, height);
+		fmt0.fmt.pix.pixelformat = format->fourcc;
+	}
+
+	if (V4L2_TYPE_IS_MULTIPLANAR(fmt0.type)) {
+		*fmt = fmt0;
+
+		if ((fmt->fmt.pix_mp.colorspace == V4L2_COLORSPACE_DEFAULT) ||
+		    (fmt->fmt.pix_mp.colorspace > V4L2_COLORSPACE_DCI_P3))
+			fmt->fmt.pix_mp.colorspace = V4L2_COLORSPACE_SRGB;
+		if (V4L2_FIELD_ANY == fmt->fmt.pix_mp.field)
+			fmt->fmt.pix_mp.field = V4L2_FIELD_NONE;
+		if (capture)
+			fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+		else
+			fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+	} else {
+		bytesperline = fmt->fmt.pix.bytesperline;
+		sizeimage = fmt->fmt.pix.sizeimage;
+
+		*fmt = fmt0;
+
+		if (!fmt->fmt.pix.bytesperline)
+			fmt->fmt.pix.bytesperline = bytesperline;
+		if (!fmt->fmt.pix.sizeimage)
+			fmt->fmt.pix.sizeimage = sizeimage;
+
+		if ((fmt->fmt.pix.colorspace == V4L2_COLORSPACE_DEFAULT) ||
+		    (fmt->fmt.pix.colorspace > V4L2_COLORSPACE_DCI_P3))
+			fmt->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
+		if (V4L2_FIELD_ANY == fmt->fmt.pix.field)
+			fmt->fmt.pix.field = V4L2_FIELD_NONE;
+		if (capture)
+			fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		else
+			fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	}
+
+	return 0;
+}
+
+/* Checks if v4l2l_fill_format() has set a valid, fixed sizeimage val. */
+static bool v4l2l_pix_format_has_valid_sizeimage(struct v4l2_format *fmt)
+{
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+	const struct v4l2_format_info *info;
+
+	info = v4l2_format_info(fmt->fmt.pix.pixelformat);
+	if (info && info->mem_planes == 1)
+		return true;
+#endif
+
+	return false;
+}
+
+static int pix_format_eq(const struct v4l2_pix_format *ref,
+			 const struct v4l2_pix_format *tgt, int strict)
+{
+	/* check if the two formats are equivalent.
+	 * ANY fields are handled gracefully
+	 */
+#define _pix_format_eq0(x)    \
+	if (ref->x != tgt->x) \
+	result = 0
+#define _pix_format_eq1(x, def)                              \
+	do {                                                 \
+		if ((def != tgt->x) && (ref->x != tgt->x)) { \
+			printk(KERN_INFO #x " failed");      \
+			result = 0;                          \
+		}                                            \
+	} while (0)
+	int result = 1;
+	_pix_format_eq0(width);
+	_pix_format_eq0(height);
+	_pix_format_eq0(pixelformat);
+	if (!strict)
+		return result;
+	_pix_format_eq1(field, V4L2_FIELD_ANY);
+	_pix_format_eq0(bytesperline);
+	_pix_format_eq0(sizeimage);
+	_pix_format_eq1(colorspace, V4L2_COLORSPACE_DEFAULT);
+	return result;
+}
+
+static struct v4l2_loopback_device *v4l2loopback_getdevice(struct file *f);
+static int inner_try_setfmt(struct file *file, struct v4l2_format *fmt)
+{
+	int capture = V4L2_TYPE_IS_CAPTURE(fmt->type);
+	struct v4l2_loopback_device *dev;
+	int needschange = 0;
+	char buf[5];
+	buf[4] = 0;
+
+	dev = v4l2loopback_getdevice(file);
+
+	needschange = !(pix_format_eq(&dev->pix_format, &fmt->fmt.pix, 0));
+	if (V4L2LOOPBACK_IS_FIXED_FMT(dev)) {
+		fmt->fmt.pix = dev->pix_format;
+		if (needschange) {
+			if (dev->active_readers > 0 && capture) {
+				/* cannot call fmt_cap while there are readers */
+				return -EBUSY;
+			}
+			if (dev->ready_for_capture > 0 && !capture) {
+				/* cannot call fmt_out while there are writers */
+				return -EBUSY;
+			}
+		}
+	}
+	if (v4l2l_fill_format(fmt, capture, dev->min_width, dev->max_width,
+			      dev->min_height, dev->max_height) != 0) {
+		return -EINVAL;
+	}
+
+	if (1) {
+		char buf[5];
+		buf[4] = 0;
+		dprintk("capFOURCC=%s\n",
+			fourcc2str(dev->pix_format.pixelformat, buf));
+	}
+	return 0;
+}
+
 static int set_timeperframe(struct v4l2_loopback_device *dev,
 			    struct v4l2_fract *tpf)
 {
@@ -536,7 +649,7 @@ static ssize_t attr_show_format(struct device *cd,
 	const struct v4l2_fract *tpf;
 	char buf4cc[5], buf_fps[32];
 
-	if (!dev || !dev->ready_for_capture)
+	if (!dev || !V4L2LOOPBACK_IS_FIXED_FMT(dev))
 		return 0;
 	tpf = &dev->capture_param.timeperframe;
 
@@ -630,6 +743,24 @@ static ssize_t attr_store_maxopeners(struct device *cd,
 static DEVICE_ATTR(max_openers, S_IRUGO | S_IWUSR, attr_show_maxopeners,
 		   attr_store_maxopeners);
 
+static ssize_t attr_show_state(struct device *cd, struct device_attribute *attr,
+			       char *buf)
+{
+	struct v4l2_loopback_device *dev = v4l2loopback_cd2dev(cd);
+
+	if (!dev)
+		return -ENODEV;
+
+	if (dev->ready_for_capture)
+		return sprintf(buf, "capture\n");
+	if (dev->ready_for_output)
+		return sprintf(buf, "output\n");
+
+	return -EAGAIN;
+}
+
+static DEVICE_ATTR(state, S_IRUGO, attr_show_state, NULL);
+
 static void v4l2loopback_remove_sysfs(struct video_device *vdev)
 {
 #define V4L2_SYSFS_DESTROY(x) device_remove_file(&vdev->dev, &dev_attr_##x)
@@ -638,6 +769,7 @@ static void v4l2loopback_remove_sysfs(struct video_device *vdev)
 		V4L2_SYSFS_DESTROY(format);
 		V4L2_SYSFS_DESTROY(buffers);
 		V4L2_SYSFS_DESTROY(max_openers);
+		V4L2_SYSFS_DESTROY(state);
 		/* ... */
 	}
 }
@@ -646,9 +778,9 @@ static void v4l2loopback_create_sysfs(struct video_device *vdev)
 {
 	int res = 0;
 
-#define V4L2_SYSFS_CREATE(x)                                                   \
-	res = device_create_file(&vdev->dev, &dev_attr_##x);                   \
-	if (res < 0)                                                           \
+#define V4L2_SYSFS_CREATE(x)                                 \
+	res = device_create_file(&vdev->dev, &dev_attr_##x); \
+	if (res < 0)                                         \
 	break
 	if (!vdev)
 		return;
@@ -656,6 +788,7 @@ static void v4l2loopback_create_sysfs(struct video_device *vdev)
 		V4L2_SYSFS_CREATE(format);
 		V4L2_SYSFS_CREATE(buffers);
 		V4L2_SYSFS_CREATE(max_openers);
+		V4L2_SYSFS_CREATE(state);
 		/* ... */
 	} while (0);
 
@@ -663,6 +796,17 @@ static void v4l2loopback_create_sysfs(struct video_device *vdev)
 		return;
 	dev_err(&vdev->dev, "%s error: %d\n", __func__, res);
 }
+
+/* Event APIs */
+
+#define V4L2LOOPBACK_EVENT_BASE (V4L2_EVENT_PRIVATE_START)
+#define V4L2LOOPBACK_EVENT_OFFSET 0x08E00000
+#define V4L2_EVENT_PRI_CLIENT_USAGE \
+	(V4L2LOOPBACK_EVENT_BASE + V4L2LOOPBACK_EVENT_OFFSET + 1)
+
+struct v4l2_event_client_usage {
+	__u32 count;
+};
 
 /* global module data */
 /* find a device based on it's device-number (e.g. '3' for /dev/video3) */
@@ -718,6 +862,7 @@ static struct v4l2_loopback_device *v4l2loopback_getdevice(struct file *f)
 }
 
 /* forward declarations */
+static void client_usage_queue_event(struct video_device *vdev);
 static void init_buffers(struct v4l2_loopback_device *dev);
 static int allocate_buffers(struct v4l2_loopback_device *dev);
 static void free_buffers(struct v4l2_loopback_device *dev);
@@ -760,15 +905,10 @@ static int vidioc_querycap(struct file *file, void *priv,
 			->device_nr;
 	__u32 capabilities = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
 
-	strlcpy(cap->driver, "v4l2 loopback", sizeof(cap->driver));
+	strscpy(cap->driver, "v4l2 loopback", sizeof(cap->driver));
 	snprintf(cap->card, sizeof(cap->card), "%s", dev->card_label);
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
 		 "platform:v4l2loopback-%03d", device_nr);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 1, 0)
-	/* since 3.1.0, the v4l2-core system is supposed to set the version */
-	cap->version = V4L2LOOPBACK_VERSION_CODE;
-#endif
 
 	if (dev->announce_all_caps) {
 		capabilities |= V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT;
@@ -786,9 +926,7 @@ static int vidioc_querycap(struct file *file, void *priv,
 #endif /* >=linux-4.7.0 */
 		cap->device_caps = cap->capabilities = capabilities;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0)
 	cap->capabilities |= V4L2_CAP_DEVICE_CAPS;
-#endif
 
 	memset(cap->reserved, 0, sizeof(cap->reserved));
 	return 0;
@@ -804,7 +942,7 @@ static int vidioc_enum_framesizes(struct file *file, void *fh,
 		return -EINVAL;
 
 	dev = v4l2loopback_getdevice(file);
-	if (dev->ready_for_capture) {
+	if (V4L2LOOPBACK_IS_FIXED_FMT(dev)) {
 		/* format has already been negotiated
 		 * cannot change during runtime
 		 */
@@ -821,16 +959,24 @@ static int vidioc_enum_framesizes(struct file *file, void *fh,
 		if (NULL == format_by_fourcc(argp->pixel_format))
 			return -EINVAL;
 
-		argp->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
+		if (dev->min_width == dev->max_width &&
+		    dev->min_height == dev->max_height) {
+			argp->type = V4L2_FRMSIZE_TYPE_DISCRETE;
 
-		argp->stepwise.min_width = V4L2LOOPBACK_SIZE_MIN_WIDTH;
-		argp->stepwise.min_height = V4L2LOOPBACK_SIZE_MIN_HEIGHT;
+			argp->discrete.width = dev->min_width;
+			argp->discrete.height = dev->min_height;
+		} else {
+			argp->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
 
-		argp->stepwise.max_width = dev->max_width;
-		argp->stepwise.max_height = dev->max_height;
+			argp->stepwise.min_width = dev->min_width;
+			argp->stepwise.min_height = dev->min_height;
 
-		argp->stepwise.step_width = 1;
-		argp->stepwise.step_height = 1;
+			argp->stepwise.max_width = dev->max_width;
+			argp->stepwise.max_height = dev->max_height;
+
+			argp->stepwise.step_width = 1;
+			argp->stepwise.step_height = 1;
+		}
 	}
 	return 0;
 }
@@ -847,7 +993,7 @@ static int vidioc_enum_frameintervals(struct file *file, void *fh,
 	if (argp->index)
 		return -EINVAL;
 
-	if (dev->ready_for_capture) {
+	if (V4L2LOOPBACK_IS_FIXED_FMT(dev)) {
 		if (argp->width != dev->pix_format.width ||
 		    argp->height != dev->pix_format.height ||
 		    argp->pixel_format != dev->pix_format.pixelformat)
@@ -856,10 +1002,10 @@ static int vidioc_enum_frameintervals(struct file *file, void *fh,
 		argp->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 		argp->discrete = dev->capture_param.timeperframe;
 	} else {
-		if (argp->width < V4L2LOOPBACK_SIZE_MIN_WIDTH ||
-		    argp->width > max_width ||
-		    argp->height < V4L2LOOPBACK_SIZE_MIN_HEIGHT ||
-		    argp->height > max_height ||
+		if (argp->width < dev->min_width ||
+		    argp->width > dev->max_width ||
+		    argp->height < dev->min_height ||
+		    argp->height > dev->max_height ||
 		    NULL == format_by_fourcc(argp->pixel_format))
 			return -EINVAL;
 
@@ -884,18 +1030,27 @@ static int vidioc_enum_fmt_cap(struct file *file, void *fh,
 			       struct v4l2_fmtdesc *f)
 {
 	struct v4l2_loopback_device *dev;
+	const struct v4l2l_format *fmt;
 	MARK();
 
 	dev = v4l2loopback_getdevice(file);
 
 	if (f->index)
 		return -EINVAL;
-	if (dev->ready_for_capture) {
+
+	if (V4L2LOOPBACK_IS_FIXED_FMT(dev)) {
+		/* format has been fixed, so only one single format is supported */
 		const __u32 format = dev->pix_format.pixelformat;
 
-		snprintf(f->description, sizeof(f->description), "[%c%c%c%c]",
-			 (format >> 0) & 0xFF, (format >> 8) & 0xFF,
-			 (format >> 16) & 0xFF, (format >> 24) & 0xFF);
+		if ((fmt = format_by_fourcc(format))) {
+			snprintf(f->description, sizeof(f->description), "%s",
+				 fmt->name);
+		} else {
+			snprintf(f->description, sizeof(f->description),
+				 "[%c%c%c%c]", (format >> 0) & 0xFF,
+				 (format >> 8) & 0xFF, (format >> 16) & 0xFF,
+				 (format >> 24) & 0xFF);
+		}
 
 		f->pixelformat = dev->pix_format.pixelformat;
 	} else {
@@ -916,8 +1071,7 @@ static int vidioc_g_fmt_cap(struct file *file, void *priv,
 	MARK();
 
 	dev = v4l2loopback_getdevice(file);
-
-	if (!dev->ready_for_capture)
+	if (!dev->ready_for_capture && !dev->ready_for_output)
 		return -EINVAL;
 
 	fmt->fmt.pix = dev->pix_format;
@@ -926,7 +1080,7 @@ static int vidioc_g_fmt_cap(struct file *file, void *priv,
 }
 
 /* checks if it is OK to change to format fmt;
- * actual check is done by inner_try_fmt_cap
+ * actual check is done by inner_try_setfmt
  * just checking that pixelformat is OK and set other parameters, app should
  * obey this decision
  * called on VIDIOC_TRY_FMT, with v4l2_buf_type set to V4L2_BUF_TYPE_VIDEO_CAPTURE
@@ -934,24 +1088,13 @@ static int vidioc_g_fmt_cap(struct file *file, void *priv,
 static int vidioc_try_fmt_cap(struct file *file, void *priv,
 			      struct v4l2_format *fmt)
 {
-	struct v4l2_loopback_device *dev;
-	char buf[5];
-
-	dev = v4l2loopback_getdevice(file);
-
-	if (0 == dev->ready_for_capture) {
-		dprintk("setting fmt_cap not possible yet\n");
-		return -EBUSY;
-	}
-
-	if (fmt->fmt.pix.pixelformat != dev->pix_format.pixelformat)
+	int ret = 0;
+	if (!V4L2_TYPE_IS_CAPTURE(fmt->type))
 		return -EINVAL;
-
-	fmt->fmt.pix = dev->pix_format;
-
-	buf[4] = 0;
-	dprintk("capFOURCC=%s\n", fourcc2str(dev->pix_format.pixelformat, buf));
-	return 0;
+	ret = inner_try_setfmt(file, fmt);
+	if (-EBUSY == ret)
+		return 0;
+	return ret;
 }
 
 /* sets new output format, if possible
@@ -962,7 +1105,15 @@ static int vidioc_try_fmt_cap(struct file *file, void *priv,
 static int vidioc_s_fmt_cap(struct file *file, void *priv,
 			    struct v4l2_format *fmt)
 {
-	return vidioc_try_fmt_cap(file, priv, fmt);
+	int ret;
+	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
+	if (!V4L2_TYPE_IS_CAPTURE(fmt->type))
+		return -EINVAL;
+	ret = inner_try_setfmt(file, fmt);
+	if (!ret) {
+		dev->pix_format = fmt->fmt.pix;
+	}
+	return ret;
 }
 
 /* ------------------ OUTPUT ----------------------- */
@@ -979,20 +1130,22 @@ static int vidioc_enum_fmt_out(struct file *file, void *fh,
 
 	dev = v4l2loopback_getdevice(file);
 
-	if (dev->ready_for_capture) {
+	if (V4L2LOOPBACK_IS_FIXED_FMT(dev)) {
+		/* format has been fixed, so only one single format is supported */
 		const __u32 format = dev->pix_format.pixelformat;
 
-		/* format has been fixed by the writer, so only one single format is supported */
 		if (f->index)
 			return -EINVAL;
 
-		fmt = format_by_fourcc(format);
-		if (NULL == fmt)
-			return -EINVAL;
-
-		/* f->flags = ??; */
-		snprintf(f->description, sizeof(f->description), "%s",
-			 fmt->name);
+		if ((fmt = format_by_fourcc(format))) {
+			snprintf(f->description, sizeof(f->description), "%s",
+				 fmt->name);
+		} else {
+			snprintf(f->description, sizeof(f->description),
+				 "[%c%c%c%c]", (format >> 0) & 0xFF,
+				 (format >> 8) & 0xFF, (format >> 16) & 0xFF,
+				 (format >> 24) & 0xFF);
+		}
 
 		f->pixelformat = dev->pix_format.pixelformat;
 	} else {
@@ -1045,52 +1198,13 @@ static int vidioc_g_fmt_out(struct file *file, void *priv,
 static int vidioc_try_fmt_out(struct file *file, void *priv,
 			      struct v4l2_format *fmt)
 {
-	struct v4l2_loopback_device *dev;
-	MARK();
-
-	dev = v4l2loopback_getdevice(file);
-
-	/* TODO(vasaka) loopback does not care about formats writer want to set,
-	 * maybe it is a good idea to restrict format somehow */
-	if (dev->ready_for_capture) {
-		fmt->fmt.pix = dev->pix_format;
-	} else {
-		__u32 w = fmt->fmt.pix.width;
-		__u32 h = fmt->fmt.pix.height;
-		__u32 pixfmt = fmt->fmt.pix.pixelformat;
-		const struct v4l2l_format *format = format_by_fourcc(pixfmt);
-
-		if (w > dev->max_width)
-			w = dev->max_width;
-		if (h > dev->max_height)
-			h = dev->max_height;
-
-		dprintk("trying image %dx%d\n", w, h);
-
-		if (w < 1)
-			w = V4L2LOOPBACK_SIZE_DEFAULT_WIDTH;
-
-		if (h < 1)
-			h = V4L2LOOPBACK_SIZE_DEFAULT_HEIGHT;
-
-		if (NULL == format)
-			format = &formats[0];
-
-		pix_format_set_size(&fmt->fmt.pix, format, w, h);
-
-		fmt->fmt.pix.pixelformat = format->fourcc;
-
-		if ((fmt->fmt.pix.colorspace == V4L2_COLORSPACE_DEFAULT) ||
-		    (fmt->fmt.pix.colorspace > V4L2_COLORSPACE_DCI_P3))
-			fmt->fmt.pix.colorspace = V4L2_COLORSPACE_SRGB;
-
-		if (V4L2_FIELD_ANY == fmt->fmt.pix.field)
-			fmt->fmt.pix.field = V4L2_FIELD_NONE;
-
-		/* FIXXME: try_fmt should never modify the device-state */
-		dev->pix_format = fmt->fmt.pix;
-	}
-	return 0;
+	int ret = 0;
+	if (!V4L2_TYPE_IS_OUTPUT(fmt->type))
+		return -EINVAL;
+	ret = inner_try_setfmt(file, fmt);
+	if (-EBUSY == ret)
+		return 0;
+	return ret;
 }
 
 /* sets new output format, if possible;
@@ -1102,26 +1216,30 @@ static int vidioc_s_fmt_out(struct file *file, void *priv,
 			    struct v4l2_format *fmt)
 {
 	struct v4l2_loopback_device *dev;
-	char buf[5];
 	int ret;
-	MARK();
-
-	dev = v4l2loopback_getdevice(file);
-	ret = vidioc_try_fmt_out(file, priv, fmt);
-
-	dprintk("s_fmt_out(%d) %d...%d\n", ret, dev->ready_for_capture,
-		dev->pix_format.sizeimage);
-
+	char buf[5];
 	buf[4] = 0;
-	dprintk("outFOURCC=%s\n", fourcc2str(dev->pix_format.pixelformat, buf));
+	if (!V4L2_TYPE_IS_OUTPUT(fmt->type))
+		return -EINVAL;
+	dev = v4l2loopback_getdevice(file);
 
-	if (ret < 0)
-		return ret;
+	ret = inner_try_setfmt(file, fmt);
+	if (!ret) {
+		dev->pix_format = fmt->fmt.pix;
+		dev->pix_format_has_valid_sizeimage =
+			v4l2l_pix_format_has_valid_sizeimage(fmt);
+		dprintk("s_fmt_out(%d) %d...%d\n", ret, dev->ready_for_capture,
+			dev->pix_format.sizeimage);
+		dprintk("outFOURCC=%s\n",
+			fourcc2str(dev->pix_format.pixelformat, buf));
 
-	if (!dev->ready_for_capture) {
-		dev->buffer_size = PAGE_ALIGN(dev->pix_format.sizeimage);
-		fmt->fmt.pix.sizeimage = dev->buffer_size;
-		ret = allocate_buffers(dev);
+		if (!dev->ready_for_capture) {
+			dev->buffer_size =
+				PAGE_ALIGN(dev->pix_format.sizeimage);
+			// JMZ: TODO get rid of the next line
+			fmt->fmt.pix.sizeimage = dev->buffer_size;
+			ret = allocate_buffers(dev);
+		}
 	}
 	return ret;
 }
@@ -1245,67 +1363,6 @@ static int vidioc_querystd(struct file *file, void *fh, v4l2_std_id *norm)
 }
 #endif /* V4L2LOOPBACK_WITH_STD */
 
-/* get ctrls info
- * called on VIDIOC_QUERYCTRL
- */
-static int vidioc_queryctrl(struct file *file, void *fh,
-			    struct v4l2_queryctrl *q)
-{
-	const struct v4l2_ctrl_config *cnf = 0;
-	switch (q->id) {
-	case CID_KEEP_FORMAT:
-		cnf = &v4l2loopback_ctrl_keepformat;
-		break;
-	case CID_SUSTAIN_FRAMERATE:
-		cnf = &v4l2loopback_ctrl_sustainframerate;
-		break;
-	case CID_TIMEOUT:
-		cnf = &v4l2loopback_ctrl_timeout;
-		break;
-	case CID_TIMEOUT_IMAGE_IO:
-		cnf = &v4l2loopback_ctrl_timeoutimageio;
-		break;
-	default:
-		return -EINVAL;
-	}
-	if (!cnf)
-		BUG();
-
-	strlcpy(q->name, cnf->name, sizeof(q->name));
-	q->default_value = cnf->def;
-	q->type = cnf->type;
-	q->minimum = cnf->min;
-	q->maximum = cnf->max;
-	q->step = cnf->step;
-
-	memset(q->reserved, 0, sizeof(q->reserved));
-	return 0;
-}
-
-static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *c)
-{
-	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-
-	switch (c->id) {
-	case CID_KEEP_FORMAT:
-		c->value = dev->keep_format;
-		break;
-	case CID_SUSTAIN_FRAMERATE:
-		c->value = dev->sustain_framerate;
-		break;
-	case CID_TIMEOUT:
-		c->value = jiffies_to_msecs(dev->timeout_jiffies);
-		break;
-	case CID_TIMEOUT_IMAGE_IO:
-		c->value = dev->timeout_image_io;
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 static int v4l2loopback_set_ctrl(struct v4l2_loopback_device *dev, u32 id,
 				 s64 val)
 {
@@ -1335,9 +1392,7 @@ static int v4l2loopback_set_ctrl(struct v4l2_loopback_device *dev, u32 id,
 		allocate_timeout_image(dev);
 		break;
 	case CID_TIMEOUT_IMAGE_IO:
-		if (val < 0 || val > 1)
-			return -EINVAL;
-		dev->timeout_image_io = val;
+		dev->timeout_image_io = 1;
 		break;
 	default:
 		return -EINVAL;
@@ -1350,11 +1405,6 @@ static int v4l2loopback_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct v4l2_loopback_device *dev = container_of(
 		ctrl->handler, struct v4l2_loopback_device, ctrl_handler);
 	return v4l2loopback_set_ctrl(dev, ctrl->id, ctrl->val);
-}
-static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *c)
-{
-	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-	return v4l2loopback_set_ctrl(dev, c->id, c->value);
 }
 
 /* returns set of device outputs, in our case there is only one
@@ -1377,7 +1427,7 @@ static int vidioc_enum_output(struct file *file, void *fh,
 	memset(outp, 0, sizeof(*outp));
 
 	outp->index = index;
-	strlcpy(outp->name, "loopback in", sizeof(outp->name));
+	strscpy(outp->name, "loopback in", sizeof(outp->name));
 	outp->type = V4L2_OUTPUT_TYPE_ANALOG;
 	outp->audioset = 0;
 	outp->modulator = 0;
@@ -1426,6 +1476,7 @@ static int vidioc_s_output(struct file *file, void *fh, unsigned int i)
 static int vidioc_enum_input(struct file *file, void *fh,
 			     struct v4l2_input *inp)
 {
+	struct v4l2_loopback_device *dev;
 	__u32 index = inp->index;
 	MARK();
 
@@ -1436,7 +1487,7 @@ static int vidioc_enum_input(struct file *file, void *fh,
 	memset(inp, 0, sizeof(*inp));
 
 	inp->index = index;
-	strlcpy(inp->name, "loopback", sizeof(inp->name));
+	strscpy(inp->name, "loopback", sizeof(inp->name));
 	inp->type = V4L2_INPUT_TYPE_CAMERA;
 	inp->audioset = 0;
 	inp->tuner = 0;
@@ -1448,6 +1499,11 @@ static int vidioc_enum_input(struct file *file, void *fh,
 	inp->capabilities |= V4L2_IN_CAP_STD;
 #endif
 #endif /* V4L2LOOPBACK_WITH_STD */
+
+	dev = v4l2loopback_getdevice(file);
+	if (!dev->ready_for_capture) {
+		inp->status |= V4L2_IN_ST_NO_SIGNAL;
+	}
 
 	return 0;
 }
@@ -1497,11 +1553,17 @@ static int vidioc_reqbufs(struct file *file, void *fh,
 
 	dprintk("reqbufs: %d\t%d=%d\n", b->memory, b->count,
 		dev->buffers_number);
+
 	if (opener->timeout_image_io) {
+		dev->timeout_image_io = 0;
 		if (b->memory != V4L2_MEMORY_MMAP)
 			return -EINVAL;
-		b->count = 1;
+		b->count = 2;
 		return 0;
+	}
+
+	if (V4L2_TYPE_IS_OUTPUT(b->type) && (!dev->ready_for_output)) {
+		return -EBUSY;
 	}
 
 	init_buffers(dev);
@@ -1528,17 +1590,17 @@ static int vidioc_reqbufs(struct file *file, void *fh,
 		if (b->count < dev->used_buffers) {
 			struct v4l2l_buffer *pos, *n;
 
-			list_for_each_entry_safe (pos, n, &dev->outbufs_list,
-						  list_head) {
+			list_for_each_entry_safe(pos, n, &dev->outbufs_list,
+						 list_head) {
 				if (pos->buffer.index >= b->count)
 					list_del(&pos->list_head);
 			}
 
 			/* after we update dev->used_buffers, buffers in outbufs_list will
 			 * correspond to dev->write_position + [0;b->count-1] range */
-			i = dev->write_position;
-			list_for_each_entry (pos, &dev->outbufs_list,
-					     list_head) {
+			i = dev->write_position % b->count;
+			list_for_each_entry(pos, &dev->outbufs_list,
+					    list_head) {
 				dev->bufpos2index[i % b->count] =
 					pos->buffer.index;
 				++i;
@@ -1603,11 +1665,14 @@ static void buffer_written(struct v4l2_loopback_device *dev,
 {
 	del_timer_sync(&dev->sustain_timer);
 	del_timer_sync(&dev->timeout_timer);
-	spin_lock_bh(&dev->lock);
 
+	spin_lock_bh(&dev->list_lock);
+	list_move_tail(&buf->list_head, &dev->outbufs_list);
+	spin_unlock_bh(&dev->list_lock);
+
+	spin_lock_bh(&dev->lock);
 	dev->bufpos2index[dev->write_position % dev->used_buffers] =
 		buf->buffer.index;
-	list_move_tail(&buf->list_head, &dev->outbufs_list);
 	++dev->write_position;
 	dev->reread_count = 0;
 
@@ -1638,17 +1703,47 @@ static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 
 	switch (buf->type) {
 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-		dprintkrw("capture QBUF index: %d\n", index);
+		dprintkrw(
+			"qbuf(CAPTURE)#%d: buffer#%d @ %p type=%d bytesused=%d length=%d flags=%x field=%d timestamp=%lld.%06ld sequence=%d\n",
+			index, buf->index, buf, buf->type, buf->bytesused,
+			buf->length, buf->flags, buf->field,
+			(long long)buf->timestamp.tv_sec,
+			(long int)buf->timestamp.tv_usec, buf->sequence);
 		set_queued(b);
 		return 0;
 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-		dprintkrw("output QBUF pos: %d index: %d\n",
-			  dev->write_position, index);
-		if (buf->timestamp.tv_sec == 0 && buf->timestamp.tv_usec == 0)
+		dprintkrw(
+			"qbuf(OUTPUT)#%d: buffer#%d @ %p type=%d bytesused=%d length=%d flags=%x field=%d timestamp=%lld.%06ld sequence=%d\n",
+			index, buf->index, buf, buf->type, buf->bytesused,
+			buf->length, buf->flags, buf->field,
+			(long long)buf->timestamp.tv_sec,
+			(long int)buf->timestamp.tv_usec, buf->sequence);
+		if ((!(b->buffer.flags & V4L2_BUF_FLAG_TIMESTAMP_COPY)) &&
+		    (buf->timestamp.tv_sec == 0 && buf->timestamp.tv_usec == 0))
 			v4l2l_get_timestamp(&b->buffer);
-		else
+		else {
 			b->buffer.timestamp = buf->timestamp;
-		b->buffer.bytesused = buf->bytesused;
+			b->buffer.flags |= V4L2_BUF_FLAG_TIMESTAMP_COPY;
+		}
+		if (dev->pix_format_has_valid_sizeimage) {
+			if (buf->bytesused >= dev->pix_format.sizeimage) {
+				b->buffer.bytesused = dev->pix_format.sizeimage;
+			} else {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 5, 0)
+				dev_warn_ratelimited(
+					&dev->vdev->dev,
+#else
+				dprintkrw(
+#endif
+					"warning queued output buffer bytesused too small %d < %d\n",
+					buf->bytesused,
+					dev->pix_format.sizeimage);
+				b->buffer.bytesused = buf->bytesused;
+			}
+		} else {
+			b->buffer.bytesused = buf->bytesused;
+		}
+
 		set_done(b);
 		buffer_written(dev, b);
 
@@ -1747,8 +1842,8 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 		index = get_capture_buffer(file);
 		if (index < 0)
 			return index;
-		dprintkrw("capture DQBUF pos: %d index: %d\n",
-			  opener->read_position - 1, index);
+		dprintkrw("capture DQBUF pos: %lld index: %d\n",
+			  (long long)(opener->read_position - 1), index);
 		if (!(dev->buffers[index].buffer.flags &
 		      V4L2_BUF_FLAG_MAPPED)) {
 			dprintk("trying to return not mapped buf[%d]\n", index);
@@ -1756,15 +1851,31 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 		}
 		unset_flags(&dev->buffers[index]);
 		*buf = dev->buffers[index].buffer;
+		dprintkrw(
+			"dqbuf(CAPTURE)#%d: buffer#%d @ %p type=%d bytesused=%d length=%d flags=%x field=%d timestamp=%lld.%06ld sequence=%d\n",
+			index, buf->index, buf, buf->type, buf->bytesused,
+			buf->length, buf->flags, buf->field,
+			(long long)buf->timestamp.tv_sec,
+			(long int)buf->timestamp.tv_usec, buf->sequence);
 		return 0;
 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+		spin_lock_bh(&dev->list_lock);
+
 		b = list_entry(dev->outbufs_list.prev, struct v4l2l_buffer,
 			       list_head);
 		list_move_tail(&b->list_head, &dev->outbufs_list);
+
+		spin_unlock_bh(&dev->list_lock);
 		dprintkrw("output DQBUF index: %d\n", b->buffer.index);
 		unset_flags(b);
 		*buf = b->buffer;
 		buf->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+		dprintkrw(
+			"dqbuf(OUTPUT)#%d: buffer#%d @ %p type=%d bytesused=%d length=%d flags=%x field=%d timestamp=%lld.%06ld sequence=%d\n",
+			index, buf->index, buf, buf->type, buf->bytesused,
+			buf->length, buf->flags, buf->field,
+			(long long)buf->timestamp.tv_sec,
+			(long int)buf->timestamp.tv_usec, buf->sequence);
 		return 0;
 	default:
 		return -EINVAL;
@@ -1799,7 +1910,11 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
 		if (!dev->ready_for_capture)
 			return -EIO;
+		if (dev->active_readers > 0)
+			return -EBUSY;
 		opener->type = READER;
+		dev->active_readers++;
+		client_usage_queue_event(dev->vdev);
 		return 0;
 	default:
 		return -EINVAL;
@@ -1814,17 +1929,24 @@ static int vidioc_streamoff(struct file *file, void *fh,
 			    enum v4l2_buf_type type)
 {
 	struct v4l2_loopback_device *dev;
+	struct v4l2_loopback_opener *opener;
+
 	MARK();
 	dprintk("%d\n", type);
 
 	dev = v4l2loopback_getdevice(file);
-
+	opener = fh_to_opener(fh);
 	switch (type) {
 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
 		if (dev->ready_for_capture > 0)
 			dev->ready_for_capture--;
 		return 0;
 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+		if (opener->type == READER) {
+			opener->type = 0;
+			dev->active_readers--;
+			client_usage_queue_event(dev->vdev);
+		}
 		return 0;
 	default:
 		return -EINVAL;
@@ -1847,12 +1969,59 @@ static int vidiocgmbuf(struct file *file, void *fh, struct video_mbuf *p)
 }
 #endif
 
+static void client_usage_queue_event(struct video_device *vdev)
+{
+	struct v4l2_event ev;
+	struct v4l2_loopback_device *dev;
+
+	dev = container_of(vdev->v4l2_dev, struct v4l2_loopback_device,
+			   v4l2_dev);
+
+	memset(&ev, 0, sizeof(ev));
+	ev.type = V4L2_EVENT_PRI_CLIENT_USAGE;
+	((struct v4l2_event_client_usage *)&ev.u)->count = dev->active_readers;
+
+	v4l2_event_queue(vdev, &ev);
+}
+
+static int client_usage_ops_add(struct v4l2_subscribed_event *sev,
+				unsigned elems)
+{
+	if (!(sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL))
+		return 0;
+
+	client_usage_queue_event(sev->fh->vdev);
+	return 0;
+}
+
+static void client_usage_ops_replace(struct v4l2_event *old,
+				     const struct v4l2_event *new)
+{
+	*((struct v4l2_event_client_usage *)&old->u) =
+		*((struct v4l2_event_client_usage *)&new->u);
+}
+
+static void client_usage_ops_merge(const struct v4l2_event *old,
+				   struct v4l2_event *new)
+{
+	*((struct v4l2_event_client_usage *)&new->u) =
+		*((struct v4l2_event_client_usage *)&old->u);
+}
+
+const struct v4l2_subscribed_event_ops client_usage_ops = {
+	.add = client_usage_ops_add,
+	.replace = client_usage_ops_replace,
+	.merge = client_usage_ops_merge,
+};
+
 static int vidioc_subscribe_event(struct v4l2_fh *fh,
 				  const struct v4l2_event_subscription *sub)
 {
 	switch (sub->type) {
 	case V4L2_EVENT_CTRL:
 		return v4l2_ctrl_subscribe_event(fh, sub);
+	case V4L2_EVENT_PRI_CLIENT_USAGE:
+		return v4l2_event_subscribe(fh, sub, 0, &client_usage_ops);
 	}
 
 	return -EINVAL;
@@ -1866,6 +2035,8 @@ static void vm_open(struct vm_area_struct *vma)
 
 	buf = vma->vm_private_data;
 	buf->use_count++;
+
+	buf->buffer.flags |= V4L2_BUF_FLAG_MAPPED;
 }
 
 static void vm_close(struct vm_area_struct *vma)
@@ -1875,6 +2046,9 @@ static void vm_close(struct vm_area_struct *vma)
 
 	buf = vma->vm_private_data;
 	buf->use_count--;
+
+	if (buf->use_count <= 0)
+		buf->buffer.flags &= ~V4L2_BUF_FLAG_MAPPED;
 }
 
 static struct vm_operations_struct vm_ops = {
@@ -1953,7 +2127,6 @@ static int v4l2_loopback_mmap(struct file *file, struct vm_area_struct *vma)
 
 	vma->vm_ops = &vm_ops;
 	vma->vm_private_data = buffer;
-	buffer->buffer.flags |= V4L2_BUF_FLAG_MAPPED;
 
 	vm_open(vma);
 
@@ -2037,8 +2210,6 @@ static int v4l2_loopback_open(struct file *file)
 		}
 	}
 
-	dev->timeout_image_io = 0;
-
 	v4l2_fh_init(&opener->fh, video_devdata(file));
 	file->private_data = &opener->fh;
 
@@ -2052,14 +2223,16 @@ static int v4l2_loopback_close(struct file *file)
 {
 	struct v4l2_loopback_opener *opener;
 	struct v4l2_loopback_device *dev;
-	int iswriter = 0;
+	int is_writer = 0, is_reader = 0;
 	MARK();
 
 	opener = fh_to_opener(file->private_data);
 	dev = v4l2loopback_getdevice(file);
 
 	if (WRITER == opener->type)
-		iswriter = 1;
+		is_writer = 1;
+	if (READER == opener->type)
+		is_reader = 1;
 
 	atomic_dec(&dev->open_count);
 	if (dev->open_count.counter == 0) {
@@ -2072,8 +2245,11 @@ static int v4l2_loopback_close(struct file *file)
 	v4l2_fh_exit(&opener->fh);
 
 	kfree(opener);
-	if (iswriter) {
+	if (is_writer)
 		dev->ready_for_output = 1;
+	if (is_reader) {
+		dev->active_readers--;
+		client_usage_queue_event(dev->vdev);
 	}
 	MARK();
 	return 0;
@@ -2263,7 +2439,6 @@ static void init_buffers(struct v4l2_loopback_device *dev)
 
 	buffer_size = dev->buffer_size;
 	bytesused = dev->pix_format.sizeimage;
-
 	for (i = 0; i < dev->buffers_number; ++i) {
 		struct v4l2_buffer *b = &dev->buffers[i].buffer;
 		b->index = i;
@@ -2271,9 +2446,6 @@ static void init_buffers(struct v4l2_loopback_device *dev)
 		b->length = buffer_size;
 		b->field = V4L2_FIELD_NONE;
 		b->flags = 0;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 1)
-		b->input = 0;
-#endif
 		b->m.offset = i * buffer_size;
 		b->memory = V4L2_MEMORY_MMAP;
 		b->sequence = 0;
@@ -2291,13 +2463,17 @@ static void init_buffers(struct v4l2_loopback_device *dev)
 static int allocate_timeout_image(struct v4l2_loopback_device *dev)
 {
 	MARK();
-	if (dev->buffer_size <= 0)
+	if (dev->buffer_size <= 0) {
+		dev->timeout_image_io = 0;
 		return -EINVAL;
+	}
 
 	if (dev->timeout_image == NULL) {
-		dev->timeout_image = v4l2l_vzalloc(dev->buffer_size);
-		if (dev->timeout_image == NULL)
+		dev->timeout_image = vzalloc(dev->buffer_size);
+		if (dev->timeout_image == NULL) {
+			dev->timeout_image_io = 0;
 			return -ENOMEM;
+		}
 	}
 	return 0;
 }
@@ -2323,18 +2499,10 @@ static void init_vdev(struct video_device *vdev, int nr)
 #endif
 
 	if (debug > 1)
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 20, 0)
-		vdev->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
-#else
-		vdev->dev_debug =
-			V4L2_DEV_DEBUG_IOCTL | V4L2_DEV_DEBUG_IOCTL_ARG;
-#endif
+		vdev->dev_debug = V4L2_DEV_DEBUG_IOCTL |
+				  V4L2_DEV_DEBUG_IOCTL_ARG;
 
-		/* since kernel-3.7, there is a new field 'vfl_dir' that has to be
-	 * set to VFL_DIR_M2M for bidirectional devices */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)
 	vdev->vfl_dir = VFL_DIR_M2M;
-#endif
 
 	MARK();
 }
@@ -2375,7 +2543,7 @@ static void sustain_timer_clb(unsigned long nr)
 	spin_lock(&dev->lock);
 	if (dev->sustain_framerate) {
 		dev->reread_count++;
-		dprintkrw("reread: %d %d\n", dev->write_position,
+		dprintkrw("reread: %lld %d\n", (long long)dev->write_position,
 			  dev->reread_count);
 		if (dev->reread_count == 1)
 			mod_timer(&dev->sustain_timer,
@@ -2421,10 +2589,18 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 
 	int err = -ENOMEM;
 
-	int _max_width = DEFAULT_FROM_CONF(
-		max_width, < V4L2LOOPBACK_SIZE_MIN_WIDTH, max_width);
-	int _max_height = DEFAULT_FROM_CONF(
-		max_height, < V4L2LOOPBACK_SIZE_MIN_HEIGHT, max_height);
+	u32 _width = V4L2LOOPBACK_SIZE_DEFAULT_WIDTH;
+	u32 _height = V4L2LOOPBACK_SIZE_DEFAULT_HEIGHT;
+
+	u32 _min_width = DEFAULT_FROM_CONF(min_width,
+					   < V4L2LOOPBACK_SIZE_MIN_WIDTH,
+					   V4L2LOOPBACK_SIZE_MIN_WIDTH);
+	u32 _min_height = DEFAULT_FROM_CONF(min_height,
+					    < V4L2LOOPBACK_SIZE_MIN_HEIGHT,
+					    V4L2LOOPBACK_SIZE_MIN_HEIGHT);
+	u32 _max_width = DEFAULT_FROM_CONF(max_width, < _min_width, max_width);
+	u32 _max_height =
+		DEFAULT_FROM_CONF(max_height, < _min_height, max_height);
 	bool _announce_all_caps = (conf && conf->announce_all_caps >= 0) ?
 					  (conf->announce_all_caps) :
 					  V4L2LOOPBACK_DEFAULT_EXCLUSIVECAPS;
@@ -2436,21 +2612,26 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 	_announce_all_caps = (!!_announce_all_caps);
 
 	if (conf) {
-		if (conf->capture_nr >= 0 &&
-		    conf->output_nr == conf->capture_nr) {
-			nr = conf->capture_nr;
-		} else if (conf->capture_nr < 0 && conf->output_nr < 0) {
+		const int output_nr = conf->output_nr;
+#ifdef SPLIT_DEVICES
+		const int capture_nr = conf->capture_nr;
+#else
+		const int capture_nr = output_nr;
+#endif
+		if (capture_nr >= 0 && output_nr == capture_nr) {
+			nr = output_nr;
+		} else if (capture_nr < 0 && output_nr < 0) {
 			nr = -1;
-		} else if (conf->capture_nr < 0) {
-			nr = conf->output_nr;
-		} else if (conf->output_nr < 0) {
-			nr = conf->capture_nr;
+		} else if (capture_nr < 0) {
+			nr = output_nr;
+		} else if (output_nr < 0) {
+			nr = capture_nr;
 		} else {
 			printk(KERN_ERR
 			       "split OUTPUT and CAPTURE devices not yet supported.");
 			printk(KERN_INFO
 			       "both devices must have the same number (%d != %d).",
-			       conf->output_nr, conf->capture_nr);
+			       output_nr, capture_nr);
 			return -EINVAL;
 		}
 	}
@@ -2526,6 +2707,8 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 	dev->sustain_framerate = 0;
 
 	dev->announce_all_caps = _announce_all_caps;
+	dev->min_width = _min_width;
+	dev->min_height = _min_height;
 	dev->max_width = _max_width;
 	dev->max_height = _max_height;
 	dev->max_openers = _max_openers;
@@ -2535,6 +2718,7 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 
 	MARK();
 	spin_lock_init(&dev->lock);
+	spin_lock_init(&dev->list_lock);
 	INIT_LIST_HEAD(&dev->outbufs_list);
 	if (list_empty(&dev->outbufs_list)) {
 		int i;
@@ -2584,11 +2768,20 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 	/* FIXME set buffers to 0 */
 
 	/* Set initial format */
-	dev->pix_format.width = 0; /* V4L2LOOPBACK_SIZE_DEFAULT_WIDTH; */
-	dev->pix_format.height = 0; /* V4L2LOOPBACK_SIZE_DEFAULT_HEIGHT; */
+	if (_width < _min_width)
+		_width = _min_width;
+	if (_width > _max_width)
+		_width = _max_width;
+	if (_height < _min_height)
+		_height = _min_height;
+	if (_height > _max_height)
+		_height = _max_height;
+
+	dev->pix_format.width = _width;
+	dev->pix_format.height = _height;
 	dev->pix_format.pixelformat = formats[0].fourcc;
 	dev->pix_format.colorspace =
-		V4L2_COLORSPACE_SRGB; /* do we need to set this ? */
+		V4L2_COLORSPACE_DEFAULT; /* do we need to set this ? */
 	dev->pix_format.field = V4L2_FIELD_NONE;
 
 	dev->buffer_size = PAGE_ALIGN(dev->pix_format.sizeimage);
@@ -2647,7 +2840,7 @@ static long v4l2loopback_control_ioctl(struct file *file, unsigned int cmd,
 	struct v4l2_loopback_device *dev;
 	struct v4l2_loopback_config conf;
 	struct v4l2_loopback_config *confptr = &conf;
-	int device_nr;
+	int device_nr, capture_nr, output_nr;
 	int ret;
 
 	ret = mutex_lock_killable(&v4l2loopback_ctl_mutex);
@@ -2693,8 +2886,11 @@ static long v4l2loopback_control_ioctl(struct file *file, unsigned int cmd,
 		if ((ret = copy_from_user(&conf, (void *)parm, sizeof(conf))) <
 		    0)
 			break;
-		device_nr =
-			(conf.output_nr < 0) ? conf.capture_nr : conf.output_nr;
+		capture_nr = output_nr = conf.output_nr;
+#ifdef SPLIT_DEVICES
+		capture_nr = conf.capture_nr;
+#endif
+		device_nr = (output_nr < 0) ? capture_nr : output_nr;
 		MARK();
 		/* get the device from either capture_nr or output_nr (whatever is valid) */
 		if ((ret = v4l2loopback_lookup(device_nr, &dev)) < 0)
@@ -2703,15 +2899,15 @@ static long v4l2loopback_control_ioctl(struct file *file, unsigned int cmd,
 		/* if we got the device from output_nr and there is a valid capture_nr,
                  * make sure that both refer to the same device (or bail out)
                  */
-		if ((device_nr != conf.capture_nr) && (conf.capture_nr >= 0) &&
-		    (ret != v4l2loopback_lookup(conf.capture_nr, 0)))
+		if ((device_nr != capture_nr) && (capture_nr >= 0) &&
+		    ((ret = v4l2loopback_lookup(capture_nr, 0)) < 0))
 			break;
 		MARK();
 		/* if otoh, we got the device from capture_nr and there is a valid output_nr,
                  * make sure that both refer to the same device (or bail out)
                  */
-		if ((device_nr != conf.output_nr) && (conf.output_nr >= 0) &&
-		    (ret != v4l2loopback_lookup(conf.output_nr, 0)))
+		if ((device_nr != output_nr) && (output_nr >= 0) &&
+		    ((ret = v4l2loopback_lookup(output_nr, 0)) < 0))
 			break;
 		MARK();
 
@@ -2719,7 +2915,12 @@ static long v4l2loopback_control_ioctl(struct file *file, unsigned int cmd,
 		snprintf(conf.card_label, sizeof(conf.card_label), "%s",
 			 dev->card_label);
 		MARK();
-		conf.output_nr = conf.capture_nr = dev->vdev->num;
+		conf.output_nr = dev->vdev->num;
+#ifdef SPLIT_DEVICES
+		conf.capture_nr = dev->vdev->num;
+#endif
+		conf.min_width = dev->min_width;
+		conf.min_height = dev->min_height;
 		conf.max_width = dev->max_width;
 		conf.max_height = dev->max_height;
 		conf.announce_all_caps = dev->announce_all_caps;
@@ -2779,16 +2980,8 @@ static const struct v4l2_file_operations v4l2_loopback_fops = {
 static const struct v4l2_ioctl_ops v4l2_loopback_ioctl_ops = {
 	// clang-format off
 	.vidioc_querycap		= &vidioc_querycap,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 29)
 	.vidioc_enum_framesizes		= &vidioc_enum_framesizes,
 	.vidioc_enum_frameintervals	= &vidioc_enum_frameintervals,
-#endif
-
-#ifndef HAVE__V4L2_CTRLS
-	.vidioc_queryctrl		= &vidioc_queryctrl,
-	.vidioc_g_ctrl			= &vidioc_g_ctrl,
-	.vidioc_s_ctrl			= &vidioc_s_ctrl,
-#endif /* HAVE__V4L2_CTRLS */
 
 	.vidioc_enum_output		= &vidioc_enum_output,
 	.vidioc_g_output		= &vidioc_g_output,
@@ -2853,6 +3046,8 @@ static void free_devices(void)
 
 static int __init v4l2loopback_init_module(void)
 {
+	const u32 min_width = V4L2LOOPBACK_SIZE_MIN_WIDTH;
+	const u32 min_height = V4L2LOOPBACK_SIZE_MIN_HEIGHT;
 	int err;
 	int i;
 	MARK();
@@ -2894,23 +3089,26 @@ static int __init v4l2loopback_init_module(void)
 		max_openers = 2;
 	}
 
-	if (max_width < V4L2LOOPBACK_SIZE_MIN_WIDTH) {
+	if (max_width < min_width) {
 		max_width = V4L2LOOPBACK_SIZE_DEFAULT_MAX_WIDTH;
 		printk(KERN_INFO "v4l2loopback: using max_width %d\n",
 		       max_width);
 	}
-	if (max_height < V4L2LOOPBACK_SIZE_MIN_HEIGHT) {
+	if (max_height < min_height) {
 		max_height = V4L2LOOPBACK_SIZE_DEFAULT_MAX_HEIGHT;
 		printk(KERN_INFO "v4l2loopback: using max_height %d\n",
 		       max_height);
 	}
 
-	/* kfree on module release */
 	for (i = 0; i < devices; i++) {
 		struct v4l2_loopback_config cfg = {
 			// clang-format off
 			.output_nr		= video_nr[i],
+#ifdef SPLIT_DEVICES
 			.capture_nr		= video_nr[i],
+#endif
+			.min_width		= min_width,
+			.min_height		= min_height,
 			.max_width		= max_width,
 			.max_height		= max_height,
 			.announce_all_caps	= (!exclusive_caps[i]),
@@ -2938,7 +3136,7 @@ static int __init v4l2loopback_init_module(void)
 	       (V4L2LOOPBACK_VERSION_CODE >>  8) & 0xff,
 	       (V4L2LOOPBACK_VERSION_CODE      ) & 0xff,
 #ifdef SNAPSHOT_VERSION
-	       " (" STRINGIFY2(SNAPSHOT_VERSION) ")"
+	       " (" __stringify(SNAPSHOT_VERSION) ")"
 #else
 	       ""
 #endif
@@ -2951,7 +3149,6 @@ error:
 	return err;
 }
 
-#ifdef MODULE
 static void v4l2loopback_cleanup_module(void)
 {
 	MARK();
@@ -2961,21 +3158,8 @@ static void v4l2loopback_cleanup_module(void)
 	misc_deregister(&v4l2loopback_misc);
 	dprintk("module removed\n");
 }
-#endif
 
 MODULE_ALIAS_MISCDEV(MISC_DYNAMIC_MINOR);
 
 module_init(v4l2loopback_init_module);
 module_exit(v4l2loopback_cleanup_module);
-
-/*
- * fake usage of unused functions
- */
-#ifdef HAVE__V4L2_CTRLS
-static int vidioc_queryctrl(struct file *file, void *fh,
-			    struct v4l2_queryctrl *q) __attribute__((unused));
-static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *c)
-	__attribute__((unused));
-static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *c)
-	__attribute__((unused));
-#endif /* HAVE__V4L2_CTRLS */

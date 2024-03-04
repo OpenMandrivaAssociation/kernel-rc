@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 7
+%define patchlevel 8
 %define sublevel 0
-%define relc 8
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -163,6 +163,7 @@ Source14:	riscv-omv-defconfig
 Source15:	powerpc-omv-defconfig
 # Fragments to be used with all/multiple kernel types
 Source20:	filesystems.fragment
+Source21:	framer.fragment
 # Overrides (highest priority) for configs
 Source30:	znver1.overrides
 # config and systemd service file from fedora
@@ -266,9 +267,8 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.1
+%define evdi_version 1.14.2
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	evdi-kernel-6.6.patch
 
 # Assorted fixes
 
@@ -326,27 +326,6 @@ Patch350:	rtla-5.17-fix-make-clean.patch
 Source400:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.c
 Source401:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.h
 Source402:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback_formats.h
-
-# Imagination DRM driver
-# https://developer.imaginationtech.com/open-source-gpu-driver/
-# https://patchwork.kernel.org/project/dri-devel/list/?series=765738
-Patch500:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142424.111465-1-sarah.walker@imgtec.com/raw/#/imagination-drm-1.patch
-Patch501:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142526.111569-1-sarah.walker@imgtec.com/raw/#/imagination-drm-2.patch
-Patch502:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142543.111625-1-sarah.walker@imgtec.com/raw/#/imagination-drm-3.patch
-Patch503:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142602.111681-1-sarah.walker@imgtec.com/raw/#/imagination-drm-4.patch
-Patch504:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142618.111746-1-sarah.walker@imgtec.com/raw/#/imagination-drm-5.patch
-Patch505:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142645.111844-1-sarah.walker@imgtec.com/raw/#/imagination-drm-6.patch
-Patch506:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142700.111897-1-sarah.walker@imgtec.com/raw/#/imagination-drm-7.patch
-Patch507:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142717.111957-1-sarah.walker@imgtec.com/raw/#/imagination-drm-8.patch
-Patch508:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142734.112014-1-sarah.walker@imgtec.com/raw/#/imagination-drm-9.patch
-Patch509:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142750.112108-1-sarah.walker@imgtec.com/raw/#/imagination-drm-10.patch
-Patch510:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142806.112191-1-sarah.walker@imgtec.com/raw/#/imagination-drm-11.patch
-Patch511:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142823.112255-1-sarah.walker@imgtec.com/raw/#/imagination-drm-12.patch
-Patch512:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142839.112307-1-sarah.walker@imgtec.com/raw/#/imagination-drm-13.patch
-Patch513:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142855.112362-1-sarah.walker@imgtec.com/raw/#/imagination-drm-14.patch
-Patch514:	https://patchwork.kernel.org/project/dri-devel/patch/20230714142913.112440-1-sarah.walker@imgtec.com/raw/#/imagination-drm-15.patch
-Patch515:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143015.112562-1-sarah.walker@imgtec.com/raw/#/imagination-drm-16.patch
-Patch516:	https://patchwork.kernel.org/project/dri-devel/patch/20230714143033.112624-1-sarah.walker@imgtec.com/raw/#/imagination-drm-17.patch
 
 # Patches to external modules
 # Marked SourceXXX instead of PatchXXX because the modules
@@ -896,7 +875,6 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
-patch -p1 -b -z .1011~ <%{S:1011}
 
 %if %{with rtl8821ce}
 # Merge RTL8723DE and RTL8821CE drivers
@@ -1003,6 +981,11 @@ find . -name '*~' -o -name '*.orig' -o -name '*.append' -o -name '*.g*ignore' | 
 
 # fix missing exec flag on file introduced in 4.14.10-rc1
 chmod 755 tools/objtool/sync-check.sh
+
+%ifarch znver1 znver2 znver3
+# Workaround for https://github.com/llvm/llvm-project/issues/82431
+echo 'CFLAGS_ip6_input.o += -march=x86-64-v3' >>net/ipv6/Makefile
+%endif
 
 %build
 %set_build_flags
@@ -1791,7 +1774,7 @@ find -iname ".gitignore" -delete
 # clean tools tree
 # (mkdir below is just so "make clean" can remove it again without erroring out)
 mkdir -p tools/counter/include/linux
-%make_build -C tools clean -j1 V=0 VERBOSE=0
+%make_build -C tools clean -j1 V=0 VERBOSE=0 || :
 %make_build -C tools/build clean -j1 V=0 VERBOSE=0
 %make_build -C tools/build/feature clean -j1 V=0 VERBOSE=0
 # dont ship generated vdso.so*
@@ -1819,6 +1802,7 @@ cd -
 %dir %{_kerneldir}/certs
 %{_kerneldir}/.clang-format
 %{_kerneldir}/.cocciconfig
+%{_kerneldir}/.editorconfig
 %{_kerneldir}/Documentation
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm

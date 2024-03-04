@@ -1,6 +1,6 @@
-diff -up linux-6.5-rc1/kernel/watchdog.c.57~ linux-6.5-rc1/kernel/watchdog.c
---- linux-6.5-rc1/kernel/watchdog.c.57~	2023-07-11 11:53:38.614648058 +0200
-+++ linux-6.5-rc1/kernel/watchdog.c	2023-07-11 11:54:46.804317748 +0200
+diff -up linux-6.8-rc3/kernel/watchdog.c.55~ linux-6.8-rc3/kernel/watchdog.c
+--- linux-6.8-rc3/kernel/watchdog.c.55~	2024-02-04 13:20:36.000000000 +0100
++++ linux-6.8-rc3/kernel/watchdog.c	2024-02-09 15:09:25.100848779 +0100
 @@ -39,7 +39,7 @@ unsigned long __read_mostly watchdog_ena
  int __read_mostly watchdog_user_enabled = 1;
  static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
@@ -10,22 +10,22 @@ diff -up linux-6.5-rc1/kernel/watchdog.c.57~ linux-6.5-rc1/kernel/watchdog.c
  static int __read_mostly watchdog_hardlockup_available;
  
  struct cpumask watchdog_cpumask __read_mostly;
-diff -up linux-6.5-rc1/mm/ksm.c.57~ linux-6.5-rc1/mm/ksm.c
---- linux-6.5-rc1/mm/ksm.c.57~	2023-07-09 22:53:13.000000000 +0200
-+++ linux-6.5-rc1/mm/ksm.c	2023-07-11 11:53:38.617648088 +0200
-@@ -2500,9 +2500,14 @@ static int ksm_scan_thread(void *nothing
+diff -up linux-6.8-rc3/mm/ksm.c.55~ linux-6.8-rc3/mm/ksm.c
+--- linux-6.8-rc3/mm/ksm.c.55~	2024-02-09 15:09:25.100848779 +0100
++++ linux-6.8-rc3/mm/ksm.c	2024-02-09 15:16:55.289135994 +0100
+@@ -2782,9 +2782,14 @@ static int ksm_scan_thread(void *nothing
  
  		if (ksmd_should_run()) {
  			sleep_ms = READ_ONCE(ksm_thread_sleep_millisecs);
--			wait_event_interruptible_timeout(ksm_iter_wait,
+-			wait_event_freezable_timeout(ksm_iter_wait,
 -				sleep_ms != READ_ONCE(ksm_thread_sleep_millisecs),
 -				msecs_to_jiffies(sleep_ms));
 +			if (sleep_ms >= 1000)
-+				wait_event_interruptible_timeout(ksm_iter_wait,
++				wait_event_freezable_timeout(ksm_iter_wait,
 +					sleep_ms != READ_ONCE(ksm_thread_sleep_millisecs),
 +					msecs_to_jiffies(round_jiffies_relative(sleep_ms)));
 +			else
-+				wait_event_interruptible_timeout(ksm_iter_wait,
++				wait_event_freezable_timeout(ksm_iter_wait,
 +					sleep_ms != READ_ONCE(ksm_thread_sleep_millisecs),
 +					msecs_to_jiffies(sleep_ms));
  		} else {

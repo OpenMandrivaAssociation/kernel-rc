@@ -5,7 +5,7 @@ diff -up linux-6.7-rc1/fs/file.c.26~ linux-6.7-rc1/fs/file.c
  
  	return file;
  }
-+EXPORT_SYMBOL_GPL(close_fd_get_file);
++EXPORT_SYMBOL_GPL(file_close_fd);
  
  void do_close_on_exec(struct files_struct *files)
  {
