@@ -280,8 +280,11 @@ Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/d
 
 Patch215:	linux-5.19-prefer-amdgpu-over-radeon.patch
 Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
-# Revert minimum power limit lock.
+# Revert minimum power limit lock on amdgpu. If you bought a GPU, it means you own it at every level. That a power of Free Software,
+# AMD cannot limit the right to own and prohibit people under volting/under power when they need it or when AMD cards are poorly designed to the point that they heat up, restart and cause very noisy operation.
 Patch218:	amdgpu-ignore-min-pcap.patch
+# Imported from Nobara. Enable full AMD GPU controls like fan speed etc (needed for corectrl and others)
+Patch219:	https://raw.githubusercontent.com/Nobara-Project/rpm-sources/main/baseos/kernel/6.7.6/0001-Set-amdgpu.ppfeaturemask-0xffffffff-as-default.patch
 
 # Fix CPU frequency governor mess caused by recent Intel patches
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
