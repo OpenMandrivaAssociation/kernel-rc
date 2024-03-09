@@ -1,0 +1,11 @@
+diff -up linux-6.8-rc7/lib/Kconfig.debug.5~ linux-6.8-rc7/lib/Kconfig.debug
+--- linux-6.8-rc7/lib/Kconfig.debug.5~	2024-03-09 22:52:05.340560247 +0100
++++ linux-6.8-rc7/lib/Kconfig.debug	2024-03-09 22:53:29.257271538 +0100
+@@ -377,7 +377,6 @@ config DEBUG_INFO_SPLIT
+ config DEBUG_INFO_BTF
+ 	bool "Generate BTF typeinfo"
+ 	depends on !DEBUG_INFO_SPLIT && !DEBUG_INFO_REDUCED
+-	depends on !GCC_PLUGIN_RANDSTRUCT || COMPILE_TEST
+ 	depends on BPF_SYSCALL
+ 	depends on !DEBUG_INFO_DWARF5 || PAHOLE_VERSION >= 121
+ 	# pahole uses elfutils, which does not have support for Hexagon relocations
