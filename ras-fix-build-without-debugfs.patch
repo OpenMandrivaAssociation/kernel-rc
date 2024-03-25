@@ -1,0 +1,19 @@
+diff -up linux-6.9-rc1/drivers/ras/amd/fmpm.c.omv~ linux-6.9-rc1/drivers/ras/amd/fmpm.c
+--- linux-6.9-rc1/drivers/ras/amd/fmpm.c.omv~	2024-03-25 17:12:09.673207097 +0100
++++ linux-6.9-rc1/drivers/ras/amd/fmpm.c	2024-03-25 17:12:39.892935870 +0100
+@@ -929,6 +929,7 @@ static const struct file_operations fmpm
+ 
+ static void setup_debugfs(void)
+ {
++#ifdef CONFIG_DEBUG_FS
+ 	struct dentry *dfs = ras_get_debugfs_root();
+ 
+ 	if (!dfs)
+@@ -941,6 +942,7 @@ static void setup_debugfs(void)
+ 	fmpm_dfs_entries = debugfs_create_file("entries", 0400, fmpm_dfs_dir, NULL, &fmpm_fops);
+ 	if (!fmpm_dfs_entries)
+ 		debugfs_remove(fmpm_dfs_dir);
++#endif
+ }
+ 
+ static const struct x86_cpu_id fmpm_cpuids[] = {

@@ -1,0 +1,55 @@
+diff -up linux-6.9-rc1/drivers/net/vboxnetflt/linux/VBoxNetFlt-linux.c.omv~ linux-6.9-rc1/drivers/net/vboxnetflt/linux/VBoxNetFlt-linux.c
+--- linux-6.9-rc1/drivers/net/vboxnetflt/linux/VBoxNetFlt-linux.c.omv~	2024-03-25 16:48:57.346949049 +0100
++++ linux-6.9-rc1/drivers/net/vboxnetflt/linux/VBoxNetFlt-linux.c	2024-03-25 16:49:26.091666240 +0100
+@@ -927,8 +927,8 @@ static void vboxNetFltLinuxSkBufToSG(PVB
+     {
+         skb_frag_t *pFrag = &skb_shinfo(pBuf)->frags[i];
+ # if RTLNX_VER_MIN(5,4,0) || RTLNX_SUSE_MAJ_PREREQ(15, 2)
+-        pSG->aSegs[iSeg].cb = pFrag->bv_len;
+-        pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->bv_offset;
++        pSG->aSegs[iSeg].cb = pFrag->len;
++        pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->offset;
+ # else /* < KERNEL_VERSION(5, 4, 0) */
+         pSG->aSegs[iSeg].cb = pFrag->size;
+         pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->page_offset;
+@@ -948,8 +948,8 @@ static void vboxNetFltLinuxSkBufToSG(PVB
+         {
+             skb_frag_t *pFrag = &skb_shinfo(pFragBuf)->frags[i];
+ # if RTLNX_VER_MIN(5,4,0) || RTLNX_SUSE_MAJ_PREREQ(15, 2)
+-            pSG->aSegs[iSeg].cb = pFrag->bv_len;
+-            pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->bv_offset;
++            pSG->aSegs[iSeg].cb = pFrag->len;
++            pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->offset;
+ # else /* < KERNEL_VERSION(5, 4, 0) */
+             pSG->aSegs[iSeg].cb = pFrag->size;
+             pSG->aSegs[iSeg].pv = VBOX_SKB_KMAP_FRAG(pFrag) + pFrag->page_offset;
+diff -up linux-6.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~ linux-6.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c
+--- linux-6.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c.omv~	2024-03-25 16:57:13.446110746 +0100
++++ linux-6.9-rc1/drivers/virt/vboxdrv/r0drv/linux/memobj-r0drv-linux.c	2024-03-25 16:59:12.018806995 +0100
+@@ -1174,7 +1174,7 @@ RTDECL(struct page *) rtR0MemObjLinuxVir
+     u.Four  = *p4d_offset(&u.Global, ulAddr);
+     if (RT_UNLIKELY(p4d_none(u.Four)))
+         return NULL;
+-    if (p4d_large(u.Four))
++    if (p4d_leaf(u.Four))
+     {
+         pPage = p4d_page(u.Four);
+         AssertReturn(pPage, NULL);
+@@ -1190,7 +1190,7 @@ RTDECL(struct page *) rtR0MemObjLinuxVir
+     if (RT_UNLIKELY(pud_none(u.Upper)))
+         return NULL;
+ # if RTLNX_VER_MIN(2,6,25)
+-    if (pud_large(u.Upper))
++    if (pud_leaf(u.Upper))
+     {
+         pPage = pud_page(u.Upper);
+         AssertReturn(pPage, NULL);
+@@ -1206,7 +1206,7 @@ RTDECL(struct page *) rtR0MemObjLinuxVir
+     if (RT_UNLIKELY(pmd_none(u.Middle)))
+         return NULL;
+ #if RTLNX_VER_MIN(2,6,0)
+-    if (pmd_large(u.Middle))
++    if (pmd_leaf(u.Middle))
+     {
+         pPage = pmd_page(u.Middle);
+         AssertReturn(pPage, NULL);

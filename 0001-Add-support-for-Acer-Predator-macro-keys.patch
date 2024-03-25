@@ -1,6 +1,6 @@
-diff -up linux-6.8-rc3/drivers/platform/x86/acer-wmi.c.3~ linux-6.8-rc3/drivers/platform/x86/acer-wmi.c
---- linux-6.8-rc3/drivers/platform/x86/acer-wmi.c.3~	2024-02-04 13:20:36.000000000 +0100
-+++ linux-6.8-rc3/drivers/platform/x86/acer-wmi.c	2024-02-09 15:06:51.167375341 +0100
+diff -up linux-6.9-rc1/drivers/platform/x86/acer-wmi.c.3~ linux-6.9-rc1/drivers/platform/x86/acer-wmi.c
+--- linux-6.9-rc1/drivers/platform/x86/acer-wmi.c.3~	2024-03-24 22:10:05.000000000 +0100
++++ linux-6.9-rc1/drivers/platform/x86/acer-wmi.c	2024-03-25 10:52:42.435851128 +0100
 @@ -7,6 +7,9 @@
   *  Based on acer_acpi:
   *    Copyright (C) 2005-2007	E.M. Smith
@@ -53,9 +53,9 @@ diff -up linux-6.8-rc3/drivers/platform/x86/acer-wmi.c.3~ linux-6.8-rc3/drivers/
  static u8 commun_fn_key_number;
 +static u8 macro_key_state = 0;
  static bool cycle_gaming_thermal_profile = true;
+ static bool predator_v4;
  
- module_param(mailled, int, 0444);
-@@ -2270,10 +2294,28 @@ static void acer_wmi_notify(u32 value, v
+@@ -2285,10 +2309,28 @@ static void acer_wmi_notify(u32 value, v
  		acer_gsensor_event();
  		acer_kbd_dock_event(&return_value);
  		break;

@@ -1,6 +1,72 @@
-diff -up linux-6.1-rc1/drivers/staging/android/ashmem.c.25~ linux-6.1-rc1/drivers/staging/android/ashmem.c
---- linux-6.1-rc1/drivers/staging/android/ashmem.c.25~	2022-10-17 16:30:02.355772882 +0200
-+++ linux-6.1-rc1/drivers/staging/android/ashmem.c	2022-10-17 16:30:02.355772882 +0200
+diff -up linux-6.9-rc1/drivers/staging/Kconfig.25~ linux-6.9-rc1/drivers/staging/Kconfig
+--- linux-6.9-rc1/drivers/staging/Kconfig.25~	2024-03-25 10:53:06.104188279 +0100
++++ linux-6.9-rc1/drivers/staging/Kconfig	2024-03-25 10:53:45.926750978 +0100
+@@ -50,6 +50,8 @@ source "drivers/staging/nvec/Kconfig"
+ 
+ source "drivers/staging/media/Kconfig"
+ 
++source "drivers/staging/android/Kconfig"
++
+ source "drivers/staging/gdm724x/Kconfig"
+ 
+ source "drivers/staging/fbtft/Kconfig"
+diff -up linux-6.9-rc1/drivers/staging/Makefile.25~ linux-6.9-rc1/drivers/staging/Makefile
+--- linux-6.9-rc1/drivers/staging/Makefile.25~	2024-03-25 10:53:06.104188279 +0100
++++ linux-6.9-rc1/drivers/staging/Makefile	2024-03-25 10:54:25.030299248 +0100
+@@ -14,6 +14,7 @@ obj-$(CONFIG_VT6656)		+= vt6656/
+ obj-$(CONFIG_VME_BUS)		+= vme_user/
+ obj-$(CONFIG_IIO)		+= iio/
+ obj-$(CONFIG_FB_SM750)		+= sm750fb/
++obj-$(CONFIG_ANDROID)		+= android/
+ obj-$(CONFIG_MFD_NVEC)		+= nvec/
+ obj-$(CONFIG_LTE_GDM724X)	+= gdm724x/
+ obj-$(CONFIG_FB_TFT)		+= fbtft/
+diff -up linux-6.9-rc1/drivers/staging/android/Kconfig.25~ linux-6.9-rc1/drivers/staging/android/Kconfig
+--- linux-6.9-rc1/drivers/staging/android/Kconfig.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/Kconfig	2024-03-25 10:53:06.103188264 +0100
+@@ -0,0 +1,19 @@
++# SPDX-License-Identifier: GPL-2.0
++menu "Android"
++
++if ANDROID
++
++config ASHMEM
++	bool "Enable the Anonymous Shared Memory Subsystem"
++	depends on SHMEM
++	help
++	  The ashmem subsystem is a new shared memory allocator, similar to
++	  POSIX SHM but with different behavior and sporting a simpler
++	  file-based API.
++
++	  It is, in theory, a good memory allocator for low-memory devices,
++	  because it can discard shared memory units when under memory pressure.
++
++endif # if ANDROID
++
++endmenu
+diff -up linux-6.9-rc1/drivers/staging/android/Makefile.25~ linux-6.9-rc1/drivers/staging/android/Makefile
+--- linux-6.9-rc1/drivers/staging/android/Makefile.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/Makefile	2024-03-25 10:53:06.103188264 +0100
+@@ -0,0 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0
++ccflags-y += -I$(src)			# needed for trace events
++
++obj-$(CONFIG_ASHMEM)			+= ashmem.o
+diff -up linux-6.9-rc1/drivers/staging/android/TODO.25~ linux-6.9-rc1/drivers/staging/android/TODO
+--- linux-6.9-rc1/drivers/staging/android/TODO.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/TODO	2024-03-25 10:53:06.103188264 +0100
+@@ -0,0 +1,8 @@
++TODO:
++	- sparse fixes
++	- rename files to be not so "generic"
++	- add proper arch dependencies as needed
++	- audit userspace interfaces to make sure they are sane
++
++Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
++Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
+diff -up linux-6.9-rc1/drivers/staging/android/ashmem.c.25~ linux-6.9-rc1/drivers/staging/android/ashmem.c
+--- linux-6.9-rc1/drivers/staging/android/ashmem.c.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/ashmem.c	2024-03-25 10:53:06.103188264 +0100
 @@ -0,0 +1,970 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/* mm/ashmem.c
@@ -972,9 +1038,9 @@ diff -up linux-6.1-rc1/drivers/staging/android/ashmem.c.25~ linux-6.1-rc1/driver
 +	return ret;
 +}
 +device_initcall(ashmem_init);
-diff -up linux-6.1-rc1/drivers/staging/android/ashmem.h.25~ linux-6.1-rc1/drivers/staging/android/ashmem.h
---- linux-6.1-rc1/drivers/staging/android/ashmem.h.25~	2022-10-17 16:30:02.356772887 +0200
-+++ linux-6.1-rc1/drivers/staging/android/ashmem.h	2022-10-17 16:30:02.356772887 +0200
+diff -up linux-6.9-rc1/drivers/staging/android/ashmem.h.25~ linux-6.9-rc1/drivers/staging/android/ashmem.h
+--- linux-6.9-rc1/drivers/staging/android/ashmem.h.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/ashmem.h	2024-03-25 10:53:06.103188264 +0100
 @@ -0,0 +1,24 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR Apache-2.0 */
 +/*
@@ -1000,52 +1066,9 @@ diff -up linux-6.1-rc1/drivers/staging/android/ashmem.h.25~ linux-6.1-rc1/driver
 +#endif
 +
 +#endif	/* _LINUX_ASHMEM_H */
-diff -up linux-6.1-rc1/drivers/staging/android/Kconfig.25~ linux-6.1-rc1/drivers/staging/android/Kconfig
---- linux-6.1-rc1/drivers/staging/android/Kconfig.25~	2022-10-17 16:30:02.355772882 +0200
-+++ linux-6.1-rc1/drivers/staging/android/Kconfig	2022-10-17 16:30:02.355772882 +0200
-@@ -0,0 +1,19 @@
-+# SPDX-License-Identifier: GPL-2.0
-+menu "Android"
-+
-+if ANDROID
-+
-+config ASHMEM
-+	bool "Enable the Anonymous Shared Memory Subsystem"
-+	depends on SHMEM
-+	help
-+	  The ashmem subsystem is a new shared memory allocator, similar to
-+	  POSIX SHM but with different behavior and sporting a simpler
-+	  file-based API.
-+
-+	  It is, in theory, a good memory allocator for low-memory devices,
-+	  because it can discard shared memory units when under memory pressure.
-+
-+endif # if ANDROID
-+
-+endmenu
-diff -up linux-6.1-rc1/drivers/staging/android/Makefile.25~ linux-6.1-rc1/drivers/staging/android/Makefile
---- linux-6.1-rc1/drivers/staging/android/Makefile.25~	2022-10-17 16:30:02.355772882 +0200
-+++ linux-6.1-rc1/drivers/staging/android/Makefile	2022-10-17 16:30:02.355772882 +0200
-@@ -0,0 +1,4 @@
-+# SPDX-License-Identifier: GPL-2.0
-+ccflags-y += -I$(src)			# needed for trace events
-+
-+obj-$(CONFIG_ASHMEM)			+= ashmem.o
-diff -up linux-6.1-rc1/drivers/staging/android/TODO.25~ linux-6.1-rc1/drivers/staging/android/TODO
---- linux-6.1-rc1/drivers/staging/android/TODO.25~	2022-10-17 16:30:02.355772882 +0200
-+++ linux-6.1-rc1/drivers/staging/android/TODO	2022-10-17 16:30:02.355772882 +0200
-@@ -0,0 +1,8 @@
-+TODO:
-+	- sparse fixes
-+	- rename files to be not so "generic"
-+	- add proper arch dependencies as needed
-+	- audit userspace interfaces to make sure they are sane
-+
-+Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
-+Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
-diff -up linux-6.1-rc1/drivers/staging/android/uapi/ashmem.h.25~ linux-6.1-rc1/drivers/staging/android/uapi/ashmem.h
---- linux-6.1-rc1/drivers/staging/android/uapi/ashmem.h.25~	2022-10-17 16:30:02.356772887 +0200
-+++ linux-6.1-rc1/drivers/staging/android/uapi/ashmem.h	2022-10-17 16:30:02.356772887 +0200
+diff -up linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h.25~ linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h
+--- linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h.25~	2024-03-25 10:53:06.103188264 +0100
++++ linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h	2024-03-25 10:53:06.103188264 +0100
 @@ -0,0 +1,43 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR Apache-2.0 */
 +/*
@@ -1090,26 +1113,3 @@ diff -up linux-6.1-rc1/drivers/staging/android/uapi/ashmem.h.25~ linux-6.1-rc1/d
 +#define ASHMEM_PURGE_ALL_CACHES	_IO(__ASHMEMIOC, 10)
 +
 +#endif	/* _UAPI_LINUX_ASHMEM_H */
-diff -up linux-6.1-rc1/drivers/staging/Kconfig.25~ linux-6.1-rc1/drivers/staging/Kconfig
---- linux-6.1-rc1/drivers/staging/Kconfig.25~	2022-10-17 00:36:24.000000000 +0200
-+++ linux-6.1-rc1/drivers/staging/Kconfig	2022-10-17 16:30:02.349772850 +0200
-@@ -56,6 +56,8 @@ source "drivers/staging/nvec/Kconfig"
- 
- source "drivers/staging/media/Kconfig"
- 
-+source "drivers/staging/android/Kconfig"
-+
- source "drivers/staging/board/Kconfig"
- 
- source "drivers/staging/gdm724x/Kconfig"
-diff -up linux-6.1-rc1/drivers/staging/Makefile.25~ linux-6.1-rc1/drivers/staging/Makefile
---- linux-6.1-rc1/drivers/staging/Makefile.25~	2022-10-17 16:30:02.355772882 +0200
-+++ linux-6.1-rc1/drivers/staging/Makefile	2022-10-17 16:31:16.491173401 +0200
-@@ -18,6 +18,7 @@ obj-$(CONFIG_IIO)		+= iio/
- obj-$(CONFIG_FB_SM750)		+= sm750fb/
- obj-$(CONFIG_USB_EMXX)		+= emxx_udc/
- obj-$(CONFIG_MFD_NVEC)		+= nvec/
-+obj-$(CONFIG_ANDROID)		+= android/
- obj-$(CONFIG_STAGING_BOARD)	+= board/
- obj-$(CONFIG_LTE_GDM724X)	+= gdm724x/
- obj-$(CONFIG_FB_TFT)		+= fbtft/

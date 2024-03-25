@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 8
+%define patchlevel 9
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -165,6 +165,7 @@ Source15:	powerpc-omv-defconfig
 Source20:	filesystems.fragment
 Source21:	framer.fragment
 Source22:	debug.fragment
+Source23:	networking.fragment
 # Overrides (highest priority) for configs
 Source30:	znver1.overrides
 # config and systemd service file from fedora
@@ -264,6 +265,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
+Source1006:	vbox-kernel-6.9.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vboxvideo-kernel-6.3.patch
 
@@ -280,6 +282,7 @@ Patch211:	revert-721412ed3d819e767cac2b06646bf03aa158aaec.patch
 Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
 
+Patch214:	ras-fix-build-without-debugfs.patch
 Patch215:	linux-5.19-prefer-amdgpu-over-radeon.patch
 Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
 # Revert minimum power limit lock on amdgpu. If you bought a GPU, it means you own it at every level. That a power of Free Software,
@@ -325,8 +328,6 @@ Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 #Patch304:	rtl8723cs-compile.patch
 Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 #Patch306:	linux-6.1-binutils-2.40.patch
-
-Patch350:	rtla-5.17-fix-make-clean.patch
 
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
@@ -964,6 +965,7 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1005~ -b <%{S:1005}
+patch -p1 -z .1006~ -b <%{S:1006}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
