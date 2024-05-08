@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}3
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -328,6 +328,8 @@ Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 #Patch304:	rtl8723cs-compile.patch
 Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 #Patch306:	linux-6.1-binutils-2.40.patch
+# https://gitlab.freedesktop.org/drm/amd/-/issues/3343
+Patch308:	https://gitlab.freedesktop.org/drm/amd/uploads/5c1819cbc498fb75de7d4be7159cd5ca/0001-drm-amdgpu-fix-off-by-one-in-amdgpu_res_cpu_visible.patch
 
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
