@@ -30,7 +30,7 @@
 # Work around incomplete debug packages
 %global _empty_manifest_terminate_build 0
 
-%global cross_header_archs aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux ppc64le-linuxmusl ppc64-linuxmusl ppc64le-linuxuclibc ppc64-linuxuclibc
+%global cross_header_archs aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux ppc64le-linuxmusl ppc64-linuxmusl ppc64le-linuxuclibc ppc64-linuxuclibc loongarch64-linux loongarch64-linuxmusl loongarch64-linuxuclibc
 %global long_cross_header_archs %(
     for i in %{cross_header_archs}; do
 	CPU=$(echo $i |cut -d- -f1)
@@ -161,6 +161,7 @@ Source12:	arm-omv-defconfig
 Source13:	arm64-omv-defconfig
 Source14:	riscv-omv-defconfig
 Source15:	powerpc-omv-defconfig
+Source16:	loongarch-omv-defconfig
 # Fragments to be used with all/multiple kernel types
 Source20:	filesystems.fragment
 Source21:	framer.fragment
@@ -1121,6 +1122,9 @@ CreateConfig() {
 			EXTRAFRAGMENTS=arch/powerpc/configs/le.config
 		fi
 		;;
+	loongarch64)
+		arch=loongarch
+		;;
 	i?86)
 		arch=i386
 		;;
@@ -1323,7 +1327,7 @@ SaveDevel() {
 	sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
 	sed -i -e '/rtl8723cs.*/d' $TempDevelRoot/drivers/staging/{Makefile,Kconfig}
 
-	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 loongarch m32r m68k m68knommu metag microblaze \
+	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
 		rm -rf $TempDevelRoot/arch/$i
 	done
@@ -1570,7 +1574,7 @@ install -d %{temp_root}
 
 # Build the configs for every arch we care about
 # that way, we can be sure all *.config files have the right additions
-for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
+for a in arm arm64 i386 x86_64 znver1 powerpc riscv loongarch64; do
 	for t in desktop server; do
 		CreateConfig $a $t
 		export ARCH=$a
@@ -1600,6 +1604,10 @@ for a in arm arm64 i386 x86_64 znver1 powerpc riscv; do
 					[ "$a" != "i386" ] && continue
 					ARCH=x86
 					SARCH=x86
+					;;
+				loongarch64)
+					ARCH=loongarch
+					SARCH=loongarch
 					;;
 				x86_64|znver1)
 					[ "$a" != "x86_64" ] && continue
@@ -1759,7 +1767,7 @@ rm -f %{buildroot}%{_kerneldir}/*_files.* %{buildroot}%{_kerneldir}/README.kerne
 
 # we remove all the source files that we don't ship
 # first architecture files
-for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 loongarch m32r m68k m68knommu metag microblaze \
+for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
     rm -rf %{buildroot}%{_kerneldir}/arch/$i
     rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/$i
@@ -1819,6 +1827,7 @@ cd -
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
 %{_kerneldir}/arch/arm64
+%{_kerneldir}/arch/loongarch
 %{_kerneldir}/arch/powerpc
 %{_kerneldir}/arch/riscv
 %{_kerneldir}/arch/um
