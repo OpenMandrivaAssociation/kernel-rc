@@ -1353,6 +1353,7 @@ SaveDevel() {
 $DevelRoot/Documentation
 $DevelRoot/arch/arm
 $DevelRoot/arch/arm64
+$DevelRoot/arch/loongarch
 $DevelRoot/arch/powerpc
 $DevelRoot/arch/riscv
 $DevelRoot/arch/um
