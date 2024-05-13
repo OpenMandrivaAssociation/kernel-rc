@@ -1265,7 +1265,7 @@ BuildKernel() {
 # sign modules after stripping
 	cat all_modules | %kxargs -r -n16 sh -c "
 	    for mod; do
-		scripts/sign-file sha1 certs/signing_key.pem certs/signing_key.x509 \$mod
+		scripts/sign-file sha3-512 certs/signing_key.pem certs/signing_key.x509 \$mod
 		rm -f \$mod.sig \$mod.dig
 	    done
 	" DUMMYARG0
