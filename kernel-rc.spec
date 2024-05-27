@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 9
+%define patchlevel 10
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -148,6 +148,7 @@ Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-
 Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
 Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
 %endif
+Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20240526.tar.gz
 ### This is for stripped SRC RPM
 %if %{with build_nosrc}
 NoSource:	0
@@ -167,6 +168,9 @@ Source20:	filesystems.fragment
 Source21:	framer.fragment
 Source22:	debug.fragment
 Source23:	networking.fragment
+Source24:	bluetooth.fragment
+Source25:	sensors.fragment
+Source26:	hid.fragment
 # Overrides (highest priority) for configs
 Source30:	znver1.overrides
 # config and systemd service file from fedora
@@ -272,7 +276,7 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.2
+%define evdi_version 1.14.4
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 
 # Assorted fixes
@@ -329,8 +333,6 @@ Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 #Patch304:	rtl8723cs-compile.patch
 Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 #Patch306:	linux-6.1-binutils-2.40.patch
-# https://gitlab.freedesktop.org/drm/amd/-/issues/3343
-Patch308:	https://gitlab.freedesktop.org/drm/amd/uploads/5c1819cbc498fb75de7d4be7159cd5ca/0001-drm-amdgpu-fix-off-by-one-in-amdgpu_res_cpu_visible.patch
 
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
@@ -855,7 +857,7 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 1003 -a 1004 -a 1010
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 1003 -a 1004 -a 1010
 %if 0%{?sublevel:%{sublevel}}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
@@ -888,6 +890,26 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
+
+# Merge TMFF2
+mv hid-tmff2-* drivers/hid/tmff-new
+cat >drivers/hid/tmff-new/Kconfig <<'EOF'
+config HID_TMFF_NEW
+	tristate "Thrustmaster T300RS, T248, TX, TS-XV wheel support"
+	help
+	  A Linux kernel module for Thrustmaster T300RS, T248, and
+	  (experimental support) TX and TS-XV wheels.
+EOF
+cat >drivers/hid/tmff-new/Makefile <<'EOF'
+hid-tmff-new-y := src/hid-tmff2.o src/tmt300rs/hid-tmt300rs.o src/tmt248/hid-tmt248.o src/tmtx/hid-tmtx.o src/tmtsxw/hid-tmtsxw.o
+obj-$(HID_TMFF_NEW) += hid-tmff-new.o
+EOF
+cat >>drivers/hid/Kconfig <<'EOF'
+source "drivers/hid/tmff-new/Kconfig"
+EOF
+cat >>drivers/hid/Makefile <<'EOF'
+obj-$(HID_TMFF_NEW) += tmff-new/
+EOF
 
 %if %{with rtl8821ce}
 # Merge RTL8723DE and RTL8821CE drivers
@@ -1084,8 +1106,15 @@ CreateConfig() {
 
 	printf '%s\n' "<-- Creating config for kernel type ${type} for ${arch}"
 	if printf '%s' ${type} | grep -q gcc; then
+%if %{cross_compiling}
+		CC=%{_target_platform}-gcc
+		CXX=%{_target_platform}-g++
+%else
 		CC=gcc
 		CXX=g++
+%endif
+		HCC=gcc
+		HCXX=g++
 		# force ld.bfd, Kbuild logic issues when ld is linked to something else
 		BUILD_LD="%{_target_platform}-ld.bfd"
 		BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
@@ -1093,6 +1122,8 @@ CreateConfig() {
 	else
 		CC=clang
 		CXX=clang++
+		HCC=clang
+		HCXX=clang++
 		# Workaround for LLD 16 BTF generation problem
 		#BUILD_LD=ld.bfd
 		#BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
@@ -1155,12 +1186,12 @@ CreateConfig() {
 %if %{without lazy_developer}
 ## YES, intentionally, DIE on wrong config
 	printf '%s\n' "=== Configuring ${arch} ${type} kernel ==="
-	make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 oldconfig
+	make ARCH="${arch}" CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 oldconfig
 %else
 	printf '%s\n' "Lazy developer option is enabled!!. Don't be lazy!."
 ## that takes kernel defaults on missing or changed things
 ## olddefconfig is similar to yes ... but not that verbose
-	yes "" | make ARCH="${arch}" CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" oldconfig
+	yes "" | make ARCH="${arch}" CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" oldconfig
 %endif
 
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
@@ -1189,8 +1220,15 @@ BuildKernel() {
 	printf '%s\n' "<--- Building kernel $KernelVer"
 
 	if printf '%s' ${KernelVer} | grep -q gcc; then
+%if %{cross_compiling}
+		CC=%{_target_platform}-gcc
+		CXX=%{_target_platform}-g++
+%else
 		CC=gcc
 		CXX=g++
+%endif
+		HCC=gcc
+		HCXX=g++
 		BUILD_OPT_CFLAGS="-O3"
 # force ld.bfd, Kbuild logic issues when ld is linked  to something else
 		BUILD_LD="%{_target_platform}-ld.bfd"
@@ -1199,6 +1237,8 @@ BuildKernel() {
 	else
 		CC=clang
 		CXX=clang++
+		HCC=clang
+		HCXX=clang++
 		BUILD_OPT_CFLAGS="-O3 %{pollyflags}"
 		# Workaround for LLD 16 BTF generation problem
 		#BUILD_LD=ld.bfd
@@ -1226,7 +1266,7 @@ BuildKernel() {
 %endif
 %endif
 # FIXME add KBUILD_CFLAGS="$BUILD_OPT_CFLAGS" once that actually works
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE modules $DTBS
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE modules $DTBS
 
 # Start installing stuff
 	install -d %{temp_boot}
@@ -1241,13 +1281,13 @@ BuildKernel() {
 
 # modules
 	install -d %{temp_modules}/$KernelVer
-	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" DEPMOD=/bin/true INSTALL_MOD_STRIP=1 modules_install
+	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" DEPMOD=/bin/true INSTALL_MOD_STRIP=1 modules_install
 
 # headers
 	%make_build V=0 VERBOSE=0 INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
 
 %ifarch %{armx} %{ppc}
-	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$CC" CXX="$CXX" HOSTCXX="$CXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_modules}/$KernelVer/dtb dtbs_install
+	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_modules}/$KernelVer/dtb dtbs_install
 	ln -s %{_modulesdir}/$KernelVer/dtb %{temp_boot}/dtb-$KernelVer
 %endif
 
