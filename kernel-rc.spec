@@ -217,6 +217,7 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 # Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
 # FIXME this may need porting, not sure where WC is set in 5.10
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
+Patch39:	komeda-6.10.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
