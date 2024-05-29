@@ -777,7 +777,9 @@ Tools needed to communicate with a Hyper-V host.
 %{_sbindir}/hv_vss_daemon
 %{_unitdir}/hypervvssd.service
 %{_udevrulesdir}/70-hypervvss.rules
+%ifarch %{x86_64}
 %{_sbindir}/hv_fcopy_uio_daemon
+%endif
 %{_unitdir}/hypervfcopyd.service
 %{_udevrulesdir}/70-hypervfcopy.rules
 %{_sbindir}/lsvmbus
