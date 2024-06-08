@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -907,13 +907,13 @@ config HID_TMFF_NEW
 EOF
 cat >drivers/hid/tmff-new/Makefile <<'EOF'
 hid-tmff-new-y := src/hid-tmff2.o src/tmt300rs/hid-tmt300rs.o src/tmt248/hid-tmt248.o src/tmtx/hid-tmtx.o src/tmtsxw/hid-tmtsxw.o
-obj-$(HID_TMFF_NEW) += hid-tmff-new.o
+obj-$(CONFIG_HID_TMFF_NEW) += hid-tmff-new.o
 EOF
 cat >>drivers/hid/Kconfig <<'EOF'
 source "drivers/hid/tmff-new/Kconfig"
 EOF
 cat >>drivers/hid/Makefile <<'EOF'
-obj-$(HID_TMFF_NEW) += tmff-new/
+obj-$(CONFIG_HID_TMFF_NEW) += tmff-new/
 EOF
 
 %if %{with rtl8821ce}
