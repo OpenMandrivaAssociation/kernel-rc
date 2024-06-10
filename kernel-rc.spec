@@ -105,7 +105,7 @@
 %bcond_with perf
 %else
 %bcond_without bpftool
-%bcond_without perf
+%bcond_with perf
 %endif
 %bcond_without build_x86_energy_perf_policy
 %bcond_without build_turbostat
