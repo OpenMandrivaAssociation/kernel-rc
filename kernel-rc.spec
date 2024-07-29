@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 10
+%define patchlevel 11
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -163,6 +163,7 @@ Source13:	arm64-omv-defconfig
 Source14:	riscv-omv-defconfig
 Source15:	powerpc-omv-defconfig
 Source16:	loongarch-omv-defconfig
+Source17:	generic-omv-defconfig
 # Fragments to be used with all/multiple kernel types
 Source20:	filesystems.fragment
 Source21:	framer.fragment
@@ -171,6 +172,7 @@ Source23:	networking.fragment
 Source24:	bluetooth.fragment
 Source25:	sensors.fragment
 Source26:	hid.fragment
+Source27:	nvme.fragment
 # Overrides (highest priority) for configs
 Source30:	znver1.overrides
 # config and systemd service file from fedora
@@ -276,7 +278,7 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.4
+%define evdi_version 1.14.5
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 Source1011:	evdi-kernel-6.10.patch
 
@@ -315,7 +317,6 @@ Patch245:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
 Patch247:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.5/general-rk808-configurable-switch-voltage-steps.patch
 Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-sd-drive-level-8ma.patch
-Patch249:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-pci-rockchip-support-ep-gpio-undefined-case.patch
 Patch250:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-enable-dwc3-xhci-usb-trb-quirk.patch
 Patch251:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/add-rockchip-iep-driver.patch
 Patch252:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-legacy-rockchip-hwrng.patch
@@ -1175,7 +1176,7 @@ CreateConfig() {
 	[ -e ${config_dir}/${arch}.overrides ] && EXTRAFRAGMENTS="$EXTRAFRAGMENTS ${config_dir}/${arch}.overrides"
 	[ -e ${config_dir}/${cfgarch}.overrides ] && EXTRAFRAGMENTS="$EXTRAFRAGMENTS ${config_dir}/${cfgarch}.overrides"
 	rm -f .config
-	scripts/kconfig/merge_config.sh -m ${BASECONFIG} %{_sourcedir}/*.fragment $EXTRAFRAGMENTS
+	scripts/kconfig/merge_config.sh -m ${BASECONFIG} %{_sourcedir}/generic-omv-defconfig %{_sourcedir}/*.fragment $EXTRAFRAGMENTS
 	printf '%s' ${type} | grep -q gcc || clangify .config
 	printf '%s' ${type} | grep -q server && serverize .config
 
