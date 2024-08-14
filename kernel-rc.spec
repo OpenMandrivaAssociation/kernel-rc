@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 11
 %define sublevel 0
-%define relc 2
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -272,7 +272,6 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # VirtualBox patches -- added as Source: rather than Patch:
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
-Source1005:	vbox-6.1-fix-build-on-znver1-hosts.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vboxvideo-kernel-6.3.patch
 
@@ -281,6 +280,7 @@ Source1008:	vboxvideo-kernel-6.3.patch
 %define evdi_version 1.14.5
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 Source1011:	evdi-kernel-6.10.patch
+Source1012:	evdi-kernel-6.11.patch
 
 # Assorted fixes
 
@@ -895,6 +895,7 @@ obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
 patch -p1 -b -z .evdi610~ <%{S:1011}
+patch -p1 -b -z .evdi611~ <%{S:1012}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new
@@ -994,7 +995,6 @@ sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefil
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
-patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1007~ -b <%{S:1007}
 %endif
 
