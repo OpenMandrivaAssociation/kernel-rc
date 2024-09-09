@@ -3,4 +3,4 @@ sources:
   extra-wifi-drivers-20200301.tar.zst: 3390c738c7d91250714ce0f88d26371e93bc40b8
   hid-tmff2-20240526.tar.gz: 6b2699c0a98e1bba0b259acb000097a003df682f
   v1.14.5.tar.gz: 70006c748642534203733407dfba99ae8ecb6038
-  linux-6.11-rc6.tar.gz: 69ea062ba68af6b9372a77cc9be0fa354a39a36e
+  linux-6.11-rc7.tar.gz: 722be911f40e1e92a48eda4d74abcaf981bf8b74
