@@ -535,7 +535,12 @@ CONFIG_SPECULATION_MITIGATIONS=y
 CONFIG_MITIGATION_PAGE_TABLE_ISOLATION=y
 CONFIG_MITIGATION_RETPOLINE=y
 CONFIG_MITIGATION_RETHUNK=y
-CONFIG_MITIGATION_GDS_FORCE=y
+# WARNING -- MITIGATION_GDS_FORCE causes sddm and other code
+# that uses AVX instructions to check for AVX support at
+# runtime to crash on affected systems.
+# Don't enable it unless you're ok with breaking non-AVX hardware
+# affected by the GDS issue.
+# CONFIG_MITIGATION_GDS_FORCE is not set
 CONFIG_MITIGATION_RFDS=y
 CONFIG_MITIGATION_SPECTRE_BHI=y
 CONFIG_PAGE_TABLE_ISOLATION=y
