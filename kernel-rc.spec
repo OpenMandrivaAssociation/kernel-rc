@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 11
+%define patchlevel 12
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -173,6 +173,8 @@ Source24:	bluetooth.fragment
 Source25:	sensors.fragment
 Source26:	hid.fragment
 Source27:	nvme.fragment
+Source28:	modules.fragment
+Source29:	gcc-plugins.fragment
 # Overrides (highest priority) for configs
 Source30:	znver1.overrides
 # config and systemd service file from fedora
@@ -277,10 +279,9 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.5
+%define evdi_version 1.14.6
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 Source1011:	evdi-kernel-6.10.patch
-Source1012:	evdi-kernel-6.11.patch
 
 # Assorted fixes
 
@@ -308,12 +309,13 @@ Patch230:	linux-5.11-perf-compile.patch
 #Patch231:	ce71038e673ee8291c64631359e56c48c8616dc7.patch
 
 # (tpg) Armbian ARM Patches
+# https://github.com/armbian/build/tree/main/patch/kernel/archive/
 Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-emmc.patch
 Patch241:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-spi1-flash-speed.patch
 Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-work-led-heartbeat.patch
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
 Patch244:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-inno-usb2-phy-init.patch
-Patch245:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-unlock-temperature.patch
+Patch245:	https://github.com/armbian/build/raw/refs/heads/main/patch/kernel/archive/rockchip64-6.11/rk3399-unlock-temperature.patch
 Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
 Patch247:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.5/general-rk808-configurable-switch-voltage-steps.patch
 Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-sd-drive-level-8ma.patch
@@ -895,7 +897,6 @@ obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
 patch -p1 -b -z .evdi610~ <%{S:1011}
-patch -p1 -b -z .evdi611~ <%{S:1012}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new

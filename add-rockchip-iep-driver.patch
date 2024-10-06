@@ -30,9 +30,9 @@ diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3328.dtsi.45~ linux-6.3-rc
  	hdmi: hdmi@ff3c0000 {
  		compatible = "rockchip,rk3328-dw-hdmi";
  		reg = <0x0 0xff3c0000 0x0 0x20000>;
-diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi.45~ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi
---- linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi.45~	2023-03-14 03:24:14.722774008 +0100
-+++ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399.dtsi	2023-03-14 03:24:14.726774043 +0100
+diff -up linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399-base.dtsi.45~ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399-base.dtsi
+--- linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399-base.dtsi.45~	2023-03-14 03:24:14.722774008 +0100
++++ linux-6.3-rc2/arch/arm64/boot/dts/rockchip/rk3399-base.dtsi	2023-03-14 03:24:14.726774043 +0100
 @@ -1379,11 +1379,24 @@
  		#iommu-cells = <0>;
  	};
