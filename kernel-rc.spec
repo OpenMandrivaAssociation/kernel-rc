@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 12
 %define sublevel 0
-%define relc 1
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -148,7 +148,7 @@ Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-
 Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
 Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
 %endif
-Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20240526.tar.gz
+Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20241007.tar.gz
 ### This is for stripped SRC RPM
 %if %{with build_nosrc}
 NoSource:	0
@@ -221,6 +221,7 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 # Make Nouveau work on SynQuacer (and probably all other non-x86 boards)
 # FIXME this may need porting, not sure where WC is set in 5.10
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
+Source39:	tmff2-kernel-6.12.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
@@ -279,9 +280,9 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.6
+%define evdi_version 1.14.7
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	evdi-kernel-6.10.patch
+Source1011:	evdi-kernel-6.12.patch
 
 # Assorted fixes
 
@@ -917,6 +918,7 @@ EOF
 cat >>drivers/hid/Makefile <<'EOF'
 obj-$(CONFIG_HID_TMFF_NEW) += tmff-new/
 EOF
+patch -p1 -b -z .tmff2build~ <%{S:39}
 
 %if %{with rtl8821ce}
 # Merge RTL8723DE and RTL8821CE drivers
@@ -1361,7 +1363,7 @@ SaveDevel() {
 	cp -fRu drivers/media/dvb-frontends/lgdt330x.h $TempDevelRoot/drivers/media/dvb-frontends/
 
 # orc unwinder needs theese
-	cp -fRu tools/build/Build{,.include} $TempDevelRoot/tools/build
+	cp -fRu tools/build/Build.include $TempDevelRoot/tools/build
 	cp -fRu tools/build/fixdep.c $TempDevelRoot/tools/build
 	cp -fRu tools/lib/{str_error_r.c,string.c} $TempDevelRoot/tools/lib
 	cp -fRu tools/lib/subcmd/* $TempDevelRoot/tools/lib/subcmd
@@ -1415,6 +1417,7 @@ $DevelRoot/include/asm-generic
 $DevelRoot/include/clocksource
 $DevelRoot/include/config
 $DevelRoot/include/crypto
+$DevelRoot/include/cxl
 $DevelRoot/include/drm
 $DevelRoot/include/dt-bindings
 $DevelRoot/include/generated
@@ -1888,6 +1891,7 @@ cd -
 %{_kerneldir}/include/asm-generic
 %{_kerneldir}/include/clocksource
 %{_kerneldir}/include/crypto
+%{_kerneldir}/include/cxl
 %{_kerneldir}/include/drm
 %{_kerneldir}/include/dt-bindings
 %{_kerneldir}/include/keys
