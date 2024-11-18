@@ -373,9 +373,9 @@ BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	binutils
 BuildRequires:	hostname
-BuildRequires:	clang
-BuildRequires:	llvm
-BuildRequires:	lld
+BuildRequires:	clang = 19.1.2
+BuildRequires:	llvm = 19.1.2
+BuildRequires:	lld = 19.1.2
 BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
