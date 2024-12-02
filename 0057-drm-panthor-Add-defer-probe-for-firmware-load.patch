@@ -1,0 +1,41 @@
+From 128f2521245ad4bd224587db476e60b1d55a83cc Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Sat, 13 Apr 2024 19:42:21 +0800
+Subject: [PATCH 57/77] drm/panthor: Add defer probe for firmware load
+
+The firmware in the rootfs will not be accessible until we
+are in the SYSTEM_RUNNING state, so return EPROBE_DEFER until
+that point.
+This let the driver can load firmware when it is builtin.
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ drivers/gpu/drm/panthor/panthor_fw.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/panthor/panthor_fw.c b/drivers/gpu/drm/panthor/panthor_fw.c
+index ef232c0c20493..5db12f42a247a 100644
+--- a/drivers/gpu/drm/panthor/panthor_fw.c
++++ b/drivers/gpu/drm/panthor/panthor_fw.c
+@@ -1344,8 +1344,17 @@ int panthor_fw_init(struct panthor_device *ptdev)
+ 	}
+ 
+ 	ret = panthor_fw_load(ptdev);
+-	if (ret)
++	if (ret) {
++		/*
++		 * The firmware in the rootfs will not be accessible until we
++		 * are in the SYSTEM_RUNNING state, so return EPROBE_DEFER until
++		 * that point.
++		 */
++		if (system_state < SYSTEM_RUNNING)
++			ret = -EPROBE_DEFER;
++
+ 		goto err_unplug_fw;
++	}
+ 
+ 	ret = panthor_vm_active(fw->vm);
+ 	if (ret)
+-- 
+2.47.0
+

@@ -1,0 +1,32 @@
+From 2b804b47341503b7b87db2dcb11a6ba2ebc1acfa Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Mon, 30 Sep 2024 09:40:01 +0800
+Subject: [PATCH 27/77] [DONT UPSTREAM]net: r8169: Force MAC address
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ drivers/net/ethernet/realtek/r8169_main.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/net/ethernet/realtek/r8169_main.c b/drivers/net/ethernet/realtek/r8169_main.c
+index 713a89bb21e93..a787e094ae424 100644
+--- a/drivers/net/ethernet/realtek/r8169_main.c
++++ b/drivers/net/ethernet/realtek/r8169_main.c
+@@ -5347,6 +5347,14 @@ static void rtl_init_mac_address(struct rtl8169_private *tp)
+ 	if (is_valid_ether_addr(mac_addr))
+ 		goto done;
+ 
++	mac_addr[0] = 0x9A;
++	mac_addr[1] = 0x4E;
++	mac_addr[2] = 0xDA;
++	mac_addr[3] = 0x07;
++	mac_addr[4] = 0x28;
++	mac_addr[5] = 0xFC;
++	goto done;
++
+ 	eth_random_addr(mac_addr);
+ 	dev->addr_assign_type = NET_ADDR_RANDOM;
+ 	dev_warn(tp_to_dev(tp), "can't read MAC address, setting random one\n");
+-- 
+2.47.0
+

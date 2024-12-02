@@ -1,29 +1,29 @@
-diff -up linux-6.9-rc1/drivers/staging/Kconfig.25~ linux-6.9-rc1/drivers/staging/Kconfig
---- linux-6.9-rc1/drivers/staging/Kconfig.25~	2024-03-25 10:53:06.104188279 +0100
-+++ linux-6.9-rc1/drivers/staging/Kconfig	2024-03-25 10:53:45.926750978 +0100
-@@ -50,6 +50,8 @@ source "drivers/staging/nvec/Kconfig"
+diff -up linux-6.13-rc1/drivers/staging/Kconfig.26~ linux-6.13-rc1/drivers/staging/Kconfig
+--- linux-6.13-rc1/drivers/staging/Kconfig.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/Kconfig	2024-12-02 00:55:35.453942997 +0100
+@@ -36,6 +36,8 @@ source "drivers/staging/nvec/Kconfig"
  
  source "drivers/staging/media/Kconfig"
  
 +source "drivers/staging/android/Kconfig"
 +
- source "drivers/staging/gdm724x/Kconfig"
- 
  source "drivers/staging/fbtft/Kconfig"
-diff -up linux-6.9-rc1/drivers/staging/Makefile.25~ linux-6.9-rc1/drivers/staging/Makefile
---- linux-6.9-rc1/drivers/staging/Makefile.25~	2024-03-25 10:53:06.104188279 +0100
-+++ linux-6.9-rc1/drivers/staging/Makefile	2024-03-25 10:54:25.030299248 +0100
-@@ -14,6 +14,7 @@ obj-$(CONFIG_VT6656)		+= vt6656/
+ 
+ source "drivers/staging/most/Kconfig"
+diff -up linux-6.13-rc1/drivers/staging/Makefile.26~ linux-6.13-rc1/drivers/staging/Makefile
+--- linux-6.13-rc1/drivers/staging/Makefile.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/Makefile	2024-12-02 00:55:56.404192044 +0100
+@@ -7,6 +7,7 @@ obj-$(CONFIG_OCTEON_ETHERNET)	+= octeon/
  obj-$(CONFIG_VME_BUS)		+= vme_user/
  obj-$(CONFIG_IIO)		+= iio/
  obj-$(CONFIG_FB_SM750)		+= sm750fb/
 +obj-$(CONFIG_ANDROID)		+= android/
  obj-$(CONFIG_MFD_NVEC)		+= nvec/
- obj-$(CONFIG_LTE_GDM724X)	+= gdm724x/
  obj-$(CONFIG_FB_TFT)		+= fbtft/
-diff -up linux-6.9-rc1/drivers/staging/android/Kconfig.25~ linux-6.9-rc1/drivers/staging/android/Kconfig
---- linux-6.9-rc1/drivers/staging/android/Kconfig.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/Kconfig	2024-03-25 10:53:06.103188264 +0100
+ obj-$(CONFIG_MOST)		+= most/
+diff -up linux-6.13-rc1/drivers/staging/android/Kconfig.26~ linux-6.13-rc1/drivers/staging/android/Kconfig
+--- linux-6.13-rc1/drivers/staging/android/Kconfig.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/Kconfig	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,19 @@
 +# SPDX-License-Identifier: GPL-2.0
 +menu "Android"
@@ -44,17 +44,17 @@ diff -up linux-6.9-rc1/drivers/staging/android/Kconfig.25~ linux-6.9-rc1/drivers
 +endif # if ANDROID
 +
 +endmenu
-diff -up linux-6.9-rc1/drivers/staging/android/Makefile.25~ linux-6.9-rc1/drivers/staging/android/Makefile
---- linux-6.9-rc1/drivers/staging/android/Makefile.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/Makefile	2024-03-25 10:53:06.103188264 +0100
+diff -up linux-6.13-rc1/drivers/staging/android/Makefile.26~ linux-6.13-rc1/drivers/staging/android/Makefile
+--- linux-6.13-rc1/drivers/staging/android/Makefile.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/Makefile	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,4 @@
 +# SPDX-License-Identifier: GPL-2.0
 +ccflags-y += -I$(src)			# needed for trace events
 +
 +obj-$(CONFIG_ASHMEM)			+= ashmem.o
-diff -up linux-6.9-rc1/drivers/staging/android/TODO.25~ linux-6.9-rc1/drivers/staging/android/TODO
---- linux-6.9-rc1/drivers/staging/android/TODO.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/TODO	2024-03-25 10:53:06.103188264 +0100
+diff -up linux-6.13-rc1/drivers/staging/android/TODO.26~ linux-6.13-rc1/drivers/staging/android/TODO
+--- linux-6.13-rc1/drivers/staging/android/TODO.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/TODO	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,8 @@
 +TODO:
 +	- sparse fixes
@@ -64,9 +64,9 @@ diff -up linux-6.9-rc1/drivers/staging/android/TODO.25~ linux-6.9-rc1/drivers/st
 +
 +Please send patches to Greg Kroah-Hartman <greg@kroah.com> and Cc:
 +Arve Hjønnevåg <arve@android.com> and Riley Andrews <riandrews@android.com>
-diff -up linux-6.9-rc1/drivers/staging/android/ashmem.c.25~ linux-6.9-rc1/drivers/staging/android/ashmem.c
---- linux-6.9-rc1/drivers/staging/android/ashmem.c.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/ashmem.c	2024-03-25 10:53:06.103188264 +0100
+diff -up linux-6.13-rc1/drivers/staging/android/ashmem.c.26~ linux-6.13-rc1/drivers/staging/android/ashmem.c
+--- linux-6.13-rc1/drivers/staging/android/ashmem.c.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/ashmem.c	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,970 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/* mm/ashmem.c
@@ -1038,9 +1038,9 @@ diff -up linux-6.9-rc1/drivers/staging/android/ashmem.c.25~ linux-6.9-rc1/driver
 +	return ret;
 +}
 +device_initcall(ashmem_init);
-diff -up linux-6.9-rc1/drivers/staging/android/ashmem.h.25~ linux-6.9-rc1/drivers/staging/android/ashmem.h
---- linux-6.9-rc1/drivers/staging/android/ashmem.h.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/ashmem.h	2024-03-25 10:53:06.103188264 +0100
+diff -up linux-6.13-rc1/drivers/staging/android/ashmem.h.26~ linux-6.13-rc1/drivers/staging/android/ashmem.h
+--- linux-6.13-rc1/drivers/staging/android/ashmem.h.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/ashmem.h	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,24 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR Apache-2.0 */
 +/*
@@ -1066,9 +1066,9 @@ diff -up linux-6.9-rc1/drivers/staging/android/ashmem.h.25~ linux-6.9-rc1/driver
 +#endif
 +
 +#endif	/* _LINUX_ASHMEM_H */
-diff -up linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h.25~ linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h
---- linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h.25~	2024-03-25 10:53:06.103188264 +0100
-+++ linux-6.9-rc1/drivers/staging/android/uapi/ashmem.h	2024-03-25 10:53:06.103188264 +0100
+diff -up linux-6.13-rc1/drivers/staging/android/uapi/ashmem.h.26~ linux-6.13-rc1/drivers/staging/android/uapi/ashmem.h
+--- linux-6.13-rc1/drivers/staging/android/uapi/ashmem.h.26~	2024-12-02 00:54:24.483099059 +0100
++++ linux-6.13-rc1/drivers/staging/android/uapi/ashmem.h	2024-12-02 00:54:24.483099059 +0100
 @@ -0,0 +1,43 @@
 +/* SPDX-License-Identifier: GPL-2.0 OR Apache-2.0 */
 +/*

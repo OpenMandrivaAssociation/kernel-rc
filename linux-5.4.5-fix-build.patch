@@ -1,9 +1,0 @@
-diff -up linux-5.4/include/linux/sched/deadline.h.omv~ linux-5.4/include/linux/sched/deadline.h
---- linux-5.4/include/linux/sched/deadline.h.omv~	2019-12-19 00:17:43.772470648 +0100
-+++ linux-5.4/include/linux/sched/deadline.h	2019-12-19 00:20:27.757462692 +0100
-@@ -1,4 +1,5 @@
- /* SPDX-License-Identifier: GPL-2.0 */
-+#pragma once
- 
- /*
-  * SCHED_DEADLINE tasks has negative priorities, reflecting

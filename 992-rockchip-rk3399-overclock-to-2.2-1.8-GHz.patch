@@ -1,9 +1,9 @@
-diff -up linux-6.12-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi.51~ linux-6.12-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi
---- linux-6.12-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi.51~	2024-10-06 23:09:46.393742884 +0200
-+++ linux-6.12-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi	2024-10-06 23:12:23.105357032 +0200
+diff -up linux-6.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi.49~ linux-6.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi
+--- linux-6.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi.49~	2024-12-02 01:00:45.347623914 +0100
++++ linux-6.13-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi	2024-12-02 01:02:40.288987948 +0100
 @@ -39,6 +39,14 @@
  			opp-hz = /bits/ 64 <1512000000>;
- 			opp-microvolt = <1150000>;
+ 			opp-microvolt = <1150000 1150000 1150000>;
  		};
 +		opp07 {
 +			opp-hz = /bits/ 64 <1608000000>;
@@ -18,7 +18,7 @@ diff -up linux-6.12-rc1/arch/arm64/boot/dts/rockchip/rk3399-op1.dtsi.51~ linux-6
  	cluster1_opp: opp-table-1 {
 @@ -82,6 +90,10 @@
  			opp-hz = /bits/ 64 <2016000000>;
- 			opp-microvolt = <1250000>;
+ 			opp-microvolt = <1250000 1250000 1250000>;
  		};
 +		opp09 {
 +			opp-hz = /bits/ 64 <2208000000>;

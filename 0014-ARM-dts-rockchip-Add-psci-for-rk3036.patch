@@ -1,0 +1,48 @@
+From 3c440008c73e3e4ce67991bf91ed462692e43e86 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Sun, 17 Dec 2023 18:32:31 +0800
+Subject: [PATCH 14/77] ARM: dts: rockchip: Add psci for rk3036
+
+The system will hang at bringup secondary CPUs
+without psci node.
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+
+Series-version: 2
+
+Cover-letter:
+Fix mainline support for rk3036 kylin board
+
+When I want to test some patch of inno hdmi driver on
+mainline, I found the support of rk3036 kylin board
+was broken by somehow:
+
+PATCH 1 is add psci dt node, as we switch to psci for
+cpu on/off for many yeas.
+PATCH 2 add stdou-path for uart boot console.
+PATCH 3 fix the emmc per board rockchip,default-sample-phase property
+issue.
+END
+---
+ arch/arm/boot/dts/rockchip/rk3036.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/boot/dts/rockchip/rk3036.dtsi b/arch/arm/boot/dts/rockchip/rk3036.dtsi
+index 2e4ebc0b25f37..0a18a121593fc 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036.dtsi
++++ b/arch/arm/boot/dts/rockchip/rk3036.dtsi
+@@ -70,6 +70,11 @@ display-subsystem {
+ 		ports = <&vop_out>;
+ 	};
+ 
++	psci {
++		compatible = "arm,psci-1.0";
++		method = "smc";
++	};
++
+ 	timer {
+ 		compatible = "arm,armv7-timer";
+ 		arm,cpu-registers-not-fw-configured;
+-- 
+2.47.0
+

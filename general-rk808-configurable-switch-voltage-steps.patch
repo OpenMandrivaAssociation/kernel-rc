@@ -1,48 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Piotr Szczepanik <piter75@gmail.com>
-Date: Tue, 2 Mar 2021 21:07:22 +0100
-Subject: allows to change the way that BUCK1 and BUCK2 of rk808 PMIC
-
-This patch allows to change the way that BUCK1 and BUCK2 of rk808 PMIC set voltage.
-
-It allows to change the hardcoded max. 100mV per one change
-to any multiple of 12.5mV while keeping the 100mV default.
-
-It was observed that making the steps smaller (eg. 50mV = 4 * 12.5mV)
-makes the NanoPi M4V2 running stable.
-
-One can configure the max number of steps per single change using
-the "max-buck-steps-per-change" property of rk808 node in device tree.
-
-Below example ensures that voltage is not changed in jumps larger than 50mV:
-
-&rk808 {
-	max-buck-steps-per-change = <4>;
-}
-
-Be aware that changing this parameter affects the time taken to switch between
-OPPs of LiTTLE cores of rk3399.
-
-For overclocked LiTTLE cores with base 408MHz @ 0.825V
-and max. 1.5GHz @ 1.2V it will take 7 steps of 50mV (at least 65uS each - caused by i2c),
-the final 25mV step and 1uS to settle: 7 x 65uS + 1uS = 456uS.
-
-With default setting it would be 3 steps of 100mV (at least 65uS each - caused by i2c),
-the final 75mV step and 1uS to settle: 3 x 65uS + 1uS = 196uS.
-
-- rpardini: fix 'client_dev' -> 'dev' (for '->of_node') for 6.5.y
-
-Signed-off-by: Piotr Szczepanik <piter75@gmail.com>
-Signed-off-by: Ricardo Pardini <ricardo@pardini.net>
----
- drivers/regulator/rk808-regulator.c | 17 +++++++---
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/regulator/rk808-regulator.c b/drivers/regulator/rk808-regulator.c
-index 460525ed006c..f99a5be93648 100644
---- a/drivers/regulator/rk808-regulator.c
-+++ b/drivers/regulator/rk808-regulator.c
-@@ -203,6 +203,7 @@ struct rk8xx_register_bit {
+diff -up linux-6.13-rc1/drivers/regulator/rk808-regulator.c.44~ linux-6.13-rc1/drivers/regulator/rk808-regulator.c
+--- linux-6.13-rc1/drivers/regulator/rk808-regulator.c.44~	2024-12-01 23:28:56.000000000 +0100
++++ linux-6.13-rc1/drivers/regulator/rk808-regulator.c	2024-12-02 01:00:23.047359211 +0100
+@@ -207,6 +207,7 @@ struct rk8xx_register_bit {
  
  struct rk808_regulator_data {
  	struct gpio_desc *dvs_gpio[2];
@@ -50,7 +9,7 @@ index 460525ed006c..f99a5be93648 100644
  };
  
  static const struct linear_range rk808_ldo3_voltage_ranges[] = {
-@@ -415,7 +416,8 @@ static int rk808_buck1_2_get_voltage_sel_regmap(struct regulator_dev *rdev)
+@@ -419,7 +420,8 @@ static int rk808_buck1_2_get_voltage_sel
  }
  
  static int rk808_buck1_2_i2c_set_voltage_sel(struct regulator_dev *rdev,
@@ -60,7 +19,7 @@ index 460525ed006c..f99a5be93648 100644
  {
  	int ret, delta_sel;
  	unsigned int old_sel, tmp, val, mask = rdev->desc->vsel_mask;
-@@ -434,8 +436,8 @@ static int rk808_buck1_2_i2c_set_voltage_sel(struct regulator_dev *rdev,
+@@ -438,8 +440,8 @@ static int rk808_buck1_2_i2c_set_voltage
  	 * the risk of overshoot. Put it into a multi-step, can effectively
  	 * avoid this problem, a step is 100mv here.
  	 */
@@ -71,7 +30,7 @@ index 460525ed006c..f99a5be93648 100644
  		val = old_sel << (ffs(mask) - 1);
  		val |= tmp;
  
-@@ -469,12 +471,13 @@ static int rk808_buck1_2_set_voltage_sel(struct regulator_dev *rdev,
+@@ -473,12 +475,13 @@ static int rk808_buck1_2_set_voltage_sel
  	struct rk808_regulator_data *pdata = rdev_get_drvdata(rdev);
  	int id = rdev_get_id(rdev);
  	struct gpio_desc *gpio = pdata->dvs_gpio[id];
@@ -86,8 +45,8 @@ index 460525ed006c..f99a5be93648 100644
  
  	gpio_level = gpiod_get_value(gpio);
  	if (gpio_level == 0) {
-@@ -1656,6 +1659,12 @@ static int rk808_regulator_dt_parse_pdata(struct device *dev,
- 				0 : tmp);
+@@ -1860,6 +1863,12 @@ static int rk808_regulator_dt_parse_pdat
+ 					 gpiod_is_active_low(pdata->dvs_gpio[i]) ? 0 : tmp);
  	}
  
 +	tmp = of_property_read_u32(dev->of_node, "max-buck-steps-per-change", &pdata->max_buck_steps_per_change);
@@ -99,6 +58,3 @@ index 460525ed006c..f99a5be93648 100644
  dt_parse_end:
  	of_node_put(np);
  	return ret;
--- 
-Armbian
-

@@ -1,0 +1,48 @@
+From 20d7c3b34f435fd97a1ead0b1fe78fd73c8f74b7 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Wed, 20 Dec 2023 15:19:35 +0800
+Subject: [PATCH 15/77] arm: dts: rockchip: Fix emac on rk3036 kylin board
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm/boot/dts/rockchip/rk3036-kylin.dts | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+index 9b9141ed2b49e..39d6f83704309 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
++++ b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+@@ -94,12 +94,28 @@ &acodec {
+ 	status = "okay";
+ };
+ 
++&cpu0 {
++        operating-points = <
++                /* KHz    uV */
++                 1000000 1225000
++        >;
++};
++
++&cru {
++	assigned-clocks = <&cru PLL_GPLL>, <&cru PLL_APLL>;
++	assigned-clock-rates = <594000000>, <1000000000> ;
++};
++
+ &emac {
++	assigned-clocks = <&cru SCLK_MACPLL>;
++	assigned-clock-rates = <50000000>;
++	assigned-clock-parents = <&cru PLL_APLL>;
++	phy = <&phy0>;
++	phy-reset-duration = <10>; /* millisecond */
++	phy-reset-gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>; /* PHY_RST */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emac_xfer>, <&emac_mdio>;
+ 	phy = <&phy0>;
+-	phy-reset-gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>; /* PHY_RST */
+-	phy-reset-duration = <10>; /* millisecond */
+ 
+ 	status = "okay";
+ 
+-- 
+2.47.0
+
