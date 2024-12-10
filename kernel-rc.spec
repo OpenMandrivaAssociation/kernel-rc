@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 13
 %define sublevel 0
-%define relc 1
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -1881,6 +1881,7 @@ for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k
     rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/$i
     rm -rf %{buildroot}%{_kerneldir}/tools/arch/$i
     rm -rf %{buildroot}%{_kerneldir}/tools/testing/selftests/$i
+    sed -i -e "/source.*${i}/d" %{buildroot}%{_kerneldir}/crypto/Kconfig
 done
 
 %ifnarch %{armx}
