@@ -222,6 +222,7 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Source39:	tmff2-kernel-6.12.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
+Patch41:	6.13-rc2-compile.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 
@@ -271,7 +272,8 @@ Source1008:	vboxvideo-kernel-6.3.patch
 # Needed by DisplayLink cruft
 %define evdi_version 1.14.7
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	evdi-kernel-6.12.patch
+Source1011:	https://github.com/DisplayLink/evdi/commit/3651b6debf631febf470106d43199d7fbd7bfd56.patch
+Source1012:	evdi-6.13.patch
 
 # Assorted fixes
 
@@ -943,6 +945,9 @@ find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h"
 %endif
 
 # Merge EVDI
+cd evdi-%{evdi_version}
+patch -p1 -b -z .evdi613~ <%{S:1011}
+cd ..
 mv evdi-%{evdi_version}/module drivers/gpu/drm/evdi
 rm -rf evdi-%{evdi_version}
 sed -i -e '/imagination/isource "drivers/gpu/drm/evdi/Kconfig"' drivers/gpu/drm/Kconfig
@@ -953,7 +958,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
-patch -p1 -b -z .evdi610~ <%{S:1011}
+patch -p1 -b -z .evdi613a~ <%{S:1012}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new

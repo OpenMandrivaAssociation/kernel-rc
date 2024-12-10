@@ -1,0 +1,14 @@
+diff -up linux-6.13-rc2/arch/x86/kernel/asm-offsets.c.omv~ linux-6.13-rc2/arch/x86/kernel/asm-offsets.c
+diff -up linux-6.13-rc2/arch/x86/kernel/relocate_kernel_64.S.omv~ linux-6.13-rc2/arch/x86/kernel/relocate_kernel_64.S
+--- linux-6.13-rc2/arch/x86/kernel/relocate_kernel_64.S.omv~	2024-12-11 14:27:49.006483262 +0100
++++ linux-6.13-rc2/arch/x86/kernel/relocate_kernel_64.S	2024-12-11 14:28:17.814723849 +0100
+@@ -13,6 +13,9 @@
+ #include <asm/pgtable_types.h>
+ #include <asm/nospec-branch.h>
+ #include <asm/unwind_hints.h>
++#ifdef CONFIG_KEXEC_JUMP
++#include <asm/asm-offsets.h>
++#endif
+ 
+ /*
+  * Must be relocatable PIC code callable as a C function, in particular
