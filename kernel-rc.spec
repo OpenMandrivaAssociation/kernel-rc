@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 13
 %define sublevel 0
-%define relc 2
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -222,7 +222,6 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Source39:	tmff2-kernel-6.12.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
-Patch41:	6.13-rc2-compile.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 
@@ -1166,6 +1165,7 @@ serverize() {
 		-e 's/CONFIG_HZ_1000=y/# CONFIG_HZ_1000 is not set/' \
 		-e 's/^CONFIG_HZ_100 is not set/CONFIG_HZ_100=y/' \
 		-e 's/^CONFIG_HZ=1000/CONFIG_HZ=100/' \
+		-e 's/^CONFIG_MODIFY_LDT_SYSCALL=y/# CONFIG_MODIFY_LDT_SYSCALL is not set/' \
 		"$1"
 }
 
