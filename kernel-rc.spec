@@ -272,6 +272,7 @@ Source1008:	vboxvideo-kernel-6.3.patch
 # Needed by DisplayLink cruft
 %define evdi_version 1.14.8
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
+Source1011:	evdi-6.14.patch
 
 # Assorted fixes
 
@@ -925,9 +926,6 @@ find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h"
 %endif
 
 # Merge EVDI
-cd evdi-%{evdi_version}
-#patch -p1 -b -z .evdi613~ <%{S:1011}
-cd ..
 mv evdi-%{evdi_version}/module drivers/gpu/drm/evdi
 rm -rf evdi-%{evdi_version}
 sed -i -e '/imagination/isource "drivers/gpu/drm/evdi/Kconfig"' drivers/gpu/drm/Kconfig
@@ -938,7 +936,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
-#patch -p1 -b -z .evdi613a~ <%{S:1012}
+patch -p1 -b -z .evdi614~ <%{S:1011}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new
