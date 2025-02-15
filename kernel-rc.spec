@@ -1463,6 +1463,7 @@ $DevelRoot/include/cxl
 $DevelRoot/include/drm
 $DevelRoot/include/dt-bindings
 $DevelRoot/include/generated
+%optional $DevelRoot/include/hyperv
 $DevelRoot/include/keys
 $DevelRoot/include/kunit
 $DevelRoot/include/kvm
@@ -1937,6 +1938,7 @@ cd -
 %{_kerneldir}/include/cxl
 %{_kerneldir}/include/drm
 %{_kerneldir}/include/dt-bindings
+%optional %{_kerneldir}/include/hyperv
 %{_kerneldir}/include/keys
 %{_kerneldir}/include/kunit
 %{_kerneldir}/include/kvm
