@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 13
+%define patchlevel 14
 %define sublevel 0
-%define relc 7
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -174,8 +174,10 @@ Source26:	hid.fragment
 Source27:	nvme.fragment
 Source28:	modules.fragment
 Source29:	gcc-plugins.fragment
+Source30:	pps.fragment
+Source31:	cgroups.fragment
 # Overrides (highest priority) for configs
-Source30:	znver1.overrides
+Source200:	znver1.overrides
 # config and systemd service file from fedora
 Source300:	cpupower.service
 Source301:	cpupower.config
@@ -208,7 +210,6 @@ Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 Patch30:	https://gitweb.gentoo.org/proj/linux-patches.git/plain/5010_enable-cpu-optimizations-universal.patch?h=6.7#/cpu-optimizations.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
-Patch33:	acer-wmi-Predator-PH18-71.patch
 Patch34:	kernel-5.6-kvm-gcc10.patch
 Patch35:	linux-6.7-BTF-deps.patch
 # Work around rpm dependency generator screaming about
@@ -269,10 +270,8 @@ Source1008:	vboxvideo-kernel-6.3.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.7
+%define evdi_version 1.14.8
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	https://github.com/DisplayLink/evdi/commit/3651b6debf631febf470106d43199d7fbd7bfd56.patch
-Source1012:	evdi-6.13.patch
 
 # Assorted fixes
 
@@ -382,16 +381,10 @@ Patch976:	0027-DONT-UPSTREAM-net-r8169-Force-MAC-address.patch
 Patch979:	0030-math.h-add-DIV_ROUND_UP_NO_OVERFLOW.patch
 Patch980:	0031-clk-divider-Fix-divisor-masking-on-64-bit-platforms.patch
 Patch981:	0032-clk-composite-replace-open-coded-abs_diff.patch
-Patch982:	0033-clk-rockchip-support-clocks-registered-late.patch
-Patch983:	0034-clk-rockchip-rk3588-register-GATE_LINK-later.patch
-Patch984:	0035-clk-rockchip-expose-rockchip_clk_set_lookup.patch
-Patch985:	0036-clk-rockchip-implement-linked-gate-clock-support.patch
-Patch986:	0037-clk-rockchip-rk3588-drop-RK3588_LINKED_CLK.patch
 Patch987:	0038-arm64-dts-rockchip-rk3588-evb1-add-bluetooth-rfkill.patch
 Patch988:	0039-arm64-dts-rockchip-rk3588-evb1-improve-PCIe-ethernet.patch
 Patch989:	0040-arm64-dts-rockchip-Slow-down-EMMC-a-bit-to-keep-IO-s.patch
 Patch990:	0041-mfd-rk8xx-Fix-shutdown-handler.patch
-Patch992:	0043-arm64-defconfig-Enable-Rockchip-extensions-for-Synop.patch
 Patch993:	0044-regulator-Add-devm_-of_regulator_get.patch
 Patch994:	0045-pmdomain-rockchip-cleanup-mutex-handling-in-rockchip.patch
 Patch995:	0046-pmdomain-rockchip-forward-rockchip_do_pmu_set_power_.patch
@@ -399,26 +392,14 @@ Patch996:	0047-pmdomain-rockchip-reduce-indentation-in-rockchip_pd_.patch
 Patch997:	0048-dt-bindings-power-rockchip-add-regulator-support.patch
 Patch998:	0049-pmdomain-rockchip-add-regulator-support.patch
 Patch999:	0050-arm64-dts-rockchip-Add-GPU-power-domain-regulator-de.patch
-Patch1004:	0055-arm64-dts-rockchip-rk3588-evb1-add-WLAN-controller.patch
 Patch1005:	0056-arm64-dts-rockchip-Add-wifi-regulator-for-Cool-Pi-4b.patch
 Patch1006:	0057-drm-panthor-Add-defer-probe-for-firmware-load.patch
 Patch1007:	0058-drm-rockchip-Add-DW-DisplayPort-driver.patch
-Patch1011:	0062-drm-rockchip-vop2-Add-debugfs-support.patch
 Patch1012:	0063-drm-rockchip-Set-dma-mask-to-64-bit.patch
-Patch1013:	0064-drm-rockchip-vop2-Fix-cluster-windows-alpha-ctrl-reg.patch
-Patch1014:	0065-drm-rockchip-vop2-Fix-the-mixer-alpha-setup-for-laye.patch
-Patch1015:	0066-drm-rockchip-vop2-Fix-the-windows-switch-between-dif.patch
-Patch1016:	0067-drm-rockchip-vop2-include-rockchip_drm_drv.h.patch
-Patch1017:	0068-drm-rockchip-vop2-Support-32x8-superblock-afbc.patch
-Patch1018:	0069-drm-rockchip-vop2-Add-platform-specific-callback.patch
-Patch1019:	0070-drm-rockchip-vop2-Support-for-different-layer-selet-.patch
-Patch1020:	0071-drm-rockchip-vop2-Introduce-vop-hardware-version.patch
 Patch1021:	0072-drm-rockchip-vop2-Register-the-primary-plane-and-ove.patch
 Patch1022:	0073-drm-rockchip-vop2-Set-plane-possible-crtcs-by-possib.patch
 Patch1023:	0074-drm-rockchip-vop2-Add-uv-swap-for-cluster-window.patch
 Patch1024:	0075-dt-bindings-display-vop2-Add-rk3576-support.patch
-Patch1025:	0076-drm-rockchip-vop2-Add-support-for-rk3576.patch
-Patch1026:	0077-drm-rockchip-vop2-Don-t-spam-logs-in-atomic-update.patch
 # Buildfix for the patchset above to handle kernel 6.12 rather than 6.12-rc5
 Patch1027:	rk3588-hdmi-kernel-6.12-final.patch
 
@@ -945,7 +926,7 @@ find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h"
 
 # Merge EVDI
 cd evdi-%{evdi_version}
-patch -p1 -b -z .evdi613~ <%{S:1011}
+#patch -p1 -b -z .evdi613~ <%{S:1011}
 cd ..
 mv evdi-%{evdi_version}/module drivers/gpu/drm/evdi
 rm -rf evdi-%{evdi_version}
@@ -957,7 +938,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
-patch -p1 -b -z .evdi613a~ <%{S:1012}
+#patch -p1 -b -z .evdi613a~ <%{S:1012}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new
