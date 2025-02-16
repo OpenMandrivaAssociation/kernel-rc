@@ -1,0 +1,30 @@
+diff -up linux-6.14-rc2/mm/list_lru.c.omv~ linux-6.14-rc2/mm/list_lru.c
+--- linux-6.14-rc2/mm/list_lru.c.omv~	2025-02-16 13:08:32.776957448 +0000
++++ linux-6.14-rc2/mm/list_lru.c	2025-02-16 16:39:49.877465547 +0000
+@@ -175,6 +175,7 @@ bool list_lru_add(struct list_lru *lru,
+ 	unlock_list_lru(l, false);
+ 	return false;
+ }
++EXPORT_SYMBOL_GPL(list_lru_add); // still used by binder
+ 
+ bool list_lru_add_obj(struct list_lru *lru, struct list_head *item)
+ {
+@@ -212,6 +213,7 @@ bool list_lru_del(struct list_lru *lru,
+ 	unlock_list_lru(l, false);
+ 	return false;
+ }
++EXPORT_SYMBOL_GPL(list_lru_del); // Still used by binder
+ 
+ bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
+ {
+diff -up linux-6.14-rc2/mm/memory.c.omv~ linux-6.14-rc2/mm/memory.c
+--- linux-6.14-rc2/mm/memory.c.omv~	2025-02-16 16:13:00.874513594 +0000
++++ linux-6.14-rc2/mm/memory.c	2025-02-16 16:13:28.244553654 +0000
+@@ -6396,6 +6396,7 @@ inval:
+ 	count_vm_vma_lock_event(VMA_LOCK_ABORT);
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(lock_vma_under_rcu); // still used by binder
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+ #ifndef __PAGETABLE_P4D_FOLDED

@@ -281,6 +281,7 @@ Patch211:	revert-721412ed3d819e767cac2b06646bf03aa158aaec.patch
 # Modular binder and ashmem -- let's try to make anbox happy
 Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
 Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
+Patch216:	restore-exporting-symbols-needed-by-binder.patch
 
 Patch214:	ras-fix-build-without-debugfs.patch
 Patch215:	linux-5.19-prefer-amdgpu-over-radeon.patch
