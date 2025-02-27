@@ -52,9 +52,9 @@
 
 # (tpg) package these kernel modules as subpackages
 %ifarch %{aarch64}
-%define modules_subpackages appletalk decnet fddi can
+%define modules_subpackages appletalk decnet fddi can adfs affs afs bfs coda efs freevxfs hfs hfsplus hpfs jfs minix ocfs2 omfs orangefs qnx4 qnx6 sysv
 %else
-%define modules_subpackages appletalk arcnet comedi infiniband isdn can
+%define modules_subpackages appletalk arcnet comedi infiniband isdn can adfs affs afs bfs coda efs freevxfs hfs hfsplus hpfs jfs minix ocfs2 omfs orangefs qnx4 qnx6 sysv
 %endif
 
 # IMPORTANT
@@ -129,7 +129,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -154,6 +154,7 @@ NoSource:	0
 %endif
 Source3:	README.kernel-sources
 Source4:	%{name}.rpmlintrc
+Source5:	https://github.com/linux-thinkpad/tp_smapi/releases/download/tp-smapi%2F0.44/tp_smapi-0.44.tgz
 ## all in one configs for each kernel
 Source10:	x86-omv-defconfig
 Source11:	i386-omv-defconfig
@@ -223,6 +224,7 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Source39:	tmff2-kernel-6.12.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
+Patch41:	tp_smapi-clang.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 
@@ -667,14 +669,21 @@ Provides:	installonlypkg(kernel-module)
 AutoReq:	no
 AutoProv:	yes
 Requires(posttrans,postun):	kmod
+EOF
 
+	if [ "$modules" = "hfs" -a "${flavour}" = "desktop" ]; then
+		echo "Obsoletes: hfsutils < 3.2.6-42"
+	fi
+
+	cat <<EOF
 %description -n %{name}-${flavour}-modules-${modules}
 %{modules} modules for kernel %{name}-${flavour} .
 
 %postun -n %{name}-${flavour}-modules-${modules}
-[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$kernel_flavour-%{release}%{disttag}
+[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
 
 %files -n %{name}-${flavour}-modules-${modules}
+%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/fs/${modules}
 %optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/net/${modules}
 %optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/${modules}
 %optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/net/${modules}
@@ -904,12 +913,32 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 1003 -a 1004 -a 1010
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004 -a 1010
 %if 0%{?sublevel:%{sublevel}}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
+
+mv tp_smapi-*/*.{c,h} drivers/platform/x86
+sed -i -e 's,  ---help---,help,g' tp_smapi-*/diff/*.add
+cat tp_smapi-*/diff/*.add >>drivers/platform/x86/Kconfig
+cat >>drivers/platform/x86/Kconfig <<EOF
+config SENSORS_HDAPS
+	tristate "Thinkpad HDAPS sensor support"
+	depends on X86
+	select THINKPAD_EC
+	default n
+	help
+	  ThinkPad HDAPS sensor
+EOF
+cat >>drivers/platform/x86/Makefile <<EOF
+obj-\$(CONFIG_THINKPAD_EC) += thinkpad_ec.o
+obj-\$(CONFIG_TP_SMAPI) += tp_smapi.o
+obj-\$(CONFIG_SENSORS_HDAPS) += hdaps.o
+EOF
+rm -rf tp_smapi-*
+
 %autopatch -p1
 
 # Apparently, vm_clean was added in tools/Makefile before tools/vm was added
@@ -1563,6 +1592,24 @@ CreateFiles() {
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/config
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/adfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/affs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/afs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/bfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/coda
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/efs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/freevxfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hfsplus
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hpfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/jfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/minix
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/ocfs2
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/omfs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/orangefs
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/qnx4
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/qnx6
+%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/sysv
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/appletalk
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/can
 %exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/decnet

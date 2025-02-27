@@ -1,0 +1,20 @@
+diff -up linux-6.13/drivers/platform/x86/tp_smapi.c.omv~ linux-6.13/drivers/platform/x86/tp_smapi.c
+--- linux-6.13/drivers/platform/x86/tp_smapi.c.omv~	2025-02-25 23:45:13.343835575 +0100
++++ linux-6.13/drivers/platform/x86/tp_smapi.c	2025-02-25 23:46:19.764377673 +0100
+@@ -178,6 +178,7 @@ static int smapi_request(u32 inEBX, u32
+ 		if (ret)
+ 			return ret;
+ 
++		const u16 sp = smapi_port;
+ 		__asm__ __volatile__(
+ 			"movl  $0x00005380,%%eax\n\t"
+ 			"movl  %6,%%ebx\n\t"
+@@ -201,7 +202,7 @@ static int smapi_request(u32 inEBX, u32
+ 			 "=m"(tmpEDI),
+ 			 "=m"(tmpESI)
+ 			:"m"(inEBX), "m"(inECX), "m"(inEDI), "m"(inESI),
+-			 "m"((u16)smapi_port)
++			 "m"(sp)
+ 			:"%eax", "%ebx", "%ecx", "%edx", "%edi",
+ 			 "%esi");
+ 
