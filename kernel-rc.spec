@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 14
+%define patchlevel 15
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -94,7 +94,7 @@
 %bcond_with lazy_developer
 %bcond_with build_debug
 %bcond_without clr
-%bcond_with vbox_orig_mods
+%bcond_without vbox_orig_mods
 # FIXME re-enable by default when the patches have been adapted to 5.8
 %bcond_with saa716x
 %bcond_with rtl8821ce
@@ -129,7 +129,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -177,6 +177,7 @@ Source28:	modules.fragment
 Source29:	gcc-plugins.fragment
 Source30:	pps.fragment
 Source31:	cgroups.fragment
+Source32:	firmware.fragment
 # Overrides (highest priority) for configs
 Source200:	znver1.overrides
 # config and systemd service file from fedora
@@ -208,7 +209,8 @@ Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -
 Source1001:	revert-7a8b64d17e35810dc3176fe61208b45c15d25402.patch
 Source1002:	revert-9d55bebd9816903b821a403a69a94190442ac043.patch
 
-Patch30:	https://gitweb.gentoo.org/proj/linux-patches.git/plain/5010_enable-cpu-optimizations-universal.patch?h=6.7#/cpu-optimizations.patch
+# FIXME bring this back when it's ported to 6.15
+#Patch30:	https://gitweb.gentoo.org/proj/linux-patches.git/plain/5010_enable-cpu-optimizations-universal.patch?h=6.7#/cpu-optimizations.patch
 Patch31:	die-floppy-die.patch
 Patch32:	0001-Add-support-for-Acer-Predator-macro-keys.patch
 Patch34:	kernel-5.6-kvm-gcc10.patch
@@ -268,13 +270,12 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
 Source1007:	vboxnet-clang.patch
-Source1008:	vboxvideo-kernel-6.3.patch
+Source1008:	vbox-modules-7.1.6-compile.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.8
+%define evdi_version 1.14.9
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	evdi-6.14.patch
 
 # Assorted fixes
 
@@ -308,7 +309,6 @@ Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/ar
 Patch241:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-spi1-flash-speed.patch
 Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-work-led-heartbeat.patch
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
-Patch244:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-inno-usb2-phy-init.patch
 Patch245:	https://github.com/armbian/build/raw/refs/heads/main/patch/kernel/archive/rockchip64-6.11/rk3399-unlock-temperature.patch
 Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
 Patch247:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.5/general-rk808-configurable-switch-voltage-steps.patch
@@ -389,21 +389,10 @@ Patch987:	0038-arm64-dts-rockchip-rk3588-evb1-add-bluetooth-rfkill.patch
 Patch988:	0039-arm64-dts-rockchip-rk3588-evb1-improve-PCIe-ethernet.patch
 Patch989:	0040-arm64-dts-rockchip-Slow-down-EMMC-a-bit-to-keep-IO-s.patch
 Patch990:	0041-mfd-rk8xx-Fix-shutdown-handler.patch
-Patch993:	0044-regulator-Add-devm_-of_regulator_get.patch
-Patch994:	0045-pmdomain-rockchip-cleanup-mutex-handling-in-rockchip.patch
-Patch995:	0046-pmdomain-rockchip-forward-rockchip_do_pmu_set_power_.patch
-Patch996:	0047-pmdomain-rockchip-reduce-indentation-in-rockchip_pd_.patch
-Patch997:	0048-dt-bindings-power-rockchip-add-regulator-support.patch
-Patch998:	0049-pmdomain-rockchip-add-regulator-support.patch
-Patch999:	0050-arm64-dts-rockchip-Add-GPU-power-domain-regulator-de.patch
 Patch1005:	0056-arm64-dts-rockchip-Add-wifi-regulator-for-Cool-Pi-4b.patch
 Patch1006:	0057-drm-panthor-Add-defer-probe-for-firmware-load.patch
 Patch1007:	0058-drm-rockchip-Add-DW-DisplayPort-driver.patch
 Patch1012:	0063-drm-rockchip-Set-dma-mask-to-64-bit.patch
-Patch1021:	0072-drm-rockchip-vop2-Register-the-primary-plane-and-ove.patch
-Patch1022:	0073-drm-rockchip-vop2-Set-plane-possible-crtcs-by-possib.patch
-Patch1023:	0074-drm-rockchip-vop2-Add-uv-swap-for-cluster-window.patch
-Patch1024:	0075-dt-bindings-display-vop2-Add-rk3576-support.patch
 # Buildfix for the patchset above to handle kernel 6.12 rather than 6.12-rc5
 Patch1027:	rk3588-hdmi-kernel-6.12-final.patch
 
@@ -415,6 +404,7 @@ BuildRequires:	flex
 BuildRequires:	bison
 BuildRequires:	binutils
 BuildRequires:	hostname
+BuildRequires:	gnutar
 BuildRequires:	clang
 BuildRequires:	llvm
 BuildRequires:	lld
@@ -494,9 +484,9 @@ BuildRequires:	uboot-mkimage
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{x86_64}
-BuildRequires:	virtualbox-kernel-module-sources >= 7.0.8b
+BuildRequires:	virtualbox-kernel-module-sources >= 7.1.6
 %if %{with vbox_orig_mods}
-BuildRequires:	virtualbox-guest-kernel-module-sources >= 7.0.8b
+BuildRequires:	virtualbox-guest-kernel-module-sources >= 7.1.6
 %endif
 %endif
 
@@ -920,6 +910,9 @@ xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
 
+# uses --sort=name and other gnutar specific options
+sed -i -e 's,^tar ,gtar ,' kernel/gen_kheaders.sh
+
 mv tp_smapi-*/*.{c,h} drivers/platform/x86
 sed -i -e 's,  ---help---,help,g' tp_smapi-*/diff/*.add
 cat tp_smapi-*/diff/*.add >>drivers/platform/x86/Kconfig
@@ -966,7 +959,6 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
-patch -p1 -b -z .evdi614~ <%{S:1011}
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new
@@ -1838,10 +1830,14 @@ install -c -m 644 %{S:7003} %{temp_root}%{_udevrulesdir}/70-hypervvss.rules
 install -c -m 644 %{S:7005} %{temp_root}%{_udevrulesdir}/70-hypervfcopy.rules
 %endif
 
+mkdir -p %{temp_root}%{_bindir}
+cp tools/bpf/resolve_btfids/resolve_btfids %{temp_root}%{_bindir}/
+
 # We don't make to repeat the depend code at the install phase
 %if %{with build_source}
 PrepareKernel "" %{release}custom
 %make_build -s mrproper
+cp %{temp_root}%{_bindir}/resolve_btfids tools/bpf/resolve_btfids/
 %endif
 
 ###
@@ -1957,6 +1953,7 @@ cd -
 
 %if %{with build_source}
 %files -n %{name}-source
+%{_bindir}/resolve_btfids
 %dir %{_kerneldir}
 %dir %{_kerneldir}/arch
 %dir %{_kerneldir}/include

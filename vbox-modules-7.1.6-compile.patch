@@ -1,0 +1,12 @@
+diff -up linux-6.14/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~ linux-6.14/drivers/gpu/drm/vboxvideo/vbox_drv.c
+--- linux-6.14/drivers/gpu/drm/vboxvideo/vbox_drv.c.omv~	2025-03-25 22:37:45.825536280 +0100
++++ linux-6.14/drivers/gpu/drm/vboxvideo/vbox_drv.c	2025-03-25 22:38:13.661512603 +0100
+@@ -59,7 +59,7 @@
+ # define VBOX_VIDEO_NOMODESET() 0
+ #endif /* !CONFIG_VGA_CONSOLE */
+ 
+-#include <VBox/VBoxLnxModInline.h>
++#include "VBox/VBoxLnxModInline.h"
+ 
+ static int vbox_modeset = -1;
+ 
