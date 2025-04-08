@@ -2077,7 +2077,7 @@ cd -
 %files -n cpupower -f cpupower.lang
 %{_bindir}/cpupower
 %{_libdir}/libcpupower.so.1
-%{_libdir}/libcpupower.so.0.0.1
+%{_libdir}/libcpupower.so.1.0.1
 %{_unitdir}/cpupower.service
 %doc %{_mandir}/man[1-8]/cpupower*
 %{_datadir}/bash-completion/completions/cpupower
