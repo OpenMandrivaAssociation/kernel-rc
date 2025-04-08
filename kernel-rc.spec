@@ -93,8 +93,10 @@
 
 %bcond_with lazy_developer
 %bcond_with build_debug
+# FIXME re-enable once ported to 6.15
+%bcond_with evdi
+%bcond_with vbox_orig_mods
 %bcond_without clr
-%bcond_without vbox_orig_mods
 # FIXME re-enable by default when the patches have been adapted to 5.8
 %bcond_with saa716x
 %bcond_with rtl8821ce
@@ -903,7 +905,10 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004 -a 1010
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
+%if %{with evdi}
+tar xf %{S:1010}
+%endif
 %if 0%{?sublevel:%{sublevel}}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
@@ -948,6 +953,7 @@ sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/M
 find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" -type f | xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
 %endif
 
+%if %{with evdi}
 # Merge EVDI
 mv evdi-%{evdi_version}/module drivers/gpu/drm/evdi
 rm -rf evdi-%{evdi_version}
@@ -959,6 +965,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
+%endif
 
 # Merge TMFF2
 mv hid-tmff2-* drivers/hid/tmff-new
@@ -1033,6 +1040,7 @@ sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 # VirtualBox shared folders now come in through patch 300
 
 ## NONE upstream this stuff will be here for a while
+%if 0
 # === VirtualBox host modules ===
 # VirtualBox
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
@@ -1049,6 +1057,7 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/ne
 sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
 echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
+%endif
 %if 0
 # VirtualBox PCI
 # https://forums.gentoo.org/viewtopic-t-1105508-start-0.html -- not very
@@ -1059,7 +1068,9 @@ sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefil
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
+%if 0
 patch -p1 -z .1007~ -b <%{S:1007}
+%endif
 %endif
 
 # V4L2 loopback support
@@ -1079,6 +1090,12 @@ cat >>drivers/media/v4l2-core/Makefile <<'EOF'
 
 obj-$(CONFIG_V4L2_LOOPBACK) += v4l2loopback.o
 EOF
+
+# Port to 6.15 -- FIXME remove once these drivers have been ported upstream
+sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/media/pci/saa716x/saa716x_ff_ir.c drivers/media/v4l2-core/v4l2loopback.c drivers/platform/x86/hdaps.c drivers/net/wireless/rtl8723de/include/osdep_service.h drivers/net/wireless/rtl8723de/include/osdep_service_linux.h
+%if 0
+sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
+%endif
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' -o -name '*.g*ignore' | %kxargs rm -f
