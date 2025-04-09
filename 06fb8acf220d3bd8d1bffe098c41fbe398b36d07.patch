@@ -1,0 +1,33 @@
+From 06fb8acf220d3bd8d1bffe098c41fbe398b36d07 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Thu, 28 Nov 2024 21:02:13 +0800
+Subject: [PATCH] drm/rockchip: vop2: Add check for 32 bpp format
+
+RK3588 only support DRM_FORMAT_XRGB2101010/XBGR2101010 in afbc mode.
+
+Fixes: 5a028e8f062f ("drm/rockchip: vop2: Add support for rk3588")
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ drivers/gpu/drm/rockchip/rockchip_drm_vop2.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+index 69ef1ab819f59f..79dab37a52e14c 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_vop2.c
+@@ -1154,7 +1154,15 @@ static int vop2_plane_atomic_check(struct drm_plane *plane,
+ 				return -EINVAL;
+ 			}
+ 		}
++	}
+ 
++	if (fb->format->format == DRM_FORMAT_XRGB2101010 || fb->format->format == DRM_FORMAT_XBGR2101010) {
++		if (vop2->data->soc_id == 3588) {
++			if (!rockchip_afbc(plane, fb->modifier)) {
++				drm_err(vop2->drm, "Unsupported linear 32 bpp for %s\n", win->data->name);
++				return -EINVAL;
++			}
++		}
+ 	}
+ 
+ 	/*

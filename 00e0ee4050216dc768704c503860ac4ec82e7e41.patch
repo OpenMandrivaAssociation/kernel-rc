@@ -1,0 +1,22 @@
+From 00e0ee4050216dc768704c503860ac4ec82e7e41 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Sat, 14 Oct 2023 19:14:10 +0800
+Subject: [PATCH] arm64: dts: add rootfs uuid for rk3566-box-demo
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts b/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
+index 7d468093382393..41b4cd5a4220eb 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
+@@ -26,6 +26,7 @@
+ 
+ 	chosen: chosen {
+ 		stdout-path = "serial2:1500000n8";
++		bootargs = "root=PARTUUID=614e0000-0000";
+ 	};
+ 
+ 	gmac1_clkin: external-gmac1-clock {

@@ -360,43 +360,72 @@ Patch914:	0120-use-lfence-instead-of-rep-and-nop.patch
 
 # Rockchip 3588 HDMI audio support
 # from https://github.com/andyshrk/linux
-# rk3588-vop2-hdmi-upstream-linux-6.12-rc5-2024-10-29 branch
-Patch950:	0001-arm64-rockchip-Add-rockchip_defconfig.patch
-Patch951:	0002-arm64-rockchip-defconfig-update-for-Linux-6.1-and-en.patch
-Patch952:	0003-arm64-rockchip_defconfig-update-for-linux-6.6.patch
-Patch953:	0004-arm64-rockchip_defconfig-Enable-edp-display.patch
-Patch954:	0005-arm64-rockchip_defconfig-Enable-panthor-GPU.patch
-Patch955:	0006-arm64-rockchip_defconfig-update-for-linux-6.9.patch
-Patch956:	0007-arm64-rockchip_defconfig-Enable-NLS_ISO8859_1-for-vf.patch
-Patch957:	0008-arm64-defconfig-Enable-ROCKCHIP_SAMSUNG_HDPTX-phy-fo.patch
-Patch958:	0009-arm64-rockchip_defconfig-update-for-Linux-6.12.patch
-Patch959:	0010-arm64-add-rpi_defconfig.patch
-Patch960:	0011-arm-Add-rockchip_defconfig.patch
-Patch961:	0012-arm64-dts-add-rootfs-uuid-for-rk3566-box-demo.patch
-Patch962:	0013-Revert-ARM-dts-rockchip-restyle-emac-nodes.patch
-Patch963:	0014-ARM-dts-rockchip-Add-psci-for-rk3036.patch
-Patch964:	0015-arm-dts-rockchip-Fix-emac-on-rk3036-kylin-board.patch
-Patch965:	0016-clk-rockchip-rk3036-Add-1000-MHZ-cpu-clk-rate.patch
-Patch966:	0017-clk-rockchip-rk3036-make-armclk-as-critical.patch
-Patch967:	0018-arm-dts-rockchip-rk3036-kylin-Force-MAC-address.patch
-Patch968:	0019-Revert-Revert-ARM-dts-rockchip-restyle-emac-nodes.patch
-# 0020-ethernet-arc-fix-the-device-for-dma_map_single-dma_u.patch is already upstream
-# 0021-net-arc-rockchip-fix-emac-mdio-node-support.patch is already upstream
-Patch975:	0026-DONT-UPSTREAM-arm64-dts-rockchip-rk3588-evb1-Force-M.patch
-Patch976:	0027-DONT-UPSTREAM-net-r8169-Force-MAC-address.patch
-Patch979:	0030-math.h-add-DIV_ROUND_UP_NO_OVERFLOW.patch
-Patch980:	0031-clk-divider-Fix-divisor-masking-on-64-bit-platforms.patch
-Patch981:	0032-clk-composite-replace-open-coded-abs_diff.patch
-Patch987:	0038-arm64-dts-rockchip-rk3588-evb1-add-bluetooth-rfkill.patch
-Patch988:	0039-arm64-dts-rockchip-rk3588-evb1-improve-PCIe-ethernet.patch
-Patch989:	0040-arm64-dts-rockchip-Slow-down-EMMC-a-bit-to-keep-IO-s.patch
-Patch990:	0041-mfd-rk8xx-Fix-shutdown-handler.patch
-Patch1005:	0056-arm64-dts-rockchip-Add-wifi-regulator-for-Cool-Pi-4b.patch
-Patch1006:	0057-drm-panthor-Add-defer-probe-for-firmware-load.patch
-Patch1007:	0058-drm-rockchip-Add-DW-DisplayPort-driver.patch
-Patch1012:	0063-drm-rockchip-Set-dma-mask-to-64-bit.patch
-# Buildfix for the patchset above to handle kernel 6.12 rather than 6.12-rc5
-Patch1027:	rk3588-hdmi-kernel-6.12-final.patch
+# rk3588-hdmi-dsi-upstream-linux-6.13-rc1-2024-12-05 branch
+# Patches of the series that are commented out don't apply anymore and
+# need rebasing.
+Patch950:	https://github.com/torvalds/linux/commit/e0c5c98b4558d336ecb6b5a3c174816b4ed41db2.patch
+Patch951:	https://github.com/torvalds/linux/commit/cd6e4f6d8babdb5e65525c6dd2d1e373558b38ab.patch
+Patch952:	https://github.com/torvalds/linux/commit/4071b7a0642a41773d61b16ae1d02218bc25345e.patch
+Patch953:	https://github.com/torvalds/linux/commit/6da0ae6e419442449ffa7778de518ca37292352b.patch
+Patch954:	https://github.com/torvalds/linux/commit/d6aa52f8a15e56737de5e73f4f2acbb2632f43c0.patch
+Patch955:	https://github.com/torvalds/linux/commit/250083364dc2764b6ae61a124dfb8afc575e565a.patch
+Patch956:	https://github.com/torvalds/linux/commit/146008b9d4241d4e14e5b173038aa78262c2bbcd.patch
+Patch957:	https://github.com/torvalds/linux/commit/dad4c5aac3a74cf3593fad9f7c7d0e83ae96bfa5.patch
+Patch958:	https://github.com/torvalds/linux/commit/6d478d25de6b7550769b77edcbf8d330238542a8.patch
+Patch959:	https://github.com/torvalds/linux/commit/cc17a3358bece56c8932b6a62da242f841feb2e2.patch
+Patch960:	https://github.com/torvalds/linux/commit/bc1d59cd423b4a327af19bcd726f108f0f5a5da5.patch
+Patch961:	https://github.com/torvalds/linux/commit/00e0ee4050216dc768704c503860ac4ec82e7e41.patch
+Patch962:	https://github.com/torvalds/linux/commit/839301464ba91c64483923c9a2a344b1c28e56ed.patch
+Patch963:	https://github.com/torvalds/linux/commit/0b7853f3fa5807bfcc193af0ebe4174fb7df21f3.patch
+Patch964:	https://github.com/torvalds/linux/commit/dd3ada12c3f671e92f67416ba9c267e1b12ed29d.patch
+Patch965:	https://github.com/torvalds/linux/commit/725cb07d90c7949a971378635e7755ff9a54d25d.patch
+Patch966:	https://github.com/torvalds/linux/commit/046fbc970839b287d29053c7a1083e78eecb5822.patch
+Patch967:	https://github.com/torvalds/linux/commit/f45ac0c8b0145582ba277f149a39ad386b0627b1.patch
+Patch968:	https://github.com/torvalds/linux/commit/516ae4f2e84130ee33375cf28fbeb95ea443620a.patch
+Patch975:	https://github.com/torvalds/linux/commit/cef2dc6b338e1349b2e9feda9bf41e88510aaf5a.patch
+Patch976:	https://github.com/torvalds/linux/commit/0f13fb4aa5e9aec8fcc30d4cd244a1c94a9ab01f.patch
+Patch979:	https://github.com/torvalds/linux/commit/beba499cda3702062e7708b6b402d07b26d090e5.patch
+Patch980:	https://github.com/torvalds/linux/commit/63926610293c484f9a15d1605ff4b6632409d77c.patch
+Patch981:	https://github.com/torvalds/linux/commit/c8699f87d802bbb6e5aab8292f2e285c56976a35.patch
+Patch982:	https://github.com/torvalds/linux/commit/a7a7cf522d7636dc1280adb1b1de7fe45f9b3305.patch
+Patch983:	https://github.com/torvalds/linux/commit/f0118748bc1f791775c90c52791a1770f4429702.patch
+# 4940862... has landed
+# 1e51ce4... has landed
+# aa868c1... has landed
+# 9d85b74... has landed
+# 2bd8528... has landed
+# 92bd2d2... has landed
+#Patch990:	https://github.com/torvalds/linux/commit/d3fd937a73e239efaf1ced03a5a10637e5ae9a95.patch
+#Patch991:	https://github.com/torvalds/linux/commit/57c6d683477d619dab36bc39ca5b3c011f4a1dab.patch
+#Patch992:	https://github.com/torvalds/linux/commit/ea0dd2c5e19d4c5e8d5109d78ac0d3ef1461fe43.patch
+# bf10475... has landed
+#Patch994:	https://github.com/torvalds/linux/commit/c1cffe7e472cf58c948a52de76007117e7d550ae.patch
+# 0ab95ab... has landed
+Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
+# 565e00d... has landed
+Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c270e150c3d6f.patch
+# b5fb817... has landed
+#Patch1000:	https://github.com/torvalds/linux/commit/b35059eb51972524e48f13d9a6c39448bcd0874b.patch
+#Patch1001:	https://github.com/torvalds/linux/commit/6f0311441ab7b53cdcdf71b10d8a8594f1a47ef1.patch
+#Patch1002:	https://github.com/torvalds/linux/commit/d41ae3d5aa30f6ad8229967e9f97f9cf9d8527f9.patch
+# 6ebd774... has landed
+#Patch1004:	https://github.com/torvalds/linux/commit/353e6fcd1cd010ce89dd90a8cc5bcb506c362025.patch
+Patch1005:	https://github.com/torvalds/linux/commit/52a77da4f18b009c85fbfd30701b93e5fe5e715a.patch
+Patch1006:	https://github.com/torvalds/linux/commit/06fb8acf220d3bd8d1bffe098c41fbe398b36d07.patch
+# 2108e09... has landed
+# b76b3fe... has landed
+# 7fd2c93... has landed
+# de56911... has landed
+# c75314e... has landed
+Patch1012:	https://github.com/torvalds/linux/commit/49c239990887e5aabdd55c94fa44176fd38f1bd2.patch
+Patch1013:	https://github.com/torvalds/linux/commit/93c6bd3a7cf741218a6de50803dd128a6340248c.patch
+# 8571e14... has landed
+#Patch1015:	https://github.com/torvalds/linux/commit/ec744b5548e79d18670651113a5855fd31e7472e.patch
+#Patch1016:	https://github.com/torvalds/linux/commit/05a7eca409973abbc3d97a726b88b07d256859ae.patch
+Patch1017:	https://github.com/torvalds/linux/commit/b4b9d334d1c8159aa2eaf0c0e21e5f50976310c6.patch
+# 406e4c9... has landed
+Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
+Patch1020:	rk3588-port-to-6.15.patch
 
 Autoreqprov:	no
 BuildRequires:	zstd

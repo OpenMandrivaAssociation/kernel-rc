@@ -1,0 +1,23 @@
+From f45ac0c8b0145582ba277f149a39ad386b0627b1 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Sat, 27 Apr 2024 19:05:09 +0800
+Subject: [PATCH] arm: dts: rockchip: rk3036-kylin: Force MAC address
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm/boot/dts/rockchip/rk3036-kylin.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+index 1d4313f371fe4f..270aac86a334af 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
++++ b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+@@ -118,7 +118,7 @@
+ 	phy = <&phy0>;
+ 
+ 	status = "okay";
+-
++	mac-address = [ fe 46 f2 84 84 fe ];
+ 	phy0: ethernet-phy@0 {
+ 		reg = <0>;
+ 	};

@@ -1,0 +1,23 @@
+From d6aa52f8a15e56737de5e73f4f2acbb2632f43c0 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Sat, 13 Apr 2024 16:05:38 +0800
+Subject: [PATCH] arm64: rockchip_defconfig: Enable panthor GPU
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm64/configs/rockchip_defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm64/configs/rockchip_defconfig b/arch/arm64/configs/rockchip_defconfig
+index 8d1c26296a1e2a..1a4d1c6fa8f81f 100644
+--- a/arch/arm64/configs/rockchip_defconfig
++++ b/arch/arm64/configs/rockchip_defconfig
+@@ -756,6 +756,8 @@ CONFIG_DRM_I2C_ADV7511=m
+ CONFIG_DRM_CDNS_DSI=m
+ CONFIG_DRM_DW_HDMI_CEC=m
+ CONFIG_DRM_PANFROST=y
++CONFIG_DRM_PANTHOR=m
++CONFIG_DRM_POWERVR=y
+ CONFIG_FB=y
+ CONFIG_FB_UVESA=m
+ CONFIG_FIRMWARE_EDID=y

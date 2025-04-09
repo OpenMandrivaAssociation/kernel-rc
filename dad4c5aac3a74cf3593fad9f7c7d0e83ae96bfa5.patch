@@ -1,0 +1,22 @@
+From dad4c5aac3a74cf3593fad9f7c7d0e83ae96bfa5 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Fri, 27 Oct 2023 15:30:32 +0800
+Subject: [PATCH] arm64: defconfig: Enable ROCKCHIP_SAMSUNG_HDPTX phy for hdmi
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm64/configs/rockchip_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/rockchip_defconfig b/arch/arm64/configs/rockchip_defconfig
+index 39702bc5bc7092..e6d71cb298e87e 100644
+--- a/arch/arm64/configs/rockchip_defconfig
++++ b/arch/arm64/configs/rockchip_defconfig
+@@ -967,6 +967,7 @@ CONFIG_PHY_ROCKCHIP_INNO_HDMI=y
+ CONFIG_PHY_ROCKCHIP_INNO_USB2=y
+ CONFIG_PHY_ROCKCHIP_NANENG_COMBO_PHY=y
+ CONFIG_PHY_ROCKCHIP_PCIE=y
++CONFIG_PHY_ROCKCHIP_SAMSUNG_HDPTX=y
+ CONFIG_PHY_ROCKCHIP_SNPS_PCIE3=y
+ CONFIG_PHY_ROCKCHIP_TYPEC=y
+ CONFIG_PHY_ROCKCHIP_USB=y

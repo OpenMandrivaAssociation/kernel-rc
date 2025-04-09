@@ -1,0 +1,67 @@
+diff -up linux-6.15-rc1/drivers/gpu/drm/rockchip/dw-dp.c.omv~ linux-6.15-rc1/drivers/gpu/drm/rockchip/dw-dp.c
+--- linux-6.15-rc1/drivers/gpu/drm/rockchip/dw-dp.c.omv~	2025-04-09 23:00:17.395522842 +0100
++++ linux-6.15-rc1/drivers/gpu/drm/rockchip/dw-dp.c	2025-04-09 23:20:49.356075259 +0100
+@@ -8,7 +8,7 @@
+  *         Andy Yan <andy.yan@rock-chips.com>
+  */
+ 
+-#include <asm/unaligned.h>
++#include <linux/unaligned.h>
+ #include <drm/display/drm_dp_helper.h>
+ #include <drm/display/drm_hdmi_helper.h>
+ #include <drm/drm_atomic_helper.h>
+@@ -2277,7 +2277,7 @@ static void dw_dp_bridge_detach(struct d
+ }
+ 
+ static void dw_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
+-					   struct drm_bridge_state *bridge_state)
++					   struct drm_atomic_state *bridge_state)
+ {
+ 	struct dw_dp *dp = bridge_to_dp(bridge);
+ 	struct dw_dp_video *video = &dp->video;
+@@ -2292,7 +2292,7 @@ static void dw_dp_bridge_atomic_pre_enab
+ 
+ static void
+ dw_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
+-				 struct drm_bridge_state *bridge_state)
++				 struct drm_atomic_state *bridge_state)
+ {
+ 	struct dw_dp *dp = bridge_to_dp(bridge);
+ 
+@@ -2352,10 +2352,9 @@ static int dw_dp_link_enable(struct dw_d
+ }
+ 
+ static void dw_dp_bridge_atomic_enable(struct drm_bridge *bridge,
+-				       struct drm_bridge_state *old_state)
++				       struct drm_atomic_state *state)
+ {
+ 	struct dw_dp *dp = bridge_to_dp(bridge);
+-	struct drm_atomic_state *state = old_state->base.state;
+ 	struct drm_connector *connector;
+ 	struct drm_connector_state *conn_state;
+ 	int ret;
+@@ -2413,7 +2412,7 @@ static void dw_dp_reset(struct dw_dp *dp
+ }
+ 
+ static void dw_dp_bridge_atomic_disable(struct drm_bridge *bridge,
+-					struct drm_bridge_state *old_bridge_state)
++					struct drm_atomic_state *old_bridge_state)
+ {
+ 	struct dw_dp *dp = bridge_to_dp(bridge);
+ 
+@@ -3164,14 +3163,12 @@ static int dw_dp_probe(struct platform_d
+ 	return component_add(dev, &dw_dp_component_ops);
+ }
+ 
+-static int dw_dp_remove(struct platform_device *pdev)
++static void dw_dp_remove(struct platform_device *pdev)
+ {
+ 	struct dw_dp *dp = platform_get_drvdata(pdev);
+ 
+ 	component_del(dp->dev, &dw_dp_component_ops);
+ 	cancel_work_sync(&dp->hpd_work);
+-
+-	return 0;
+ }
+ 
+ static int __maybe_unused dw_dp_runtime_suspend(struct device *dev)

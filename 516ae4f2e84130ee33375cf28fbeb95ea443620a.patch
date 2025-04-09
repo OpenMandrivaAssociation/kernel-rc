@@ -1,0 +1,199 @@
+From 516ae4f2e84130ee33375cf28fbeb95ea443620a Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Sat, 26 Oct 2024 18:46:27 +0800
+Subject: [PATCH] Revert Revert "ARM: dts: rockchip: restyle emac nodes"
+
+This revert commit 29833ca08e47 ("Revert "ARM: dts: rockchip: restyle
+emac nodes"")
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm/boot/dts/rockchip/rk3036-evb.dts     | 16 ++++++++++------
+ arch/arm/boot/dts/rockchip/rk3036-kylin.dts   | 11 ++++++++---
+ arch/arm/boot/dts/rockchip/rk3036.dtsi        |  2 --
+ .../boot/dts/rockchip/rk3066a-marsboard.dts   | 17 ++++++++++-------
+ .../boot/dts/rockchip/rk3066a-rayeager.dts    | 15 ++++++++++-----
+ .../boot/dts/rockchip/rk3188-radxarock.dts    | 19 +++++++++++--------
+ arch/arm/boot/dts/rockchip/rk3xxx.dtsi        |  3 ---
+ 7 files changed, 49 insertions(+), 34 deletions(-)
+
+diff --git a/arch/arm/boot/dts/rockchip/rk3036-evb.dts b/arch/arm/boot/dts/rockchip/rk3036-evb.dts
+index 94216f870b57cc..becdc0b664bfa4 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036-evb.dts
++++ b/arch/arm/boot/dts/rockchip/rk3036-evb.dts
+@@ -15,16 +15,20 @@
+ };
+ 
+ &emac {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&emac_xfer>, <&emac_mdio>;
+ 	phy = <&phy0>;
+-	phy-reset-gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>; /* PHY_RST */
+ 	phy-reset-duration = <10>; /* millisecond */
+-
++	phy-reset-gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>; /* PHY_RST */
++	pinctrl-names = "default";
++	pinctrl-0 = <&emac_xfer>, <&emac_mdio>;
+ 	status = "okay";
+ 
+-	phy0: ethernet-phy@0 {
+-		reg = <0>;
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		phy0: ethernet-phy@0 {
++			reg = <0>;
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+index 270aac86a334af..ae7bf7667b6c69 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
++++ b/arch/arm/boot/dts/rockchip/rk3036-kylin.dts
+@@ -115,12 +115,17 @@
+ 	phy-reset-gpios = <&gpio2 RK_PC6 GPIO_ACTIVE_LOW>; /* PHY_RST */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emac_xfer>, <&emac_mdio>;
+-	phy = <&phy0>;
+ 
+ 	status = "okay";
+ 	mac-address = [ fe 46 f2 84 84 fe ];
+-	phy0: ethernet-phy@0 {
+-		reg = <0>;
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		phy0: ethernet-phy@0 {
++			reg = <0>;
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/rockchip/rk3036.dtsi b/arch/arm/boot/dts/rockchip/rk3036.dtsi
+index 7df99a0c66e4da..6039a0908af1c5 100644
+--- a/arch/arm/boot/dts/rockchip/rk3036.dtsi
++++ b/arch/arm/boot/dts/rockchip/rk3036.dtsi
+@@ -236,8 +236,6 @@
+ 		compatible = "rockchip,rk3036-emac";
+ 		reg = <0x10200000 0x4000>;
+ 		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+ 		rockchip,grf = <&grf>;
+ 		clocks = <&cru HCLK_MAC>, <&cru SCLK_MACREF>, <&cru SCLK_MAC>;
+ 		clock-names = "hclk", "macref", "macclk";
+diff --git a/arch/arm/boot/dts/rockchip/rk3066a-marsboard.dts b/arch/arm/boot/dts/rockchip/rk3066a-marsboard.dts
+index 36ba1a45cc6343..ada7dbfc06a56b 100644
+--- a/arch/arm/boot/dts/rockchip/rk3066a-marsboard.dts
++++ b/arch/arm/boot/dts/rockchip/rk3066a-marsboard.dts
+@@ -150,18 +150,21 @@
+ #include "../tps65910.dtsi"
+ 
+ &emac {
+-	status = "okay";
+-
+ 	phy = <&phy0>;
+ 	phy-supply = <&vcc_rmii>;
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emac_xfer>, <&emac_mdio>, <&phy_int>;
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
+ 
+-	phy0: ethernet-phy@0 {
+-		reg = <0>;
+-		interrupt-parent = <&gpio1>;
+-		interrupts = <RK_PD2 IRQ_TYPE_LEVEL_LOW>;
++		phy0: ethernet-phy@0 {
++			reg = <0>;
++			interrupt-parent = <&gpio1>;
++			interrupts = <RK_PD2 IRQ_TYPE_LEVEL_LOW>;
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/rockchip/rk3066a-rayeager.dts b/arch/arm/boot/dts/rockchip/rk3066a-rayeager.dts
+index 954af67e53b63d..b0b029f146436f 100644
+--- a/arch/arm/boot/dts/rockchip/rk3066a-rayeager.dts
++++ b/arch/arm/boot/dts/rockchip/rk3066a-rayeager.dts
+@@ -142,15 +142,20 @@
+ };
+ 
+ &emac {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&emac_xfer>, <&emac_mdio>, <&rmii_rst>;
+ 	phy = <&phy0>;
+ 	phy-supply = <&vcc_rmii>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&emac_xfer>, <&emac_mdio>, <&rmii_rst>;
+ 	status = "okay";
+ 
+-	phy0: ethernet-phy@0 {
+-		reg = <0>;
+-		reset-gpios = <&gpio1 RK_PD6 GPIO_ACTIVE_LOW>;
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		phy0: ethernet-phy@0 {
++			reg = <0>;
++			reset-gpios = <&gpio1 RK_PD6 GPIO_ACTIVE_LOW>;
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/rockchip/rk3188-radxarock.dts b/arch/arm/boot/dts/rockchip/rk3188-radxarock.dts
+index 8af552e33b8109..1f31c0a6774f78 100644
+--- a/arch/arm/boot/dts/rockchip/rk3188-radxarock.dts
++++ b/arch/arm/boot/dts/rockchip/rk3188-radxarock.dts
+@@ -126,18 +126,21 @@
+ };
+ 
+ &emac {
+-	status = "okay";
+-
++	phy = <&phy0>;
++	phy-supply = <&vcc_rmii>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emac_xfer>, <&emac_mdio>, <&phy_int>;
++	status = "okay";
+ 
+-	phy = <&phy0>;
+-	phy-supply = <&vcc_rmii>;
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
+ 
+-	phy0: ethernet-phy@0 {
+-		reg = <0>;
+-		interrupt-parent = <&gpio3>;
+-		interrupts = <RK_PD2 IRQ_TYPE_LEVEL_LOW>;
++		phy0: ethernet-phy@0 {
++			reg = <0>;
++			interrupt-parent = <&gpio3>;
++			interrupts = <RK_PD2 IRQ_TYPE_LEVEL_LOW>;
++		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/rockchip/rk3xxx.dtsi b/arch/arm/boot/dts/rockchip/rk3xxx.dtsi
+index 327215a810b1c0..e6a78bcf916382 100644
+--- a/arch/arm/boot/dts/rockchip/rk3xxx.dtsi
++++ b/arch/arm/boot/dts/rockchip/rk3xxx.dtsi
+@@ -197,9 +197,6 @@
+ 		compatible = "rockchip,rk3066-emac";
+ 		reg = <0x10204000 0x3c>;
+ 		interrupts = <GIC_SPI 19 IRQ_TYPE_LEVEL_HIGH>;
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-
+ 		clocks = <&cru HCLK_EMAC>, <&cru SCLK_MAC>;
+ 		clock-names = "hclk", "macref";
+ 		max-speed = <100>;

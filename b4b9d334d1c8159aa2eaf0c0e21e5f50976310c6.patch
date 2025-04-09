@@ -1,0 +1,50 @@
+From b4b9d334d1c8159aa2eaf0c0e21e5f50976310c6 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andy.yan@rock-chips.com>
+Date: Thu, 5 Dec 2024 09:30:51 +0800
+Subject: [PATCH] arm64: dts: rockchip: Fix dsi phy-cells
+
+Signed-off-by: Andy Yan <andy.yan@rock-chips.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-base.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+index 0e968bbc0cf1dc..7d36a92cb32277 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+@@ -1389,7 +1389,7 @@
+ 		resets = <&cru SRST_P_DSIHOST0>;
+ 		reset-names = "apb";
+ 		power-domains = <&power RK3588_PD_VOP>;
+-		phys = <&mipidcphy0>;
++		phys = <&mipidcphy0 PHY_TYPE_DPHY>;
+ 		phy-names = "dcphy";
+ 		rockchip,grf = <&vop_grf>;
+ 		status = "disabled";
+@@ -1417,7 +1417,7 @@
+ 		resets = <&cru SRST_P_DSIHOST1>;
+ 		reset-names = "apb";
+ 		power-domains = <&power RK3588_PD_VOP>;
+-		phys = <&mipidcphy1>;
++		phys = <&mipidcphy1 PHY_TYPE_DPHY>;
+ 		phy-names = "dcphy";
+ 		rockchip,grf = <&vop_grf>;
+ 		status = "disabled";
+@@ -2922,7 +2922,7 @@
+ 			 <&cru SRST_P_MIPI_DCPHY0_GRF>,
+ 			 <&cru SRST_S_MIPI_DCPHY0>;
+ 		reset-names = "m_phy", "apb", "grf", "s_phy";
+-		#phy-cells = <0>;
++		#phy-cells = <1>;
+ 		status = "disabled";
+ 	};
+ 
+@@ -2938,7 +2938,7 @@
+ 			 <&cru SRST_P_MIPI_DCPHY1_GRF>,
+ 			 <&cru SRST_S_MIPI_DCPHY1>;
+ 		reset-names = "m_phy", "apb", "grf", "s_phy";
+-		#phy-cells = <0>;
++		#phy-cells = <1>;
+ 		status = "disabled";
+ 	};
+ 
