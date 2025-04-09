@@ -2329,7 +2329,7 @@ index 0000000000000..4bf4e517bcd0f
 +}
 +
 +static void dw_dp_bridge_atomic_pre_enable(struct drm_bridge *bridge,
-+					   struct drm_bridge_state *bridge_state)
++					   struct drm_atomic_state *bridge_state)
 +{
 +	struct dw_dp *dp = bridge_to_dp(bridge);
 +	struct dw_dp_video *video = &dp->video;
@@ -2344,7 +2344,7 @@ index 0000000000000..4bf4e517bcd0f
 +
 +static void
 +dw_dp_bridge_atomic_post_disable(struct drm_bridge *bridge,
-+				 struct drm_bridge_state *bridge_state)
++				 struct drm_atomic_state *bridge_state)
 +{
 +	struct dw_dp *dp = bridge_to_dp(bridge);
 +
@@ -2404,7 +2404,7 @@ index 0000000000000..4bf4e517bcd0f
 +}
 +
 +static void dw_dp_bridge_atomic_enable(struct drm_bridge *bridge,
-+				       struct drm_bridge_state *old_state)
++				       struct drm_atomic_state *old_state)
 +{
 +	struct dw_dp *dp = bridge_to_dp(bridge);
 +	struct drm_atomic_state *state = old_state->base.state;
@@ -2465,7 +2465,7 @@ index 0000000000000..4bf4e517bcd0f
 +}
 +
 +static void dw_dp_bridge_atomic_disable(struct drm_bridge *bridge,
-+					struct drm_bridge_state *old_bridge_state)
++					struct drm_atomic_state *old_bridge_state)
 +{
 +	struct dw_dp *dp = bridge_to_dp(bridge);
 +
