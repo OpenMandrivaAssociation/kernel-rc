@@ -1493,6 +1493,7 @@ $DevelRoot/crypto
 $DevelRoot/certs
 $DevelRoot/drivers
 $DevelRoot/fs
+$DevelRoot/include/Kbuild
 $DevelRoot/include/acpi
 $DevelRoot/include/asm-generic
 $DevelRoot/include/clocksource
@@ -1993,6 +1994,7 @@ cd -
 %{_kerneldir}/drivers
 %{_kerneldir}/fs
 %{_kerneldir}/certs/*
+%{_kerneldir}/include/Kbuild
 %{_kerneldir}/include/acpi
 %{_kerneldir}/include/asm-generic
 %{_kerneldir}/include/clocksource
