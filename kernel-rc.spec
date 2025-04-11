@@ -333,9 +333,6 @@ Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 #Patch306:	linux-6.1-binutils-2.40.patch
 
-# https://lore.kernel.org/lkml/Y9ES4UKl%2F+DtvAVS@gmail.com/T/
-Patch310:	insn_decoder_test-fix-buffer-overrun.patch
-
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
 Source400:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.c
