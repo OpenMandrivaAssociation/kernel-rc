@@ -131,7 +131,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -273,6 +273,7 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # virtualbox-kernel-module-sources package is copied around
 Source1007:	vboxnet-clang.patch
 Source1008:	vbox-modules-7.1.6-compile.patch
+Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
@@ -331,6 +332,9 @@ Patch303:	rk3399-add-sclk-i2sout-src-clock.patch
 #Patch304:	rtl8723cs-compile.patch
 Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 #Patch306:	linux-6.1-binutils-2.40.patch
+
+# https://lore.kernel.org/lkml/Y9ES4UKl%2F+DtvAVS@gmail.com/T/
+Patch310:	insn_decoder_test-fix-buffer-overrun.patch
 
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
@@ -1069,7 +1073,6 @@ sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 # VirtualBox shared folders now come in through patch 300
 
 ## NONE upstream this stuff will be here for a while
-%if 0
 # === VirtualBox host modules ===
 # VirtualBox
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
@@ -1086,7 +1089,6 @@ cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/ne
 sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
 echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
-%endif
 %if 0
 # VirtualBox PCI
 # https://forums.gentoo.org/viewtopic-t-1105508-start-0.html -- not very
@@ -1097,9 +1099,8 @@ sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefil
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
-%if 0
 patch -p1 -z .1007~ -b <%{S:1007}
-%endif
+patch -p1 -z .1009~ -b <%{S:1009}
 %endif
 
 # V4L2 loopback support
@@ -1122,9 +1123,7 @@ EOF
 
 # Port to 6.15 -- FIXME remove once these drivers have been ported upstream
 sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/media/pci/saa716x/saa716x_ff_ir.c drivers/media/v4l2-core/v4l2loopback.c drivers/platform/x86/hdaps.c drivers/net/wireless/rtl8723de/include/osdep_service.h drivers/net/wireless/rtl8723de/include/osdep_service_linux.h
-%if 0
 sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
-%endif
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' -o -name '*.g*ignore' | %kxargs rm -f

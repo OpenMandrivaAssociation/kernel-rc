@@ -1,0 +1,12 @@
+diff -up linux-6.14/arch/x86/tools/insn_decoder_test.c.omv~ linux-6.14/arch/x86/tools/insn_decoder_test.c
+--- linux-6.14/arch/x86/tools/insn_decoder_test.c.omv~	2025-04-10 23:15:17.889899133 +0200
++++ linux-6.14/arch/x86/tools/insn_decoder_test.c	2025-04-10 23:15:25.318146669 +0200
+@@ -106,7 +106,7 @@ static void parse_args(int argc, char **
+ 	}
+ }
+ 
+-#define BUFSIZE 256
++#define BUFSIZE 4096
+ 
+ int main(int argc, char **argv)
+ {

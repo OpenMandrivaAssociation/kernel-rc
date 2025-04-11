@@ -1,0 +1,59 @@
+diff -up linux-6.15-rc1/drivers/net/vboxnetadp/Makefile-footer.gmk.omv~ linux-6.15-rc1/drivers/net/vboxnetadp/Makefile-footer.gmk
+--- linux-6.15-rc1/drivers/net/vboxnetadp/Makefile-footer.gmk.omv~	2025-04-10 21:58:54.267848342 +0200
++++ linux-6.15-rc1/drivers/net/vboxnetadp/Makefile-footer.gmk	2025-04-10 21:58:59.564243071 +0200
+@@ -114,7 +114,7 @@ else  # VBOX_KERN_GROKS_EXTMOD
+ VBOXMOD_EXT := ko
+ 
+ # build defs
+-EXTRA_CFLAGS += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
++ccflags-y += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
+ $(VBOXMOD_0_TARGET)-y := $(VBOXMOD_OBJS)
+ obj-m += $(VBOXMOD_0_TARGET).o
+ 
+diff -up linux-6.15-rc1/drivers/net/vboxnetadp/Makefile.omv~ linux-6.15-rc1/drivers/net/vboxnetadp/Makefile
+diff -up linux-6.15-rc1/drivers/net/vboxnetflt/Makefile-footer.gmk.omv~ linux-6.15-rc1/drivers/net/vboxnetflt/Makefile-footer.gmk
+--- linux-6.15-rc1/drivers/net/vboxnetflt/Makefile-footer.gmk.omv~	2025-04-10 21:59:12.120376408 +0200
++++ linux-6.15-rc1/drivers/net/vboxnetflt/Makefile-footer.gmk	2025-04-10 21:59:16.671451608 +0200
+@@ -114,7 +114,7 @@ else  # VBOX_KERN_GROKS_EXTMOD
+ VBOXMOD_EXT := ko
+ 
+ # build defs
+-EXTRA_CFLAGS += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
++ccflags-y += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
+ $(VBOXMOD_0_TARGET)-y := $(VBOXMOD_OBJS)
+ obj-m += $(VBOXMOD_0_TARGET).o
+ 
+diff -up linux-6.15-rc1/drivers/virt/vboxdrv/Makefile-footer.gmk.omv~ linux-6.15-rc1/drivers/virt/vboxdrv/Makefile-footer.gmk
+--- linux-6.15-rc1/drivers/virt/vboxdrv/Makefile-footer.gmk.omv~	2025-04-10 21:58:37.929294067 +0200
++++ linux-6.15-rc1/drivers/virt/vboxdrv/Makefile-footer.gmk	2025-04-10 21:58:44.664063880 +0200
+@@ -114,7 +114,7 @@ else  # VBOX_KERN_GROKS_EXTMOD
+ VBOXMOD_EXT := ko
+ 
+ # build defs
+-EXTRA_CFLAGS += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
++ccflags-y += $(VBOXMOD_CFLAGS) $(addprefix -I,$(KERN_INCL) $(VBOXMOD_INCL)) $(VBOXMOD_0_KFLAGS) $(KDEBUG)
+ $(VBOXMOD_0_TARGET)-y := $(VBOXMOD_OBJS)
+ obj-m += $(VBOXMOD_0_TARGET).o
+ 
+diff -up linux-6.15-rc1/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c.omv~ linux-6.15-rc1/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
+--- linux-6.15-rc1/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c.omv~	2025-04-10 22:52:47.513132293 +0200
++++ linux-6.15-rc1/drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c	2025-04-10 22:56:34.286807003 +0200
+@@ -422,7 +422,7 @@ static void rtTimerLnxStopSubTimer(PRTTI
+     }
+     else
+ #endif
+-        del_timer(&pSubTimer->u.Std.LnxTimer);
++        timer_delete(&pSubTimer->u.Std.LnxTimer);
+ 
+     rtTimerLnxSetState(&pSubTimer->enmState, RTTIMERLNXSTATE_STOPPED);
+ }
+@@ -1626,8 +1626,7 @@ RTDECL(int) RTTimerCreateEx(PRTTIMER *pp
+ #ifdef RTTIMER_LINUX_WITH_HRTIMER
+         if (pTimer->fHighRes)
+         {
+-            hrtimer_init(&pTimer->aSubTimers[iCpu].u.Hr.LnxTimer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+-            pTimer->aSubTimers[iCpu].u.Hr.LnxTimer.function     = rtTimerLinuxHrCallback;
++            hrtimer_setup(&pTimer->aSubTimers[iCpu].u.Hr.LnxTimer, rtTimerLinuxHrCallback, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+         }
+         else
+ #endif
