@@ -1120,7 +1120,7 @@ EOF
 
 # Port to 6.15 -- FIXME remove once these drivers have been ported upstream
 sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/media/pci/saa716x/saa716x_ff_ir.c drivers/media/v4l2-core/v4l2loopback.c drivers/platform/x86/hdaps.c drivers/net/wireless/rtl8723de/include/osdep_service.h drivers/net/wireless/rtl8723de/include/osdep_service_linux.h
-sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
+[ -e drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c ] && sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
 
 # get rid of unwanted files
 find . -name '*~' -o -name '*.orig' -o -name '*.append' -o -name '*.g*ignore' | %kxargs rm -f
