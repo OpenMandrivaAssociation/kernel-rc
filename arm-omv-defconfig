@@ -10892,7 +10892,7 @@ CONFIG_ARCH_HAS_KCOV=y
 CONFIG_CC_HAS_SANCOV_TRACE_PC=y
 # CONFIG_KCOV is not set
 # CONFIG_RUNTIME_TESTING_MENU is not set
-# CONFIG_MEMTEST is not set
+CONFIG_MEMTEST=y
 # end of Kernel Testing and Coverage
 # end of Kernel hacking
 CONFIG_SURFACE_PLATFORMS=y

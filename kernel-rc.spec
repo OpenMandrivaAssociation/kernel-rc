@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 15
 %define sublevel 0
-%define relc 3
+%define relc 4
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -428,7 +428,6 @@ Patch1017:	https://github.com/torvalds/linux/commit/b4b9d334d1c8159aa2eaf0c0e21e
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 Patch1020:	rk3588-port-to-6.15.patch
 
-Autoreqprov:	no
 BuildRequires:	zstd
 BuildRequires:	findutils
 BuildRequires:	bc
@@ -618,7 +617,6 @@ Obsoletes:	%{name}-${flavour}-devel-latest <= %{version}-%{release}
 Provides:	installonlypkg(kernel)
 Requires:	%{name}-${flavour} = %{version}-%{release}
 %rename kernel-release-${flavour}-devel
-AutoReqProv:	no
 %ifarch %{ix86}
 Conflicts:	arch(x86_64)
 Conflicts:	arch(znver1)
@@ -658,7 +656,6 @@ Provides:	kernel-${flavour}-%{version}-%{release}%{disttag}-debuginfo
 Provides:	installonlypkg(kernel)
 Requires:	%{name}-${flavour} = %{version}-%{release}
 %rename kernel-release-${flavour}-debuginfo
-AutoReqProv:	no
 %ifarch %{ix86}
 Conflicts:	arch(x86_64)
 Conflicts:	arch(znver1)
@@ -688,8 +685,6 @@ Summary:	 ${modules} for kernel %{name}-${flavour}
 Group:		System/Kernel and hardware
 Requires:	%{name}-${flavour} = %{version}-%{release}
 Provides:	installonlypkg(kernel-module)
-AutoReq:	no
-AutoProv:	yes
 Requires(posttrans,postun):	kmod
 EOF
 
@@ -730,7 +725,6 @@ Requires:	make
 Requires:	gcc >= 7.2.1_2017.11-3
 Requires:	perl
 Requires:	diffutils
-Autoreqprov:	no
 Provides:	kernel-source = %{version}-%{release}
 Provides:	kernel-source-%{version}-%{release}%{disttag}
 Provides:	installonlypkg(kernel)
