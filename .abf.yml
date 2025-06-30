@@ -1,5 +1,5 @@
 sources:
-  linux-6.16-rc3.tar.gz: 4b46a9be475e0ba24d5279bb0aba2d2508edb5d0
+  linux-6.16-rc4.tar.gz: a97a64dbf911a8691a1929d84692d32b5d002851
   extra-wifi-drivers-20200301.tar.zst: 3390c738c7d91250714ce0f88d26371e93bc40b8
   hid-tmff2-20241007.tar.gz: e655bf4013e74007c35f9545c480eadf451307eb
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6

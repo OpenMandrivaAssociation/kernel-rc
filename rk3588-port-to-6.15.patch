@@ -65,3 +65,44 @@ diff -up linux-6.15-rc1/drivers/gpu/drm/rockchip/dw-dp.c.omv~ linux-6.15-rc1/dri
  }
  
  static int __maybe_unused dw_dp_runtime_suspend(struct device *dev)
+diff -up linux-6.16-rc4/drivers/gpu/drm/rockchip/dw-dp.c.omv~ linux-6.16-rc4/drivers/gpu/drm/rockchip/dw-dp.c
+--- linux-6.16-rc4/drivers/gpu/drm/rockchip/dw-dp.c.omv~	2025-06-30 20:35:41.113505988 +0200
++++ linux-6.16-rc4/drivers/gpu/drm/rockchip/dw-dp.c	2025-06-30 20:36:30.704182604 +0200
+@@ -2213,7 +2213,7 @@ static int dw_dp_connector_init(struct d
+ 	return 0;
+ }
+ 
+-static int dw_dp_bridge_attach(struct drm_bridge *bridge,
++static int dw_dp_bridge_attach(struct drm_bridge *bridge, struct drm_encoder *encoder,
+ 			       enum drm_bridge_attach_flags flags)
+ {
+ 	struct dw_dp *dp = bridge_to_dp(bridge);
+@@ -2221,8 +2221,8 @@ static int dw_dp_bridge_attach(struct dr
+ 	bool skip_connector = false;
+ 	int ret;
+ 
+-	if (!bridge->encoder) {
+-		DRM_DEV_ERROR(dp->dev, "Parent encoder object not found");
++	if (!encoder) {
++		DRM_DEV_ERROR(dp->dev, "encoder object not found");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2234,7 +2234,7 @@ static int dw_dp_bridge_attach(struct dr
+ 	if (dp->next_bridge) {
+ 		struct drm_bridge *next_bridge = dp->next_bridge;
+ 
+-		ret = drm_bridge_attach(bridge->encoder, next_bridge, bridge,
++		ret = drm_bridge_attach(encoder, next_bridge, bridge,
+ 					next_bridge->ops & DRM_BRIDGE_OP_MODES ?
+ 					DRM_BRIDGE_ATTACH_NO_CONNECTOR : 0);
+ 		if (ret) {
+@@ -2262,7 +2262,7 @@ static int dw_dp_bridge_attach(struct dr
+ 
+ 		list_for_each_entry(connector, connector_list, head)
+ 			if (drm_connector_has_possible_encoder(connector,
+-							       bridge->encoder))
++							       encoder))
+ 				break;
+ 	}
+ 
