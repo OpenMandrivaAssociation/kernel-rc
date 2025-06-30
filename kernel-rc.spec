@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 15
+%define patchlevel 16
 %define sublevel 0
-%define relc 7
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -94,7 +94,7 @@
 %bcond_with lazy_developer
 %bcond_with build_debug
 # FIXME re-enable once ported to 6.15
-%bcond_with evdi
+%bcond_without evdi
 %bcond_with vbox_orig_mods
 %bcond_without clr
 # FIXME re-enable by default when the patches have been adapted to 5.8
@@ -277,7 +277,7 @@ Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.9
+%define evdi_version 1.14.10
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 
 # Assorted fixes
@@ -309,7 +309,6 @@ Patch230:	linux-5.11-perf-compile.patch
 # (tpg) Armbian ARM Patches
 # https://github.com/armbian/build/tree/main/patch/kernel/archive/
 Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-emmc.patch
-Patch241:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-spi1-flash-speed.patch
 Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-work-led-heartbeat.patch
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
 Patch245:	https://github.com/armbian/build/raw/refs/heads/main/patch/kernel/archive/rockchip64-6.11/rk3399-unlock-temperature.patch
@@ -351,12 +350,11 @@ Patch900:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch901:	0102-increase-the-ext4-default-commit-age.patch
 Patch903:	0104-pci-pme-wakeups.patch
 Patch904:	0105-ksm-wakeups.patch
-#Patch905:	0106-intel_idle-tweak-cpuidle-cstates.patch
+Patch905:	https://raw.githubusercontent.com/clearlinux-pkgs/linux/refs/heads/main/0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
 Patch913:	0117-migrate-some-systemd-defaults-to-the-kernel-defaults.patch
-Patch914:	0120-use-lfence-instead-of-rep-and-nop.patch
 %endif
 
 # Rockchip 3588 HDMI audio support
@@ -386,7 +384,6 @@ Patch968:	https://github.com/torvalds/linux/commit/516ae4f2e84130ee33375cf28fbeb
 Patch975:	https://github.com/torvalds/linux/commit/cef2dc6b338e1349b2e9feda9bf41e88510aaf5a.patch
 Patch976:	https://github.com/torvalds/linux/commit/0f13fb4aa5e9aec8fcc30d4cd244a1c94a9ab01f.patch
 Patch979:	https://github.com/torvalds/linux/commit/beba499cda3702062e7708b6b402d07b26d090e5.patch
-Patch980:	https://github.com/torvalds/linux/commit/63926610293c484f9a15d1605ff4b6632409d77c.patch
 Patch981:	https://github.com/torvalds/linux/commit/c8699f87d802bbb6e5aab8292f2e285c56976a35.patch
 Patch982:	https://github.com/torvalds/linux/commit/a7a7cf522d7636dc1280adb1b1de7fe45f9b3305.patch
 Patch983:	https://github.com/torvalds/linux/commit/f0118748bc1f791775c90c52791a1770f4429702.patch
@@ -418,12 +415,9 @@ Patch1006:	https://github.com/torvalds/linux/commit/06fb8acf220d3bd8d1bffe098c41
 # 7fd2c93... has landed
 # de56911... has landed
 # c75314e... has landed
-Patch1012:	https://github.com/torvalds/linux/commit/49c239990887e5aabdd55c94fa44176fd38f1bd2.patch
-Patch1013:	https://github.com/torvalds/linux/commit/93c6bd3a7cf741218a6de50803dd128a6340248c.patch
 # 8571e14... has landed
 #Patch1015:	https://github.com/torvalds/linux/commit/ec744b5548e79d18670651113a5855fd31e7472e.patch
 #Patch1016:	https://github.com/torvalds/linux/commit/05a7eca409973abbc3d97a726b88b07d256859ae.patch
-Patch1017:	https://github.com/torvalds/linux/commit/b4b9d334d1c8159aa2eaf0c0e21e5f50976310c6.patch
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 Patch1020:	rk3588-port-to-6.15.patch
@@ -1091,7 +1085,7 @@ sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1007~ -b <%{S:1007}
-patch -p1 -z .1009~ -b <%{S:1009}
+#patch -p1 -z .1009~ -b <%{S:1009}
 %endif
 
 # V4L2 loopback support
@@ -1999,6 +1993,7 @@ cd -
 %optional %{_kerneldir}/.clippy.toml
 %{_kerneldir}/.cocciconfig
 %{_kerneldir}/.editorconfig
+%{_kerneldir}/.pylintrc
 %{_kerneldir}/Documentation
 %{_kerneldir}/arch/Kconfig
 %{_kerneldir}/arch/arm
@@ -2097,12 +2092,14 @@ cd -
 %if %{with build_cpupower}
 %files -n cpupower -f cpupower.lang
 %{_bindir}/cpupower
+%{_libexecdir}/cpupower
 %{_libdir}/libcpupower.so.1
 %{_libdir}/libcpupower.so.1.0.1
 %{_unitdir}/cpupower.service
 %doc %{_mandir}/man[1-8]/cpupower*
 %{_datadir}/bash-completion/completions/cpupower
 %config(noreplace) %{_sysconfdir}/sysconfig/cpupower
+%config(noreplace) %{_sysconfdir}/cpupower-service.conf
 
 %files -n cpupower-devel
 %{_libdir}/libcpupower.so
