@@ -1,12 +1,3 @@
-diff -up linux-6.14-rc2/tools/build/feature/test-libcrypto.c.35~ linux-6.14-rc2/tools/build/feature/test-libcrypto.c
---- linux-6.14-rc2/tools/build/feature/test-libcrypto.c.35~	2025-02-09 21:45:03.000000000 +0100
-+++ linux-6.14-rc2/tools/build/feature/test-libcrypto.c	2025-02-15 02:48:04.730554976 +0100
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
-+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
- #include <openssl/evp.h>
- #include <openssl/sha.h>
- #include <openssl/md5.h>
 diff -up linux-6.14-rc2/tools/build/feature/test-libperl.c.35~ linux-6.14-rc2/tools/build/feature/test-libperl.c
 --- linux-6.14-rc2/tools/build/feature/test-libperl.c.35~	2025-02-09 21:45:03.000000000 +0100
 +++ linux-6.14-rc2/tools/build/feature/test-libperl.c	2025-02-15 02:48:04.730592736 +0100

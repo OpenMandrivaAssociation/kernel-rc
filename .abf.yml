@@ -4,4 +4,4 @@ sources:
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6
   tp_smapi-0.44.tgz: 16c2229068628ff58d363f61de0d094b2177ea5c
   v1.14.10.tar.gz: dacd2fcd590fa7774d463fbbb003a8ee266b05be
-  linux-6.16-rc7.tar.gz: ccc33187c13b4a51f37314408b3fe76a255a06e5
+  linux-6.17-rc1.tar.gz: 70f2e6a2fe2d49e98401230c77ebe574cf2116ca
