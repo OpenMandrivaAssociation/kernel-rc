@@ -403,7 +403,7 @@ Patch983:	https://github.com/torvalds/linux/commit/f0118748bc1f791775c90c52791a1
 # bf10475... has landed
 #Patch994:	https://github.com/torvalds/linux/commit/c1cffe7e472cf58c948a52de76007117e7d550ae.patch
 # 0ab95ab... has landed
-Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
+#Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
 # 565e00d... has landed
 Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c270e150c3d6f.patch
 # b5fb817... has landed
@@ -425,6 +425,7 @@ Patch1006:	https://github.com/torvalds/linux/commit/06fb8acf220d3bd8d1bffe098c41
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 Patch1020:	rk3588-port-to-6.15.patch
+Patch1021:	rk3588-port-to-6.17.patch
 
 BuildRequires:	zstd
 BuildRequires:	findutils
