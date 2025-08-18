@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 17
 %define sublevel 0
-%define relc 1
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -403,7 +403,7 @@ Patch983:	https://github.com/torvalds/linux/commit/f0118748bc1f791775c90c52791a1
 # bf10475... has landed
 #Patch994:	https://github.com/torvalds/linux/commit/c1cffe7e472cf58c948a52de76007117e7d550ae.patch
 # 0ab95ab... has landed
-#Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
+Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
 # 565e00d... has landed
 Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c270e150c3d6f.patch
 # b5fb817... has landed
