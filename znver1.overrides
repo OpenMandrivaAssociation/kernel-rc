@@ -135,3 +135,4 @@ CONFIG_MZEN=y
 # CONFIG_PATA_PARPORT_ON26 is not set
 # CONFIG_PATA_ACPI is not set
 # CONFIG_PATA_LEGACY is not set
+# CONFIG_KVM_INTEL_TDX is not set

@@ -1,0 +1,12 @@
+diff -up linux-6.18-rc3/drivers/acpi/acpica/tbprint.c.omv~ linux-6.18-rc3/drivers/acpi/acpica/tbprint.c
+--- linux-6.18-rc3/drivers/acpi/acpica/tbprint.c.omv~	2025-10-30 05:35:41.759465914 +0100
++++ linux-6.18-rc3/drivers/acpi/acpica/tbprint.c	2025-10-30 05:35:48.494365250 +0100
+@@ -96,7 +96,7 @@ acpi_tb_print_table_header(acpi_physical
+ 	struct acpi_table_header local_header;
+ 
+ #pragma GCC diagnostic push
+-#if defined(__GNUC__) && __GNUC__ >= 11
++#if defined(__GNUC__) && __GNUC__ >= 11 && !defined(__clang__)
+ #pragma GCC diagnostic ignored "-Wstringop-overread"
+ #endif
+ 

@@ -61,9 +61,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 6
-%define patchlevel 17
+%define patchlevel 18
 %define sublevel 0
-%define relc 7
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -240,6 +240,7 @@ Patch47:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
 Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 Patch55:	linux-5.16-clang-no-attribute-symver.patch
+Patch60:	linux-6.18-clang.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -351,7 +352,6 @@ Patch900:	0101-i8042-decrease-debug-message-level-to-info.patch
 Patch901:	0102-increase-the-ext4-default-commit-age.patch
 Patch903:	0104-pci-pme-wakeups.patch
 Patch904:	0105-ksm-wakeups.patch
-Patch905:	https://raw.githubusercontent.com/clearlinux-pkgs/linux/refs/heads/main/0106-intel_idle-tweak-cpuidle-cstates.patch
 Patch907:	0108-smpboot-reuse-timer-calibration.patch
 Patch908:	0109-initialize-ata-before-graphics.patch
 Patch910:	0111-ipv4-tcp-allow-the-memory-tuning-for-tcp-to-go-a-lit.patch
@@ -400,7 +400,7 @@ Patch983:	https://github.com/torvalds/linux/commit/f0118748bc1f791775c90c52791a1
 # bf10475... has landed
 #Patch994:	https://github.com/torvalds/linux/commit/c1cffe7e472cf58c948a52de76007117e7d550ae.patch
 # 0ab95ab... has landed
-Patch996:	https://github.com/torvalds/linux/commit/bc27ea85742ece4a9299fe27004af9df777d351d.patch
+# bc27ea8... has landed
 # 565e00d... has landed
 Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c270e150c3d6f.patch
 # b5fb817... has landed
@@ -421,8 +421,6 @@ Patch1006:	https://github.com/torvalds/linux/commit/06fb8acf220d3bd8d1bffe098c41
 #Patch1016:	https://github.com/torvalds/linux/commit/05a7eca409973abbc3d97a726b88b07d256859ae.patch
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
-Patch1020:	rk3588-port-to-6.15.patch
-Patch1021:	rk3588-port-to-6.17.patch
 
 BuildRequires:	zstd
 BuildRequires:	findutils
