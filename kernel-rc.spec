@@ -278,9 +278,9 @@ Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.10
+%define evdi_version 1.14.11
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
-Source1011:	https://patch-diff.githubusercontent.com/raw/DisplayLink/evdi/pull/526.patch
+Source1011:	evdi-6.18.patch
 
 # Assorted fixes
 
@@ -926,9 +926,6 @@ done
 %setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
 %if %{with evdi}
 tar xf %{S:1010}
-cd evdi-*
-patch -p1 -b -z .1011~ <%{S:1011}
-cd ..
 %endif
 %if 0%{?sublevel:%{sublevel}}
 [ -e .git ] || git init
@@ -987,6 +984,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
+patch -p1 -b -z .1011~ <%{S:1011}
 %endif
 
 # Merge TMFF2

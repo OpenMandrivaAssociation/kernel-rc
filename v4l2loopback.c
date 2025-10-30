@@ -23,6 +23,7 @@
 #include <linux/slab.h>
 #include <linux/fs.h>
 #include <linux/capability.h>
+#include <linux/timer.h>
 #include <linux/eventpoll.h>
 #include <media/v4l2-ioctl.h>
 #include <media/v4l2-common.h>
@@ -55,6 +56,11 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)
 #define timer_delete_sync del_timer_sync
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
+#define v4l2_fh_add(fh, filp) v4l2_fh_add(fh)
+#define v4l2_fh_del(fh, filp) v4l2_fh_del(fh)
 #endif
 
 #define V4L2LOOPBACK_VERSION_CODE                                              \
@@ -2334,7 +2340,7 @@ static int v4l2_loopback_open(struct file *file)
 	v4l2_fh_init(&opener->fh, video_devdata(file));
 	file->private_data = &opener->fh;
 
-	v4l2_fh_add(&opener->fh);
+	v4l2_fh_add(&opener->fh, file);
 	dprintk("open() -> dev@%p with image@%p\n", dev,
 		dev ? dev->image : NULL);
 	return 0;
@@ -2383,7 +2389,7 @@ static int v4l2_loopback_close(struct file *file)
 		}
 	}
 
-	v4l2_fh_del(&opener->fh);
+	v4l2_fh_del(&opener->fh, file);
 	v4l2_fh_exit(&opener->fh);
 
 	kfree(opener);
@@ -2943,11 +2949,12 @@ static int v4l2_loopback_add(struct v4l2_loopback_config *conf, int *ret_nr)
 	return 0;
 
 out_free_device:
-	video_device_release(dev->vdev);
 out_free_handler:
 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
 out_unregister:
-	video_set_drvdata(dev->vdev, NULL);
+	if (dev->vdev)
+		video_set_drvdata(dev->vdev, NULL);
+	video_device_release(dev->vdev);
 	if (vdev_priv != NULL)
 		kfree(vdev_priv);
 	v4l2_device_unregister(&dev->v4l2_dev);

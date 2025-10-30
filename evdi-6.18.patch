@@ -1,0 +1,76 @@
+diff -up linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.c.omv~ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.c
+--- linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.c.omv~	2025-10-30 19:54:08.226744784 +0100
++++ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.c	2025-10-30 20:36:27.450965435 +0100
+@@ -169,6 +169,7 @@ static void evdi_drm_device_release_cb(_
+ 
+ 	evdi_cursor_free(evdi->cursor);
+ 	evdi_painter_cleanup(evdi->painter);
++	mutex_destroy(&evdi->lock);
+ 	kfree(evdi);
+ 	dev->dev_private = NULL;
+ 	EVDI_INFO("Evdi drm_device removed.\n");
+@@ -189,6 +190,7 @@ static int evdi_drm_device_init(struct d
+ 	evdi->ddev = dev;
+ 	evdi->dev_index = dev->primary->index;
+ 	evdi->cursor_events_enabled = false;
++	mutex_init(&evdi->lock);
+ 	dev->dev_private = evdi;
+ 	ret = evdi_painter_init(evdi);
+ 	if (ret)
+diff -up linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.h.omv~ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.h
+--- linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.h.omv~	2025-10-30 19:53:02.617222632 +0100
++++ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_drm_drv.h	2025-10-30 20:36:39.258735918 +0100
+@@ -58,6 +58,8 @@ struct evdi_device {
+ 	struct i2c_adapter *i2c_adapter;
+ 
+ 	int dev_index;
++
++	struct mutex lock;
+ };
+ 
+ struct evdi_gem_object {
+diff -up linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_gem.c.omv~ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_gem.c
+--- linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_gem.c.omv~	2025-10-30 20:35:51.418877933 +0100
++++ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_gem.c	2025-10-30 20:39:32.745487651 +0100
+@@ -400,9 +400,10 @@ int evdi_gem_mmap(struct drm_file *file,
+ {
+ 	struct evdi_gem_object *gobj;
+ 	struct drm_gem_object *obj;
++	struct evdi_device *evdi = dev->dev_private;
+ 	int ret = 0;
+ 
+-	mutex_lock(&dev->struct_mutex);
++	mutex_lock(&evdi->lock);
+ 	obj = drm_gem_object_lookup(file, handle);
+ 	if (obj == NULL) {
+ 		ret = -ENOENT;
+@@ -430,7 +431,7 @@ int evdi_gem_mmap(struct drm_file *file,
+  out:
+ 	drm_gem_object_put(&gobj->base);
+  unlock:
+-	mutex_unlock(&dev->struct_mutex);
++	mutex_unlock(&evdi->lock);
+ 	return ret;
+ }
+ 
+diff -up linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_modeset.c.omv~ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_modeset.c
+--- linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_modeset.c.omv~	2025-10-30 19:46:19.668163744 +0100
++++ linux-6.18-rc3/drivers/gpu/drm/evdi/evdi_modeset.c	2025-10-30 20:36:52.565083211 +0100
+@@ -343,7 +343,7 @@ static void evdi_cursor_atomic_update(st
+ 		int32_t cursor_position_x = 0;
+ 		int32_t cursor_position_y = 0;
+ 
+-		mutex_lock(&plane->dev->struct_mutex);
++		mutex_lock(&evdi->lock);
+ 
+ 		evdi_cursor_position(evdi->cursor, &cursor_position_x,
+ 		&cursor_position_y);
+@@ -369,7 +369,7 @@ static void evdi_cursor_atomic_update(st
+ 			cursor_changed = true;
+ 		}
+ 
+-		mutex_unlock(&plane->dev->struct_mutex);
++		mutex_unlock(&evdi->lock);
+ 		if (!evdi->cursor_events_enabled) {
+ 			if (fb != NULL) {
+ 				if (efb->obj->allow_sw_cursor_rect_updates) {
