@@ -17,3 +17,27 @@ diff -up linux-6.14-rc2/mm/list_lru.c.omv~ linux-6.14-rc2/mm/list_lru.c
  
  bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
  {
+diff -up linux-6.18-rc3/drivers/android/binder.c.omv~ linux-6.18-rc3/drivers/android/binder.c
+--- linux-6.18-rc3/drivers/android/binder.c.omv~	2025-10-31 20:19:02.850251504 +0000
++++ linux-6.18-rc3/drivers/android/binder.c	2025-10-31 20:19:38.870370757 +0000
+@@ -6988,6 +6988,9 @@ DEFINE_SHOW_ATTRIBUTE(transactions);
+ DEFINE_SHOW_ATTRIBUTE(transactions_hashed);
+ DEFINE_SHOW_ATTRIBUTE(transaction_log);
+ 
++MODULE_DESCRIPTION("The binder IPC system");
++MODULE_LICENSE("GPL v2");
++
+ const struct binder_debugfs_entry binder_debugfs_entries[] = {
+ 	{
+ 		.name = "state",
+diff -up linux-6.18-rc3/mm/mmap_lock.c.omv~ linux-6.18-rc3/mm/mmap_lock.c
+--- linux-6.18-rc3/mm/mmap_lock.c.omv~	2025-10-31 21:10:47.923556571 +0000
++++ linux-6.18-rc3/mm/mmap_lock.c	2025-10-31 21:11:03.143628302 +0000
+@@ -267,6 +267,7 @@ inval:
+ 	count_vm_vma_lock_event(VMA_LOCK_ABORT);
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(lock_vma_under_rcu);
+ 
+ static struct vm_area_struct *lock_next_vma_under_mmap_lock(struct mm_struct *mm,
+ 							    struct vma_iterator *vmi,
