@@ -283,6 +283,7 @@ CONFIG_HAVE_IMA_KEXEC=y
 CONFIG_KEXEC=y
 CONFIG_KEXEC_FILE=y
 CONFIG_KEXEC_HANDOVER=y
+# CONFIG_KEXEC_HANDOVER_DEBUG is not set
 CONFIG_CRASH_DUMP=y
 # end of Kexec and crash features
 # end of General setup

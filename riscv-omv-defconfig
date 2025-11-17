@@ -251,6 +251,7 @@ CONFIG_PROFILING=y
 # CONFIG_KEXEC is not set
 # CONFIG_KEXEC_FILE is not set
 CONFIG_KEXEC_HANDOVER=y
+# CONFIG_KEXEC_HANDOVER_DEBUG is not set
 # CONFIG_CRASH_DUMP is not set
 # end of Kexec and crash features
 # end of General setup
