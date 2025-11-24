@@ -1,6 +1,6 @@
-diff -up linux-6.15-rc1/drivers/platform/x86/acer-wmi.c.2~ linux-6.15-rc1/drivers/platform/x86/acer-wmi.c
---- linux-6.15-rc1/drivers/platform/x86/acer-wmi.c.2~	2025-04-06 22:11:33.000000000 +0200
-+++ linux-6.15-rc1/drivers/platform/x86/acer-wmi.c	2025-04-07 23:19:30.356309298 +0200
+diff -up linux-6.18-rc7/drivers/platform/x86/acer-wmi.c.2~ linux-6.18-rc7/drivers/platform/x86/acer-wmi.c
+--- linux-6.18-rc7/drivers/platform/x86/acer-wmi.c.2~	2025-11-23 23:53:16.000000000 +0100
++++ linux-6.18-rc7/drivers/platform/x86/acer-wmi.c	2025-11-24 22:09:24.104580688 +0100
 @@ -7,6 +7,9 @@
   *  Based on acer_acpi:
   *    Copyright (C) 2005-2007	E.M. Smith
@@ -11,16 +11,16 @@ diff -up linux-6.15-rc1/drivers/platform/x86/acer-wmi.c.2~ linux-6.15-rc1/driver
   */
  
  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -103,7 +106,7 @@ MODULE_ALIAS("wmi:676AA15E-6A47-4D9F-A2C
- enum acer_wmi_event_ids {
+@@ -104,7 +107,7 @@ enum acer_wmi_event_ids {
  	WMID_HOTKEY_EVENT = 0x1,
+ 	WMID_BACKLIGHT_EVENT = 0x4,
  	WMID_ACCEL_OR_KBD_DOCK_EVENT = 0x5,
 -	WMID_GAMING_TURBO_KEY_EVENT = 0x7,
 +	WMID_GAMING_KEY_EVENT = 0x7,
  	WMID_AC_EVENT = 0x8,
  };
  
-@@ -175,6 +178,26 @@ static const struct key_entry acer_wmi_k
+@@ -177,6 +180,26 @@ static const struct key_entry acer_wmi_k
  	{KE_KEY, 0x85, {KEY_TOUCHPAD_TOGGLE} },
  	{KE_KEY, 0x86, {KEY_WLAN} },
  	{KE_KEY, 0x87, {KEY_POWER} },
@@ -47,7 +47,7 @@ diff -up linux-6.15-rc1/drivers/platform/x86/acer-wmi.c.2~ linux-6.15-rc1/driver
  	{KE_END, 0}
  };
  
-@@ -299,6 +322,7 @@ static bool ec_raw_mode;
+@@ -301,6 +324,7 @@ static bool ec_raw_mode;
  static bool has_type_aa;
  static u16 commun_func_bitmap;
  static u8 commun_fn_key_number;
@@ -55,7 +55,7 @@ diff -up linux-6.15-rc1/drivers/platform/x86/acer-wmi.c.2~ linux-6.15-rc1/driver
  static bool cycle_gaming_thermal_profile = true;
  static bool predator_v4;
  static u64 supported_sensors;
-@@ -2420,12 +2444,30 @@ static void acer_wmi_notify(union acpi_o
+@@ -2377,12 +2401,30 @@ static void acer_wmi_notify(union acpi_o
  		acer_gsensor_event();
  		acer_kbd_dock_event(&return_value);
  		break;
