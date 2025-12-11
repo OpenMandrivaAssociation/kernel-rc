@@ -131,7 +131,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -180,6 +180,7 @@ Source29:	gcc-plugins.fragment
 Source30:	pps.fragment
 Source31:	cgroups.fragment
 Source32:	firmware.fragment
+Source33:	security.fragment
 # Overrides (highest priority) for configs
 Source200:	znver1.overrides
 # config and systemd service file from fedora
