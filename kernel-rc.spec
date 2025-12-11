@@ -422,6 +422,7 @@ Patch1006:	https://github.com/torvalds/linux/commit/06fb8acf220d3bd8d1bffe098c41
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 
+BuildRequires:	make
 BuildRequires:	zstd
 BuildRequires:	findutils
 BuildRequires:	bc
