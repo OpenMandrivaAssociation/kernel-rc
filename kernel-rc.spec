@@ -91,7 +91,6 @@
 %bcond_without build_devel
 %bcond_without cross_headers
 
-%bcond_with lazy_developer
 %bcond_with build_debug
 # FIXME re-enable once ported to 6.15
 %bcond_without evdi
@@ -1289,16 +1288,8 @@ CreateConfig() {
 # (tpg) apply our dynamic configs
 	scripts/config $FIXED_CONFIGS
 
-%if %{without lazy_developer}
-## YES, intentionally, DIE on wrong config
 	printf '%s\n' "=== Configuring ${arch} ${type} kernel ==="
-	make ARCH="${arch}" CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 oldconfig
-%else
-	printf '%s\n' "Lazy developer option is enabled!!. Don't be lazy!."
-## that takes kernel defaults on missing or changed things
-## olddefconfig is similar to yes ... but not that verbose
-	yes "" | make ARCH="${arch}" CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" oldconfig
-%endif
+	make ARCH="${arch}" CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" V=0 olddefconfig
 
 	scripts/config --set-val BUILD_SALT \"$(echo "$arch-$type-%{EVRD}"|sha1sum|awk '{ print $1; }')\"
 
