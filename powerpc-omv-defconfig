@@ -1,7 +1,3 @@
-#
-# Automatically generated file; DO NOT EDIT.
-# Linux/powerpc 6.6.0-rc3 Kernel Configuration
-#
 CONFIG_CC_VERSION_TEXT="gcc (GCC) 13.1.1 20230722 (OpenMandriva)"
 CONFIG_CC_IS_GCC=y
 CONFIG_GCC_VERSION=130101
@@ -23,9 +19,6 @@ CONFIG_IRQ_WORK=y
 CONFIG_BUILDTIME_TABLE_SORT=y
 CONFIG_THREAD_INFO_IN_TASK=y
 
-#
-# General setup
-#
 CONFIG_INIT_ENV_ARG_LIMIT=32
 CONFIG_LOCALVERSION=""
 CONFIG_LOCALVERSION_AUTO=y
@@ -45,9 +38,6 @@ CONFIG_AUDIT=y
 CONFIG_HAVE_ARCH_AUDITSYSCALL=y
 CONFIG_AUDITSYSCALL=y
 
-#
-# IRQ subsystem
-#
 CONFIG_GENERIC_IRQ_SHOW=y
 CONFIG_GENERIC_IRQ_SHOW_LEVEL=y
 CONFIG_GENERIC_IRQ_MIGRATION=y
@@ -59,7 +49,6 @@ CONFIG_IRQ_DOMAIN_NOMAP=y
 CONFIG_GENERIC_MSI_IRQ=y
 CONFIG_IRQ_FORCED_THREADING=y
 CONFIG_SPARSE_IRQ=y
-# end of IRQ subsystem
 
 CONFIG_GENERIC_TIME_VSYSCALL=y
 CONFIG_GENERIC_CLOCKEVENTS=y
@@ -70,9 +59,6 @@ CONFIG_TIME_KUNIT_TEST=m
 CONFIG_CONTEXT_TRACKING=y
 CONFIG_CONTEXT_TRACKING_IDLE=y
 
-#
-# Timers subsystem
-#
 CONFIG_TICK_ONESHOT=y
 CONFIG_NO_HZ_COMMON=y
 CONFIG_NO_HZ_FULL=y
@@ -80,29 +66,21 @@ CONFIG_CONTEXT_TRACKING_USER=y
 CONFIG_NO_HZ=y
 CONFIG_HIGH_RES_TIMERS=y
 CONFIG_POSIX_AUX_CLOCKS=y
-# end of Timers subsystem
 
 CONFIG_BPF=y
 CONFIG_HAVE_EBPF_JIT=y
 CONFIG_ARCH_WANT_DEFAULT_BPF_JIT=y
 
-#
-# BPF subsystem
-#
 CONFIG_BPF_SYSCALL=y
 CONFIG_BPF_JIT=y
 CONFIG_BPF_JIT_ALWAYS_ON=y
 CONFIG_BPF_JIT_DEFAULT_ON=y
 CONFIG_BPF_UNPRIV_DEFAULT_OFF=y
 CONFIG_BPF_LSM=y
-# end of BPF subsystem
 
 CONFIG_PREEMPT_VOLUNTARY_BUILD=y
 CONFIG_PREEMPT_VOLUNTARY=y
 
-#
-# CPU/Task time and stats accounting
-#
 CONFIG_VIRT_CPU_ACCOUNTING=y
 CONFIG_HAVE_SCHED_AVG_IRQ=y
 CONFIG_BSD_PROCESS_ACCT=y
@@ -112,13 +90,9 @@ CONFIG_TASK_DELAY_ACCT=y
 CONFIG_TASK_XACCT=y
 CONFIG_TASK_IO_ACCOUNTING=y
 CONFIG_PSI=y
-# end of CPU/Task time and stats accounting
 
 CONFIG_CPU_ISOLATION=y
 
-#
-# RCU Subsystem
-#
 CONFIG_TREE_RCU=y
 CONFIG_TREE_SRCU=y
 CONFIG_NEED_SRCU_NMI_SAFE=y
@@ -127,7 +101,6 @@ CONFIG_TASKS_RUDE_RCU=y
 CONFIG_TASKS_TRACE_RCU=y
 CONFIG_RCU_STALL_COMMON=y
 CONFIG_RCU_NEED_SEGCBLIST=y
-# end of RCU Subsystem
 
 CONFIG_IKCONFIG=y
 CONFIG_IKCONFIG_PROC=y
@@ -135,10 +108,6 @@ CONFIG_IKHEADERS=m
 CONFIG_LOG_BUF_SHIFT=18
 CONFIG_LOG_CPU_MAX_BUF_SHIFT=13
 
-#
-# Scheduler features
-#
-# end of Scheduler features
 
 CONFIG_ARCH_SUPPORTS_NUMA_BALANCING=y
 CONFIG_CC_HAS_INT128=y
@@ -225,19 +194,12 @@ CONFIG_RSEQ=y
 CONFIG_CACHESTAT_SYSCALL=y
 CONFIG_HAVE_PERF_EVENTS=y
 
-#
-# Kernel Performance Events And Counters
-#
 CONFIG_PERF_EVENTS=y
-# end of Kernel Performance Events And Counters
 
 CONFIG_SYSTEM_DATA_VERIFICATION=y
 CONFIG_PROFILING=y
 CONFIG_TRACEPOINTS=y
 
-#
-# Kexec and crash features
-#
 CONFIG_CRASH_CORE=y
 CONFIG_CRASH_HOTPLUG=y
 CONFIG_CRASH_MAX_MEMORY_RANGES=8192
@@ -248,14 +210,9 @@ CONFIG_KEXEC=y
 CONFIG_KEXEC_FILE=y
 CONFIG_KEXEC_HANDOVER=y
 CONFIG_CRASH_DUMP=y
-# end of Kexec and crash features
-# end of General setup
 
 CONFIG_PPC64=y
 
-#
-# Processor support
-#
 CONFIG_PPC_BOOK3S_64=y
 CONFIG_POWERPC64_CPU=y
 CONFIG_TARGET_CPU_BOOL=y
@@ -277,7 +234,6 @@ CONFIG_FORCE_SMP=y
 CONFIG_SMP=y
 CONFIG_NR_CPUS=2048
 CONFIG_PPC_DOORBELL=y
-# end of Processor support
 
 CONFIG_VDSO32=y
 CONFIG_CPU_BIG_ENDIAN=y
@@ -328,9 +284,6 @@ CONFIG_PPC_XIVE=y
 CONFIG_PPC_XIVE_NATIVE=y
 CONFIG_PPC_XIVE_SPAPR=y
 
-#
-# Platform support
-#
 CONFIG_PPC_POWERNV=y
 CONFIG_PPC_PSERIES=y
 CONFIG_PARAVIRT=y
@@ -355,18 +308,11 @@ CONFIG_PPC_PMAC64=y
 CONFIG_PPC_MAPLE=y
 CONFIG_PPC_PASEMI=y
 
-#
-# PA Semi PWRficient options
-#
 CONFIG_PPC_PASEMI_IOMMU=y
 CONFIG_PPC_PASEMI_MDIO=y
-# end of PA Semi PWRficient options
 
 CONFIG_PPC_PS3=y
 
-#
-# PS3 Platform Options
-#
 CONFIG_PS3_HTAB_SIZE=20
 CONFIG_PS3_VUART=y
 CONFIG_PS3_PS3AV=y
@@ -376,7 +322,6 @@ CONFIG_PS3_DISK=m
 CONFIG_PS3_ROM=m
 CONFIG_PS3_FLASH=m
 CONFIG_PS3_LPM=m
-# end of PS3 Platform Options
 
 CONFIG_PPC_CELL=y
 CONFIG_PPC_CELL_COMMON=y
@@ -384,9 +329,6 @@ CONFIG_PPC_CELL_NATIVE=y
 CONFIG_PPC_IBM_CELL_BLADE=y
 CONFIG_AXON_MSI=y
 
-#
-# Cell Broadband Engine options
-#
 CONFIG_SPU_FS=m
 CONFIG_SPU_BASE=y
 CONFIG_CBE_RAS=y
@@ -395,7 +337,6 @@ CONFIG_PPC_IBM_CELL_POWERBUTTON=m
 CONFIG_CBE_THERM=m
 CONFIG_PPC_PMI=m
 CONFIG_CBE_CPUFREQ_SPU_GOVERNOR=m
-# end of Cell Broadband Engine options
 
 CONFIG_PPC_VAS=y
 CONFIG_PPC_MICROWATT=y
@@ -423,9 +364,6 @@ CONFIG_PPC_INDIRECT_PIO=y
 CONFIG_PPC_INDIRECT_MMIO=y
 CONFIG_PPC_IO_WORKAROUNDS=y
 
-#
-# CPU Frequency scaling
-#
 CONFIG_CPU_FREQ=y
 CONFIG_CPU_FREQ_GOV_ATTR_SET=y
 CONFIG_CPU_FREQ_GOV_COMMON=y
@@ -437,39 +375,19 @@ CONFIG_CPU_FREQ_GOV_ONDEMAND=y
 CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
 CONFIG_CPUFREQ_DT_PLATDEV=y
 
-#
-# CPU frequency scaling drivers
-#
 CONFIG_CPU_FREQ_CBE=m
 CONFIG_CPU_FREQ_PMAC64=y
 CONFIG_PPC_PASEMI_CPUFREQ=y
 CONFIG_POWERNV_CPUFREQ=y
-# end of CPU Frequency scaling
 
-#
-# CPUIdle driver
-#
 
-#
-# CPU Idle
-#
 CONFIG_CPU_IDLE=y
 CONFIG_CPU_IDLE_GOV_MENU=y
 
-#
-# POWERPC CPU Idle Drivers
-#
 CONFIG_PSERIES_CPUIDLE=y
 CONFIG_POWERNV_CPUIDLE=y
-# end of POWERPC CPU Idle Drivers
-# end of CPU Idle
-# end of CPUIdle driver
 
-# end of Platform support
 
-#
-# Kernel options
-#
 CONFIG_HZ_100=y
 CONFIG_HZ=100
 CONFIG_MATH_EMULATION=y
@@ -518,15 +436,10 @@ CONFIG_PM=y
 CONFIG_PPC_MEM_KEYS=y
 CONFIG_PPC_SECURE_BOOT=y
 CONFIG_PPC_SECVAR_SYSFS=y
-# end of Kernel options
 
 CONFIG_ISA_DMA_API=y
 
-#
-# Bus options
-#
 CONFIG_GENERIC_ISA_DMA=y
-# end of Bus options
 
 CONFIG_NONSTATIC_KERNEL=y
 CONFIG_PAGE_OFFSET=0xc000000000000000
@@ -550,9 +463,6 @@ CONFIG_KVM_BOOK3S_HV_NESTED_PMU_WORKAROUND=y
 CONFIG_KVM_XICS=y
 CONFIG_KVM_XIVE=y
 
-#
-# General architecture-dependent options
-#
 CONFIG_HOTPLUG_SMT=y
 CONFIG_SMT_NUM_THREADS_DYNAMIC=y
 CONFIG_KPROBES=y
@@ -648,16 +558,11 @@ CONFIG_ARCH_HAS_CC_PLATFORM=y
 CONFIG_ARCH_WANT_LD_ORPHAN_WARN=y
 CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
 
-#
-# GCOV-based kernel profiling
-#
 CONFIG_ARCH_HAS_GCOV_PROFILE_ALL=y
-# end of GCOV-based kernel profiling
 
 CONFIG_HAVE_GCC_PLUGINS=y
 CONFIG_GCC_PLUGINS=y
 CONFIG_FUNCTION_ALIGNMENT=0
-# end of General architecture-dependent options
 
 CONFIG_RT_MUTEXES=y
 CONFIG_BASE_SMALL=0
@@ -669,14 +574,10 @@ CONFIG_BLK_DEV_BSGLIB=y
 CONFIG_BLK_DEV_WRITE_MOUNTED=y
 CONFIG_BLK_DEBUG_FS=y
 
-#
-# Partition Types
-#
 CONFIG_PARTITION_ADVANCED=y
 CONFIG_MAC_PARTITION=y
 CONFIG_MSDOS_PARTITION=y
 CONFIG_EFI_PARTITION=y
-# end of Partition Types
 
 CONFIG_BLK_MQ_PCI=y
 CONFIG_BLK_MQ_VIRTIO=y
@@ -684,12 +585,8 @@ CONFIG_BLK_PM=y
 CONFIG_BLOCK_HOLDER_DEPRECATED=y
 CONFIG_BLK_MQ_STACKING=y
 
-#
-# IO Schedulers
-#
 CONFIG_MQ_IOSCHED_DEADLINE=y
 CONFIG_MQ_IOSCHED_KYBER=y
-# end of IO Schedulers
 
 CONFIG_PREEMPT_NOTIFIERS=y
 CONFIG_PREEMPT_DYNAMIC=y
@@ -710,9 +607,6 @@ CONFIG_MMIOWB=y
 CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE=y
 CONFIG_FREEZER=y
 
-#
-# Executable file formats
-#
 CONFIG_BINFMT_ELF=y
 CONFIG_COMPAT_BINFMT_ELF=y
 CONFIG_ELFCORE=y
@@ -720,22 +614,14 @@ CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS=y
 CONFIG_BINFMT_SCRIPT=y
 CONFIG_BINFMT_MISC=m
 CONFIG_COREDUMP=y
-# end of Executable file formats
 
-#
-# Memory Management options
-#
 CONFIG_ZPOOL=y
 
-#
-# SLAB allocator options
-#
 CONFIG_SLUB=y
 CONFIG_SLAB_FREELIST_RANDOM=y
 CONFIG_SLAB_FREELIST_HARDENED=y
 CONFIG_SLAB_BUCKETS=y
 CONFIG_SLUB_CPU_PARTIAL=y
-# end of SLAB allocator options
 
 CONFIG_SHUFFLE_PAGE_ALLOCATOR=y
 CONFIG_SELECT_MEMORY_MODEL=y
@@ -802,11 +688,6 @@ CONFIG_ARCH_SUPPORTS_PER_VMA_LOCK=y
 CONFIG_PER_VMA_LOCK=y
 CONFIG_LOCK_MM_AND_FIND_VMA=y
 
-#
-# Data Access Monitoring
-#
-# end of Data Access Monitoring
-# end of Memory Management options
 
 CONFIG_AF_RXRPC=m
 CONFIG_AF_RXRPC_IPV6=y
@@ -816,9 +697,6 @@ CONFIG_WIRELESS_EXT=y
 CONFIG_WEXT_CORE=y
 CONFIG_WEXT_PROC=y
 
-#
-# CFG80211 needs to be enabled for MAC80211
-#
 CONFIG_MAC80211_STA_HASH_MAX_SIZE=0
 CONFIG_DST_CACHE=y
 CONFIG_GRO_CELLS=y
@@ -830,9 +708,6 @@ CONFIG_FAILOVER=m
 CONFIG_ETHTOOL_NETLINK=y
 CONFIG_NETDEV_ADDR_LIST_TEST=m
 
-#
-# Device Drivers
-#
 CONFIG_HID_TMFF_NEW=m
 CONFIG_HAVE_PCI=y
 CONFIG_FORCE_PCI=y
@@ -854,63 +729,29 @@ CONFIG_HOTPLUG_PCI=y
 CONFIG_HOTPLUG_PCI_RPA=m
 CONFIG_HOTPLUG_PCI_RPA_DLPAR=m
 
-#
-# PCI controller drivers
-#
 CONFIG_PCIE_XILINX_DMA_PL=y
 
-#
-# Cadence-based PCIe controllers
-#
-# end of Cadence-based PCIe controllers
 
-#
-# DesignWare-based PCIe controllers
-#
-# end of DesignWare-based PCIe controllers
 
-#
-# Mobiveil-based PCIe controllers
-#
-# end of Mobiveil-based PCIe controllers
-# end of PCI controller drivers
 
-#
-# PCI Endpoint
-#
-# end of PCI Endpoint
 
-#
-# PCI switch controller drivers
-#
-# end of PCI switch controller drivers
 
 CONFIG_PCCARD=y
 CONFIG_PCMCIA=y
 CONFIG_PCMCIA_LOAD_CIS=y
 CONFIG_CARDBUS=y
 
-#
-# PC-card bridges
-#
 CONFIG_ELECTRA_CF=y
 
-#
-# Generic Driver Options
-#
 CONFIG_AUXILIARY_BUS=y
 CONFIG_DEVTMPFS=y
 CONFIG_DEVTMPFS_MOUNT=y
 CONFIG_STANDALONE=y
 CONFIG_PREVENT_FIRMWARE_BUILD=y
 
-#
-# Firmware loader
-#
 CONFIG_FW_LOADER=y
 CONFIG_EXTRA_FIRMWARE=""
 CONFIG_FW_CACHE=y
-# end of Firmware loader
 
 CONFIG_ALLOW_DEV_COREDUMP=y
 CONFIG_GENERIC_CPU_AUTOPROBE=y
@@ -920,36 +761,15 @@ CONFIG_REGMAP_KUNIT=m
 CONFIG_REGMAP_I2C=y
 CONFIG_REGMAP_RAM=m
 CONFIG_DMA_SHARED_BUFFER=y
-# end of Generic Driver Options
 
-#
-# Bus devices
-#
-# end of Bus devices
 
-#
-# Cache Drivers
-#
-# end of Cache Drivers
 
 CONFIG_CONNECTOR=m
 
-#
-# Firmware Drivers
-#
 
-#
-# ARM System Control and Management Interface Protocol
-#
-# end of ARM System Control and Management Interface Protocol
 
 CONFIG_FW_CS_DSP_KUNIT_TEST=m
 
-#
-# Tegra firmware driver
-#
-# end of Tegra firmware driver
-# end of Firmware Drivers
 
 CONFIG_DTC=y
 CONFIG_OF=y
@@ -983,26 +803,15 @@ CONFIG_BLK_DEV_RAM_COUNT=16
 CONFIG_BLK_DEV_RAM_SIZE=65536
 CONFIG_VIRTIO_BLK=m
 
-#
-# Misc devices
-#
 CONFIG_RPMB=m
 CONFIG_TI_FPC202=m
 CONFIG_NTSYNC=m
 CONFIG_NSM=m
 CONFIG_MARVELL_CN10K_DPI=m
 
-#
-# EEPROM support
-#
 CONFIG_EEPROM_M24LR=m
-# end of EEPROM support
 
 
-#
-# Texas Instruments shared transport line discipline
-#
-# end of Texas Instruments shared transport line discipline
 
 CONFIG_CXL_BASE=y
 CONFIG_CXL=m
@@ -1010,11 +819,7 @@ CONFIG_GP_PCI1XXXX=m
 CONFIG_AMD_SBRMI_I2C=m
 CONFIG_AMD_SBRMI_HWMON=y
 CONFIG_KEBA_CP500=m
-# end of Misc devices
 
-#
-# SCSI device support
-#
 CONFIG_SCSI_MOD=y
 CONFIG_RAID_ATTRS=m
 CONFIG_SCSI_COMMON=y
@@ -1023,9 +828,6 @@ CONFIG_SCSI_DMA=y
 CONFIG_SCSI_NETLINK=y
 CONFIG_SCSI_PROC_FS=y
 
-#
-# SCSI support type (disk, tape, CD-ROM)
-#
 CONFIG_BLK_DEV_SD=y
 CONFIG_CHR_DEV_ST=m
 CONFIG_BLK_DEV_SR=y
@@ -1033,15 +835,11 @@ CONFIG_CHR_DEV_SG=y
 CONFIG_BLK_DEV_BSG=y
 CONFIG_SCSI_CONSTANTS=y
 
-#
-# SCSI Transports
-#
 CONFIG_SCSI_SPI_ATTRS=m
 CONFIG_SCSI_FC_ATTRS=y
 CONFIG_SCSI_ISCSI_ATTRS=m
 CONFIG_SCSI_SAS_ATTRS=m
 CONFIG_SCSI_SRP_ATTRS=y
-# end of SCSI Transports
 
 CONFIG_SCSI_LOWLEVEL=y
 CONFIG_ISCSI_BOOT_SYSFS=m
@@ -1073,7 +871,6 @@ CONFIG_SCSI_VIRTIO=m
 CONFIG_SCSI_DH=y
 CONFIG_SCSI_DH_RDAC=m
 CONFIG_SCSI_DH_ALUA=m
-# end of SCSI device support
 
 CONFIG_ATA=y
 CONFIG_ATA_NONSTANDARD=y
@@ -1083,38 +880,20 @@ CONFIG_ATA_VERBOSE_ERROR=y
 CONFIG_ATA_FORCE=y
 CONFIG_SATA_PMP=y
 
-#
-# Controllers with non-SFF native interface
-#
 CONFIG_SATA_AHCI=y
 CONFIG_SATA_MOBILE_LPM_POLICY=0
 CONFIG_SATA_SIL24=y
 CONFIG_ATA_SFF=y
 
-#
-# SFF controllers with custom DMA interface
-#
 CONFIG_ATA_BMDMA=y
 
-#
-# SATA SFF controllers with BMDMA
-#
 CONFIG_SATA_MV=y
 CONFIG_SATA_SVW=y
 
-#
-# PATA SFF controllers with BMDMA
-#
 CONFIG_PATA_AMD=y
 CONFIG_PATA_MACIO=y
 
-#
-# PIO-only SFF controllers
-#
 
-#
-# Generic fallback / legacy drivers
-#
 CONFIG_ATA_GENERIC=y
 CONFIG_MD=y
 CONFIG_BLK_DEV_MD=y
@@ -1159,10 +938,6 @@ CONFIG_DM_INIT=y
 CONFIG_DM_UEVENT=y
 CONFIG_DM_VDO=m
 
-#
-# IEEE 1394 (FireWire) support
-#
-# end of IEEE 1394 (FireWire) support
 
 CONFIG_MACINTOSH_DRIVERS=y
 CONFIG_ADB_PMU=y
@@ -1311,9 +1086,6 @@ CONFIG_PHYLIB=y
 CONFIG_SWPHY=y
 CONFIG_FIXED_PHY=y
 
-#
-# MII PHY device drivers
-#
 CONFIG_AIR_EN8811H_PHY=m
 CONFIG_BROADCOM_PHY=m
 CONFIG_BCM_NET_PHYLIB=m
@@ -1329,16 +1101,9 @@ CONFIG_OF_MDIO=y
 CONFIG_MDIO_DEVRES=y
 CONFIG_MDIO_MSCC_MIIM=m
 
-#
-# MDIO Multiplexers
-#
 
-#
-# PCS device drivers
 CONFIG_PCS_XPCS=m
 CONFIG_PCS_RZN1_MIIC=m
-#
-# end of PCS device drivers
 
 CONFIG_PPP=m
 CONFIG_PPP_BSDCOMP=m
@@ -1374,38 +1139,22 @@ CONFIG_WLAN_VENDOR_TI=y
 CONFIG_WLAN_VENDOR_ZYDAS=y
 CONFIG_WLAN_VENDOR_QUANTENNA=y
 
-#
-# Wireless WAN
-#
-# end of Wireless WAN
 
 CONFIG_NET_FAILOVER=m
 
-#
-# MOST (Media Oriented Systems Transport) support
-#
 CONFIG_MOST=m
 CONFIG_MOST_USB_HDM=m
 CONFIG_MOST_CDEV=m
 CONFIG_MOST_SND=m
 
-#
-# Input device support
-#
 CONFIG_INPUT=y
 CONFIG_INPUT_LEDS=m
 CONFIG_INPUT_FF_MEMLESS=y
 CONFIG_INPUT_VIVALDIFMAP=y
 
-#
-# Userland interfaces
-#
 CONFIG_INPUT_EVDEV=m
 CONFIG_INPUT_KUNIT_TEST=m
 
-#
-# Input Device Drivers
-#
 CONFIG_INPUT_KEYBOARD=y
 CONFIG_KEYBOARD_ADP5585=m
 CONFIG_KEYBOARD_ATKBD=y
@@ -1432,20 +1181,12 @@ CONFIG_INPUT_PCSPKR=m
 CONFIG_INPUT_MAX7360_ROTARY=m
 CONFIG_INPUT_IBM_PANEL=m
 
-#
-# Hardware I/O ports
-#
 CONFIG_SERIO=y
 CONFIG_ARCH_MIGHT_HAVE_PC_SERIO=y
 CONFIG_SERIO_I8042=y
 CONFIG_SERIO_LIBPS2=y
 CONFIG_SERIO_OLPC_APSP=m
-# end of Hardware I/O ports
-# end of Input device support
 
-#
-# Character devices
-#
 CONFIG_TTY=y
 CONFIG_VT=y
 CONFIG_CONSOLE_TRANSLATIONS=y
@@ -1459,9 +1200,6 @@ CONFIG_LEGACY_PTY_COUNT=256
 CONFIG_LEGACY_TIOCSTI=y
 CONFIG_LDISC_AUTOLOAD=y
 
-#
-# Serial drivers
-#
 CONFIG_SERIAL_EARLYCON=y
 CONFIG_SERIAL_8250=y
 CONFIG_SERIAL_8250_DEPRECATED_OPTIONS=y
@@ -1475,14 +1213,10 @@ CONFIG_SERIAL_8250_RUNTIME_UARTS=4
 CONFIG_SERIAL_8250_FSL=y
 CONFIG_SERIAL_8250_PERICOM=y
 
-#
-# Non-8250 serial port support
-#
 CONFIG_SERIAL_CORE=y
 CONFIG_SERIAL_CORE_CONSOLE=y
 CONFIG_SERIAL_ICOM=m
 CONFIG_SERIAL_JSM=m
-# end of Serial drivers
 
 CONFIG_HVC_DRIVER=y
 CONFIG_HVC_IRQ=y
@@ -1510,11 +1244,7 @@ CONFIG_GPIO_ADP5585=m
 CONFIG_SECURITY_IPE=y
 CONFIG_IPE_BOOT_POLICY=""
 CONFIG_IPE_POLICY_SIG_PLATFORM_KEYRING=y
-# end of Character devices
 
-#
-# I2C support
-#
 CONFIG_I2C=y
 CONFIG_I2C_BOARDINFO=y
 CONFIG_I2C_COMPAT=y
@@ -1522,65 +1252,32 @@ CONFIG_I2C_CHARDEV=y
 CONFIG_I2C_HELPER_AUTO=y
 CONFIG_I2C_ALGOBIT=y
 
-#
-# I2C Hardware Bus support
-#
 
-#
-# PC SMBus host controller drivers
-#
 CONFIG_I2C_AMD8111=y
 
-#
-# Mac SMBus host controller drivers
-#
 CONFIG_I2C_POWERMAC=y
 
-#
-# I2C system bus drivers (mostly embedded / system-on-chip)
-#
 CONFIG_I2C_PASEMI=y
 
-#
-# External I2C/SMBus adapter drivers
-#
 CONFIG_I2C_NCT6694=m
 CONFIG_I2C_LJCA=m
 
-#
-# Other I2C/SMBus bus drivers
-#
 CONFIG_I2C_OPAL=y
-# end of I2C Hardware Bus support
 
 CONFIG_I2C_SLAVE_EEPROM=m
-# end of I2C support
 
 CONFIG_PPS=y
 
-#
-# PPS clients support
-#
 
-#
-# PPS generators support
-#
 
-#
-# PTP clock support
-#
 CONFIG_PTP_1588_CLOCK=y
 CONFIG_PTP_1588_CLOCK_QORIQ=m
 CONFIG_DP83640_PHY=m
 CONFIG_PTP_1588_CLOCK_INES=m
 CONFIG_PTP_1588_CLOCK_OPTIONAL=y
 
-#
-# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
-#
 CONFIG_PTP_1588_CLOCK_FC3W=m
 CONFIG_PTP_NETC_V4_TIMER=m
-# end of PTP clock support
 
 CONFIG_GPIO_VIRTUSER=m
 CONFIG_GPIO_MAX7360=m
@@ -1603,9 +1300,6 @@ CONFIG_DWC_PCIE_PMU=m
 CONFIG_SSB_POSSIBLE=y
 CONFIG_BCMA_POSSIBLE=y
 
-#
-# Multifunction device drivers
-#
 CONFIG_MFD_ADP5585=m
 CONFIG_GPIO_CROS_EC=m
 CONFIG_MFD_88PM886_PMIC=y
@@ -1619,26 +1313,15 @@ CONFIG_MFD_BQ257XX=m
 CONFIG_MFD_ROHM_BD96801=m
 CONFIG_MFD_CS40L50_I2C=m
 CONFIG_MFD_CS40L50_SPI=m
-# end of Multifunction device drivers
 
 
-#
-# CEC support
-#
 CONFIG_USB_EXTRON_DA_HD_4K_PLUS_CEC=m
-# end of CEC support
 
 
-#
-# Graphics support
-#
 CONFIG_APERTURE_HELPERS=y
 CONFIG_VIDEO_CMDLINE=y
 CONFIG_VIDEO_NOMODESET=y
 
-#
-# Frame buffer Devices
-#
 CONFIG_FB=y
 CONFIG_FB_MACMODES=y
 CONFIG_FB_OF=y
@@ -1670,32 +1353,22 @@ CONFIG_FB_IOMEM_HELPERS=y
 CONFIG_FB_BACKLIGHT=y
 CONFIG_FB_MODE_HELPERS=y
 CONFIG_FB_TILEBLITTING=y
-# end of Frame buffer Devices
 
-#
-# Backlight & LCD device support
-#
 CONFIG_LCD_CLASS_DEVICE=y
 CONFIG_BACKLIGHT_CLASS_DEVICE=y
 CONFIG_BACKLIGHT_LM3509=m
 CONFIG_QCOM_PD_MAPPER=m
-# end of Backlight & LCD device support
 
-#
-# Console display driver support
-#
 CONFIG_DUMMY_CONSOLE=y
 CONFIG_DUMMY_CONSOLE_COLUMNS=80
 CONFIG_DUMMY_CONSOLE_ROWS=30
 CONFIG_FRAMEBUFFER_CONSOLE=y
-# end of Console display driver support
 
 CONFIG_LOGO=y
 CONFIG_FB_LOGO_EXTRA=y
 CONFIG_LOGO_LINUX_MONO=y
 CONFIG_LOGO_LINUX_VGA16=y
 CONFIG_LOGO_LINUX_CLUT224=y
-# end of Graphics support
 
 CONFIG_SOUND=m
 CONFIG_SOUND_OSS_CORE=y
@@ -1721,10 +1394,6 @@ CONFIG_SND_SEQ_MIDI_EVENT=m
 CONFIG_SND_DRIVERS=y
 CONFIG_SND_PCI=y
 
-#
-# HD-Audio
-#
-# end of HD-Audio
 
 CONFIG_SND_HDA_PREALLOC_SIZE=64
 CONFIG_SND_PPC=y
@@ -1751,90 +1420,41 @@ CONFIG_USB=y
 CONFIG_USB_PCI=y
 CONFIG_USB_PCI_AMD=y
 
-#
-# Miscellaneous USB options
-#
 CONFIG_USB_DEFAULT_PERSIST=y
 CONFIG_USB_AUTOSUSPEND_DELAY=2
 CONFIG_USB_DEFAULT_AUTHORIZATION_MODE=1
 CONFIG_USB_MON=m
 
-#
-# USB Host Controller Drivers
-#
 CONFIG_USB_EHCI_HCD=y
 CONFIG_USB_EHCI_TT_NEWSCHED=y
 CONFIG_USB_EHCI_PCI=y
 CONFIG_USB_OHCI_HCD=y
 CONFIG_USB_OHCI_HCD_PCI=y
 
-#
-# USB Device Class drivers
-#
 
-#
-# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
-#
 
-#
-# also be needed; see USB_STORAGE Help for more info
-#
 CONFIG_USB_STORAGE=m
 
-#
-# USB Imaging devices
-#
 
-#
-# USB dual-mode controller drivers
-#
 
-#
-# USB port drivers
-#
 
-#
-# USB Miscellaneous drivers
-#
 CONFIG_USB_APPLEDISPLAY=m
 CONFIG_USB_LJCA=m
 CONFIG_USB_ONBOARD_DEV=m
 
-#
-# USB Physical Layer drivers
-#
-# end of USB Physical Layer drivers
 
 CONFIG_NEW_LEDS=y
 CONFIG_LEDS_CLASS=m
 
-#
-# LED drivers
-#
 CONFIG_LEDS_LP8864=m
 CONFIG_LEDS_QNAP_MCU=m
 
-#
-# LED driver for blink(1) USB RGB LED is under Special HID drivers (HID_THINGM)
-#
 CONFIG_LEDS_BLINKM_MULTICOLOR=y
 CONFIG_LEDS_POWERNV=m
 
-#
-# Flash and Torch LED drivers
-#
 
-#
-# RGB LED drivers
-#
 
-#
-# LED Triggers
-#
 
-#
-# Simple LED drivers
-#
 CONFIG_INFINIBAND=m
 CONFIG_INFINIBAND_USER_MAD=m
 CONFIG_INFINIBAND_USER_ACCESS=m
@@ -1870,47 +1490,22 @@ CONFIG_RTC_SYSTOHC_DEVICE="rtc0"
 CONFIG_RTC_LIB_KUNIT_TEST=m
 CONFIG_RTC_NVMEM=y
 
-#
-# RTC interfaces
-#
 CONFIG_RTC_INTF_SYSFS=y
 CONFIG_RTC_INTF_PROC=y
 CONFIG_RTC_INTF_DEV=y
 
-#
-# I2C RTC drivers
-#
 CONFIG_RTC_DRV_DS1307=y
 CONFIG_RTC_DRV_NCT6694=m
 CONFIG_RTC_DRV_RX8111=m
 CONFIG_RTC_DRV_SD2405AL=m
 
-#
-# SPI RTC drivers
-#
 CONFIG_RTC_I2C_AND_SPI=y
 
-#
-# SPI and I2C RTC drivers
-#
 
-#
-# Platform RTC drivers
-#
 CONFIG_RTC_DRV_OPAL=y
 
-#
-# on-CPU RTC drivers
-#
 
-#
-# HID Sensor RTC drivers
-#
 
-#
-# DMABUF options
-#
-# end of DMABUF options
 
 CONFIG_UIO=m
 CONFIG_IRQ_BYPASS_MANAGER=y
@@ -1929,124 +1524,48 @@ CONFIG_VHOST_MENU=y
 CONFIG_VHOST_NET=m
 CONFIG_VHOST_ENABLE_FORK_OWNER_CONTROL=y
 
-#
-# Microsoft Hyper-V guest support
-#
-# end of Microsoft Hyper-V guest support
 
 
-#
-# Clock Source drivers
-#
 CONFIG_I8253_LOCK=y
 CONFIG_CLKBLD_I8253=y
-# end of Clock Source drivers
 
 CONFIG_IOMMU_API=y
 CONFIG_IOMMU_SUPPORT=y
 
-#
-# Generic IOMMU Pagetable Support
-#
-# end of Generic IOMMU Pagetable Support
 
 CONFIG_IOMMU_DEFAULT_DMA_STRICT=y
 CONFIG_OF_IOMMU=y
 CONFIG_SPAPR_TCE_IOMMU=y
 
-#
-# Remoteproc drivers
-#
-# end of Remoteproc drivers
-
-#
-# Rpmsg drivers
-#
-# end of Rpmsg drivers
 
 
-#
-# SOC (System On Chip) specific Drivers
-#
-
-#
-# Amlogic SoC drivers
-#
-# end of Amlogic SoC drivers
-
-#
-# Broadcom SoC drivers
-#
-# end of Broadcom SoC drivers
-
-#
-# NXP/Freescale QorIQ SoC drivers
-#
-# end of NXP/Freescale QorIQ SoC drivers
-
-#
-# fujitsu SoC drivers
-#
-# end of fujitsu SoC drivers
-
-#
-# i.MX SoC drivers
-#
-# end of i.MX SoC drivers
-
-#
-# Enable LiteX SoC Builder specific drivers
-#
-# end of Enable LiteX SoC Builder specific drivers
 
 
-#
-# Qualcomm SoC drivers
-#
-# end of Qualcomm SoC drivers
 
 
-#
-# Xilinx SoC drivers
-#
-# end of Xilinx SoC drivers
-# end of SOC (System On Chip) specific Drivers
 
 
-#
-# IRQ chip support
-#
+
+
+
+
+
+
+
 CONFIG_IRQCHIP=y
 CONFIG_BCM2712_MIP=m
 CONFIG_LAN966X_OIC=m
-# end of IRQ chip support
 
 
-#
-# PHY Subsystem
-#
 CONFIG_GENERIC_PHY=y
 
-#
-# PHY drivers for Broadcom platforms
-#
-# end of PHY drivers for Broadcom platforms
-
-# end of PHY Subsystem
 
 
-#
-# Performance monitor support
-#
-# end of Performance monitor support
+
 
 CONFIG_RAS=y
 CONFIG_RAS_CEC=y
 
-#
-# Android
-#
-# end of Android
 
 CONFIG_LIBNVDIMM=y
 CONFIG_BLK_DEV_PMEM=y
@@ -2061,23 +1580,11 @@ CONFIG_DAX=y
 CONFIG_NVMEM=y
 CONFIG_NVMEM_SYSFS=y
 
-#
-# Layout Types
-#
 CONFIG_NVMEM_LAYOUT_U_BOOT_ENV=m
-# end of Layout Types
 
 
-#
-# HW tracing support
-#
-# end of HW tracing support
 
-# end of Device Drivers
 
-#
-# Security options
-#
 CONFIG_KEYS=y
 CONFIG_BIG_KEYS=y
 CONFIG_PROC_MEM_ALWAYS_FORCE=y
@@ -2125,30 +1632,17 @@ CONFIG_IMA_KEXEC_EXTRA_MEMORY_KB=0
 CONFIG_DEFAULT_SECURITY_SELINUX=y
 CONFIG_LSM="landlock,lockdown,yama,loadpin,safesetid,selinux,smack,tomoyo,apparmor,bpf"
 
-#
-# Kernel hardening options
-#
 
-#
-# Memory initialization
-#
 CONFIG_CC_HAS_AUTO_VAR_INIT_PATTERN=y
 CONFIG_CC_HAS_AUTO_VAR_INIT_ZERO_BARE=y
 CONFIG_CC_HAS_AUTO_VAR_INIT_ZERO=y
 CONFIG_INIT_STACK_ALL_ZERO=y
 CONFIG_CC_HAS_ZERO_CALL_USED_REGS=y
-# end of Memory initialization
 
-#
-# Hardening of kernel data structures
-#
 CONFIG_LIST_HARDENED=y
 CONFIG_BUG_ON_DATA_CORRUPTION=y
-# end of Hardening of kernel data structures
 
 CONFIG_RANDSTRUCT_NONE=y
-# end of Kernel hardening options
-# end of Security options
 
 CONFIG_XOR_BLOCKS=m
 CONFIG_ASYNC_CORE=m
@@ -2159,9 +1653,6 @@ CONFIG_ASYNC_RAID6_RECOV=m
 CONFIG_CRYPTO=y
 CONFIG_CRYPTO_KRB5=m
 
-#
-# Crypto core or helper
-#
 CONFIG_CRYPTO_ALGAPI=y
 CONFIG_CRYPTO_ALGAPI2=y
 CONFIG_CRYPTO_AEAD=m
@@ -2186,17 +1677,9 @@ CONFIG_CRYPTO_NULL2=m
 CONFIG_CRYPTO_AUTHENC=m
 CONFIG_CRYPTO_KRB5ENC=m
 CONFIG_CRYPTO_TEST=m
-# end of Crypto core or helper
 
-#
-# Public-key cryptography
-#
 CONFIG_CRYPTO_RSA=y
-# end of Public-key cryptography
 
-#
-# Block ciphers
-#
 CONFIG_CRYPTO_AES=m
 CONFIG_CRYPTO_BLOWFISH=m
 CONFIG_CRYPTO_BLOWFISH_COMMON=m
@@ -2205,32 +1688,20 @@ CONFIG_CRYPTO_CAST6=m
 CONFIG_CRYPTO_SERPENT=m
 CONFIG_CRYPTO_TWOFISH=m
 CONFIG_CRYPTO_TWOFISH_COMMON=m
-# end of Block ciphers
 
-#
-# Length-preserving ciphers and modes
-#
 CONFIG_CRYPTO_CBC=m
 CONFIG_CRYPTO_CTR=m
 CONFIG_CRYPTO_ECB=m
 CONFIG_CRYPTO_PCBC=m
 CONFIG_CRYPTO_XTS=m
-# end of Length-preserving ciphers and modes
 
-#
-# AEAD (authenticated encryption with associated data) ciphers
-#
 CONFIG_CRYPTO_CCM=m
 CONFIG_CRYPTO_GCM=m
 CONFIG_CRYPTO_GENIV=m
 CONFIG_CRYPTO_SEQIV=m
 CONFIG_CRYPTO_ECHAINIV=m
 CONFIG_CRYPTO_ESSIV=m
-# end of AEAD (authenticated encryption with associated data) ciphers
 
-#
-# Hashes, digests, and MACs
-#
 CONFIG_CRYPTO_BLAKE2B=m
 CONFIG_CRYPTO_CMAC=m
 CONFIG_CRYPTO_GHASH=m
@@ -2243,48 +1714,27 @@ CONFIG_CRYPTO_SHA512=y
 CONFIG_CRYPTO_SHA3=m
 CONFIG_CRYPTO_WP512=m
 CONFIG_CRYPTO_XXHASH=m
-# end of Hashes, digests, and MACs
 
-#
-# CRCs (cyclic redundancy checks)
-#
 CONFIG_CRYPTO_CRC32C=y
 CONFIG_CRYPTO_CRCT10DIF=m
 CONFIG_CRYPTO_CRC64_ROCKSOFT=m
-# end of CRCs (cyclic redundancy checks)
 
-#
-# Compression
-#
 CONFIG_CRYPTO_DEFLATE=m
 CONFIG_CRYPTO_LZO=y
-# end of Compression
 
-#
-# Random number generation
-#
 CONFIG_CRYPTO_DRBG_MENU=m
 CONFIG_CRYPTO_DRBG_HMAC=y
 CONFIG_CRYPTO_DRBG=m
 CONFIG_CRYPTO_JITTERENTROPY=m
-# end of Random number generation
 
-#
-# Userspace interface
-#
-# end of Userspace interface
 
 CONFIG_CRYPTO_HASH_INFO=y
 
-#
-# Accelerated Cryptographic Algorithms for CPU (powerpc)
-#
 CONFIG_CRYPTO_CRC32C_VPMSUM=m
 CONFIG_CRYPTO_CRCT10DIF_VPMSUM=m
 CONFIG_CRYPTO_VPMSUM_TESTER=m
 CONFIG_CRYPTO_MD5_PPC=m
 CONFIG_CRYPTO_SHA1_PPC=m
-# end of Accelerated Cryptographic Algorithms for CPU (powerpc)
 
 CONFIG_CRYPTO_HW=y
 CONFIG_CRYPTO_DEV_NX=y
@@ -2300,9 +1750,6 @@ CONFIG_X509_CERTIFICATE_PARSER=y
 CONFIG_PKCS8_PRIVATE_KEY_PARSER=m
 CONFIG_PKCS7_MESSAGE_PARSER=y
 
-#
-# Certificates for signature checking
-#
 CONFIG_MODULE_SIG_KEY="certs/signing_key.pem"
 CONFIG_MODULE_SIG_KEY_TYPE_RSA=y
 CONFIG_SYSTEM_TRUSTED_KEYRING=y
@@ -2310,13 +1757,9 @@ CONFIG_SYSTEM_TRUSTED_KEYS=""
 CONFIG_SECONDARY_TRUSTED_KEYRING_SIGNED_BY_BUILTIN=y
 CONFIG_SYSTEM_BLACKLIST_KEYRING=y
 CONFIG_SYSTEM_BLACKLIST_HASH_LIST=""
-# end of Certificates for signature checking
 
 CONFIG_BINARY_PRINTF=y
 
-#
-# Library routines
-#
 CONFIG_RAID6_PQ=m
 CONFIG_RAID6_PQ_BENCHMARK=y
 CONFIG_LINEAR_RANGES=m
@@ -2328,9 +1771,6 @@ CONFIG_GENERIC_PCI_IOMAP=y
 CONFIG_GENERIC_IOMAP=y
 CONFIG_ARCH_USE_CMPXCHG_LOCKREF=y
 
-#
-# Crypto library routines
-#
 CONFIG_CRYPTO_LIB_POLY1305_KUNIT_TEST=m
 CONFIG_CRYPTO_LIB_SHA1_KUNIT_TEST=m
 CONFIG_CRYPTO_LIB_SHA256_KUNIT_TEST=m
@@ -2343,7 +1783,6 @@ CONFIG_CRYPTO_LIB_BLAKE2S_GENERIC=y
 CONFIG_CRYPTO_LIB_POLY1305_RSIZE=1
 CONFIG_CRYPTO_LIB_SHA1=y
 CONFIG_CRYPTO_LIB_SHA256=y
-# end of Crypto library routines
 
 CONFIG_CRC_CCITT=m
 CONFIG_CRC16=y
@@ -2432,17 +1871,10 @@ CONFIG_ARCH_STACKWALK=y
 CONFIG_STACKDEPOT=y
 CONFIG_REF_TRACKER=y
 CONFIG_SBITMAP=y
-# end of Library routines
 
 CONFIG_GENERIC_IOREMAP=y
 
-#
-# Kernel hacking
-#
 
-#
-# printk and dmesg options
-#
 CONFIG_PRINTK_TIME=y
 CONFIG_PRINTK_CALLER=y
 CONFIG_CONSOLE_LOGLEVEL_DEFAULT=7
@@ -2450,13 +1882,9 @@ CONFIG_CONSOLE_LOGLEVEL_QUIET=4
 CONFIG_MESSAGE_LOGLEVEL_DEFAULT=4
 CONFIG_SYMBOLIC_ERRNAME=y
 CONFIG_DEBUG_BUGVERBOSE=y
-# end of printk and dmesg options
 
 CONFIG_DEBUG_MISC=y
 
-#
-# Generic Kernel Debugging Instruments
-#
 CONFIG_MAGIC_SYSRQ=y
 CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE=0x1
 CONFIG_MAGIC_SYSRQ_SERIAL=y
@@ -2466,16 +1894,8 @@ CONFIG_HAVE_ARCH_KGDB=y
 CONFIG_ARCH_HAS_UBSAN_SANITIZE_ALL=y
 CONFIG_HAVE_ARCH_KCSAN=y
 CONFIG_HAVE_KCSAN_COMPILER=y
-# end of Generic Kernel Debugging Instruments
 
-#
-# Networking Debugging
-#
-# end of Networking Debugging
 
-#
-# Memory Debugging
-#
 CONFIG_PAGE_EXTENSION=y
 CONFIG_SLUB_DEBUG=y
 CONFIG_PAGE_OWNER=y
@@ -2500,12 +1920,8 @@ CONFIG_ARCH_DISABLE_KASAN_INLINE=y
 CONFIG_CC_HAS_KASAN_GENERIC=y
 CONFIG_CC_HAS_WORKING_NOSANITIZE_ADDRESS=y
 CONFIG_HAVE_ARCH_KFENCE=y
-# end of Memory Debugging
 
 
-#
-# Debug Oops, Lockups and Hangs
-#
 CONFIG_PANIC_ON_OOPS_VALUE=0
 CONFIG_LOCKUP_DETECTOR=y
 CONFIG_SOFTLOCKUP_DETECTOR=y
@@ -2514,41 +1930,24 @@ CONFIG_HARDLOCKUP_DETECTOR=y
 CONFIG_HARDLOCKUP_DETECTOR_ARCH=y
 CONFIG_DETECT_HUNG_TASK=y
 CONFIG_DEFAULT_HUNG_TASK_TIMEOUT=120
-# end of Debug Oops, Lockups and Hangs
 
-#
-# Scheduler Debugging
-#
 CONFIG_SCHED_DEBUG=y
 CONFIG_SCHED_INFO=y
 CONFIG_SCHEDSTATS=y
-# end of Scheduler Debugging
 
 
-#
-# Lock Debugging (spinlocks, mutexes, etc...)
-#
 CONFIG_LOCK_DEBUGGING_SUPPORT=y
 CONFIG_DEBUG_MUTEXES=y
 CONFIG_LOCK_TORTURE_TEST=m
-# end of Lock Debugging (spinlocks, mutexes, etc...)
 
 CONFIG_STACKTRACE=y
 
-#
-# Debug kernel data structures
-#
-# end of Debug kernel data structures
 
 
-#
-# RCU Debugging
-#
 CONFIG_TORTURE_TEST=m
 CONFIG_RCU_CPU_STALL_TIMEOUT=60
 CONFIG_RCU_EXP_CPU_STALL_TIMEOUT=0
 CONFIG_RCU_TRACE=y
-# end of RCU Debugging
 
 CONFIG_NOP_TRACER=y
 CONFIG_HAVE_FUNCTION_TRACER=y
@@ -2588,9 +1987,6 @@ CONFIG_ARCH_HAS_DEVMEM_IS_ALLOWED=y
 CONFIG_STRICT_DEVMEM=y
 CONFIG_IO_STRICT_DEVMEM=y
 
-#
-# powerpc Debugging
-#
 CONFIG_PPC_WERROR=y
 CONFIG_PRINT_STACK_DEPTH=64
 CONFIG_PPC_EMULATED_STATS=y
@@ -2603,11 +1999,7 @@ CONFIG_XMON_DISASSEMBLY=y
 CONFIG_XMON_DEFAULT_RO_MODE=y
 CONFIG_DEBUGGER=y
 CONFIG_BOOTX_TEXT=y
-# end of powerpc Debugging
 
-#
-# Kernel Testing and Coverage
-#
 CONFIG_KUNIT=m
 CONFIG_KUNIT_DEBUGFS=y
 CONFIG_KUNIT_TEST=m
@@ -2687,13 +2079,7 @@ CONFIG_TEST_MEMINIT=m
 CONFIG_TEST_FREE_PAGES=m
 CONFIG_ARCH_USE_MEMTEST=y
 CONFIG_MEMTEST=y
-# end of Kernel Testing and Coverage
 
-#
-# Rust hacking
-#
-# end of Rust hacking
-# end of Kernel hacking
 CONFIG_I2C_DESIGNWARE_CORE=m
 CONFIG_I2C_DESIGNWARE_SLAVE=y
 CONFIG_I2C_KEBA=m
