@@ -285,6 +285,9 @@ Source1011:	evdi-6.18.patch
 
 # Assorted fixes
 
+# https://github.com/Kicksecure/tirdad
+Patch100:	security_tirdad.patch
+
 # Bring back ashmem -- anbox and waydroid still need it
 Patch211:	revert-721412ed3d819e767cac2b06646bf03aa158aaec.patch
 # Modular binder and ashmem -- let's try to make anbox happy
