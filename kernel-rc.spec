@@ -180,6 +180,7 @@ Source30:	pps.fragment
 Source31:	cgroups.fragment
 Source32:	firmware.fragment
 Source33:	security.fragment
+Source34:	trace.fragment
 # Overrides (highest priority) for configs
 Source200:	znver1.overrides
 # config and systemd service file from fedora
