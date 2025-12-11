@@ -1336,7 +1336,7 @@ BuildKernel() {
 		CXX=clang++
 		HCC=clang
 		HCXX=clang++
-		BUILD_OPT_CFLAGS="-O3 %{pollyflags}"
+		BUILD_OPT_CFLAGS="-O3 -Wno-unknown-warning-option %{pollyflags}"
 		# Workaround for LLD 16 BTF generation problem
 		#BUILD_LD=ld.bfd
 		#BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
@@ -1362,8 +1362,8 @@ BuildKernel() {
 	IMAGE=bzImage
 %endif
 %endif
-# FIXME add KBUILD_CFLAGS="$BUILD_OPT_CFLAGS" once that actually works
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE modules $DTBS
+
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE modules $DTBS
 
 # Start installing stuff
 	install -d %{temp_boot}
