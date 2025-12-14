@@ -145,8 +145,8 @@ URL:		https://www.kernel.org
 %if 0%{?relc:1}
 Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-rc%{relc}.tar.gz
 %else
-Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
-Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
+Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}.tar.xz
+Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}.tar.sign
 %endif
 Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20251211.tar.gz
 ### This is for stripped SRC RPM
@@ -196,13 +196,6 @@ Source301:	cpupower.config
 # Patches to VirtualBox and other external modules are
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%autopatch -p1
-
-%if 0%{?sublevel:%{sublevel}}
-# The big upstream patch is added as source rather than patch
-# because "git apply" is needed to handle binary patches it
-# frequently contains (firmware updates etc.)
-Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -f1).x/patch-%{version}.xz
-%endif
 
 # FIXME git bisect shows upstream commit
 # 7a8b64d17e35810dc3176fe61208b45c15d25402 breaks
@@ -927,14 +920,9 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
 %if %{with evdi}
 tar xf %{S:1010}
-%endif
-%if 0%{?sublevel:%{sublevel}}
-[ -e .git ] || git init
-xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
-rm -rf .git
 %endif
 
 # uses --sort=name and other gnutar specific options
