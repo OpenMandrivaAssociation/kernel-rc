@@ -1,8 +1,8 @@
-diff -up linux-5.19/scripts/Makefile.8~ linux-5.19/scripts/Makefile
---- linux-5.19/scripts/Makefile.8~	2022-08-01 21:19:18.131885545 +0200
-+++ linux-5.19/scripts/Makefile	2022-08-01 21:22:58.109685458 +0200
-@@ -13,6 +13,7 @@ hostprogs-always-$(CONFIG_SYSTEM_EXTRA_C
- 
+diff -up linux-6.19-rc4/scripts/Makefile.9~ linux-6.19-rc4/scripts/Makefile
+--- linux-6.19-rc4/scripts/Makefile.9~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/scripts/Makefile	2026-01-10 15:37:32.024037877 +0100
+@@ -33,6 +33,7 @@ HOSTCFLAGS_tracepoint-update.o = -I$(src
+ HOSTCFLAGS_elf-parse.o = -I$(srctree)/tools/include
  HOSTCFLAGS_sorttable.o = -I$(srctree)/tools/include
  HOSTLDLIBS_sorttable = -lpthread
 +HOSTLDFLAGS_sorttable = --icf=none

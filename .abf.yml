@@ -1,7 +1,8 @@
 sources:
   extra-wifi-drivers-20200301.tar.zst: 3390c738c7d91250714ce0f88d26371e93bc40b8
   hid-tmff2-20251211.tar.gz: 099df79ab9bb48c8033ca83af881f5db191e0b8a
-  linux-6.18-rc7.tar.gz: 78d9bf1d81fa9fcf4f4754a792e91eae1cd6562d
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6
   tp_smapi-0.44.tgz: 16c2229068628ff58d363f61de0d094b2177ea5c
   v1.14.11.tar.gz: 55f841efd9bf14502a1697870e512ca935094a1e
+  linux-6.19-rc4.tar.gz: f2e4ee1cae639906955513bdbf6d7c931324ead7
+  v1.14.12.tar.gz: e78047fc19fae9417f49f33d5c1bb256de44a51b

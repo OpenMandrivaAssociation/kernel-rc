@@ -1,7 +1,7 @@
-diff -up linux-6.18-rc1/fs/file.c.27~ linux-6.18-rc1/fs/file.c
---- linux-6.18-rc1/fs/file.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/fs/file.c	2025-10-15 12:22:39.237658210 +0200
-@@ -858,6 +858,7 @@ struct file *file_close_fd(unsigned int
+diff -up linux-6.19-rc4/fs/file.c.29~ linux-6.19-rc4/fs/file.c
+--- linux-6.19-rc4/fs/file.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/fs/file.c	2026-01-10 15:38:25.855309909 +0100
+@@ -881,6 +881,7 @@ struct file *file_close_fd(unsigned int
  
  	return file;
  }
@@ -9,21 +9,21 @@ diff -up linux-6.18-rc1/fs/file.c.27~ linux-6.18-rc1/fs/file.c
  
  void do_close_on_exec(struct files_struct *files)
  {
-diff -up linux-6.18-rc1/ipc/msgutil.c.27~ linux-6.18-rc1/ipc/msgutil.c
---- linux-6.18-rc1/ipc/msgutil.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/ipc/msgutil.c	2025-10-15 12:26:00.475573475 +0200
-@@ -35,6 +35,7 @@ struct ipc_namespace init_ipc_ns = {
- #endif
- 	.ns.ns_type = ns_common_type(&init_ipc_ns),
+diff -up linux-6.19-rc4/ipc/msgutil.c.29~ linux-6.19-rc4/ipc/msgutil.c
+--- linux-6.19-rc4/ipc/msgutil.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/ipc/msgutil.c	2026-01-10 15:39:57.558810001 +0100
+@@ -30,6 +30,7 @@ struct ipc_namespace init_ipc_ns = {
+ 	.ns = NS_COMMON_INIT(init_ipc_ns),
+ 	.user_ns = &init_user_ns,
  };
 +EXPORT_SYMBOL_GPL(init_ipc_ns);
  
  struct msg_msgseg {
  	struct msg_msgseg *next;
-diff -up linux-6.18-rc1/ipc/namespace.c.27~ linux-6.18-rc1/ipc/namespace.c
---- linux-6.18-rc1/ipc/namespace.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/ipc/namespace.c	2025-10-15 12:26:25.107618604 +0200
-@@ -208,6 +208,7 @@ void put_ipc_ns(struct ipc_namespace *ns
+diff -up linux-6.19-rc4/ipc/namespace.c.29~ linux-6.19-rc4/ipc/namespace.c
+--- linux-6.19-rc4/ipc/namespace.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/ipc/namespace.c	2026-01-10 15:38:25.855823455 +0100
+@@ -210,6 +210,7 @@ void put_ipc_ns(struct ipc_namespace *ns
  			schedule_work(&free_ipc_work);
  	}
  }
@@ -31,10 +31,10 @@ diff -up linux-6.18-rc1/ipc/namespace.c.27~ linux-6.18-rc1/ipc/namespace.c
  
  static struct ns_common *ipcns_get(struct task_struct *task)
  {
-diff -up linux-6.18-rc1/kernel/sched/syscalls.c.27~ linux-6.18-rc1/kernel/sched/syscalls.c
---- linux-6.18-rc1/kernel/sched/syscalls.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/kernel/sched/syscalls.c	2025-10-15 12:22:39.238002430 +0200
-@@ -140,6 +140,7 @@ int can_nice(const struct task_struct *p
+diff -up linux-6.19-rc4/kernel/sched/syscalls.c.29~ linux-6.19-rc4/kernel/sched/syscalls.c
+--- linux-6.19-rc4/kernel/sched/syscalls.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/kernel/sched/syscalls.c	2026-01-10 15:38:25.856118649 +0100
+@@ -119,6 +119,7 @@ int can_nice(const struct task_struct *p
  {
  	return is_nice_reduction(p, nice) || capable(CAP_SYS_NICE);
  }
@@ -42,9 +42,9 @@ diff -up linux-6.18-rc1/kernel/sched/syscalls.c.27~ linux-6.18-rc1/kernel/sched/
  
  #ifdef __ARCH_WANT_SYS_NICE
  
-diff -up linux-6.18-rc1/kernel/sched/wait.c.27~ linux-6.18-rc1/kernel/sched/wait.c
---- linux-6.18-rc1/kernel/sched/wait.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/kernel/sched/wait.c	2025-10-15 12:22:39.238084195 +0200
+diff -up linux-6.19-rc4/kernel/sched/wait.c.29~ linux-6.19-rc4/kernel/sched/wait.c
+--- linux-6.19-rc4/kernel/sched/wait.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/kernel/sched/wait.c	2026-01-10 15:38:25.856350262 +0100
 @@ -231,6 +231,7 @@ void __wake_up_pollfree(struct wait_queu
  	/* POLLFREE must have cleared the queue. */
  	WARN_ON_ONCE(waitqueue_active(wq_head));
@@ -53,9 +53,9 @@ diff -up linux-6.18-rc1/kernel/sched/wait.c.27~ linux-6.18-rc1/kernel/sched/wait
  
  /*
   * Note: we use "set_current_state()" _after_ the wait-queue add,
-diff -up linux-6.18-rc1/kernel/signal.c.27~ linux-6.18-rc1/kernel/signal.c
---- linux-6.18-rc1/kernel/signal.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/kernel/signal.c	2025-10-15 12:22:39.238299431 +0200
+diff -up linux-6.19-rc4/kernel/signal.c.29~ linux-6.19-rc4/kernel/signal.c
+--- linux-6.19-rc4/kernel/signal.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/kernel/signal.c	2026-01-10 15:38:25.856884348 +0100
 @@ -1386,6 +1386,7 @@ struct sighand_struct *__lock_task_sigha
  
  	return sighand;
@@ -64,10 +64,10 @@ diff -up linux-6.18-rc1/kernel/signal.c.27~ linux-6.18-rc1/kernel/signal.c
  
  #ifdef CONFIG_LOCKDEP
  void lockdep_assert_task_sighand_held(struct task_struct *task)
-diff -up linux-6.18-rc1/kernel/task_work.c.27~ linux-6.18-rc1/kernel/task_work.c
---- linux-6.18-rc1/kernel/task_work.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/kernel/task_work.c	2025-10-15 12:22:39.238476596 +0200
-@@ -96,6 +96,7 @@ int task_work_add(struct task_struct *ta
+diff -up linux-6.19-rc4/kernel/task_work.c.29~ linux-6.19-rc4/kernel/task_work.c
+--- linux-6.19-rc4/kernel/task_work.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/kernel/task_work.c	2026-01-10 15:38:25.857379754 +0100
+@@ -102,6 +102,7 @@ int task_work_add(struct task_struct *ta
  
  	return 0;
  }
@@ -75,10 +75,10 @@ diff -up linux-6.18-rc1/kernel/task_work.c.27~ linux-6.18-rc1/kernel/task_work.c
  
  /**
   * task_work_cancel_match - cancel a pending work added by task_work_add()
-diff -up linux-6.18-rc1/mm/memory.c.27~ linux-6.18-rc1/mm/memory.c
---- linux-6.18-rc1/mm/memory.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/mm/memory.c	2025-10-15 12:22:39.238809174 +0200
-@@ -2169,6 +2169,7 @@ void zap_page_range_single(struct vm_are
+diff -up linux-6.19-rc4/mm/memory.c.29~ linux-6.19-rc4/mm/memory.c
+--- linux-6.19-rc4/mm/memory.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/mm/memory.c	2026-01-10 15:38:25.858090962 +0100
+@@ -2165,6 +2165,7 @@ void zap_page_range_single(struct vm_are
  	zap_page_range_single_batched(&tlb, vma, address, size, details);
  	tlb_finish_mmu(&tlb);
  }
@@ -86,10 +86,10 @@ diff -up linux-6.18-rc1/mm/memory.c.27~ linux-6.18-rc1/mm/memory.c
  
  /**
   * zap_vma_ptes - remove ptes mapping the vma
-diff -up linux-6.18-rc1/mm/shmem.c.27~ linux-6.18-rc1/mm/shmem.c
---- linux-6.18-rc1/mm/shmem.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/mm/shmem.c	2025-10-15 12:22:39.239177289 +0200
-@@ -5904,6 +5904,7 @@ int shmem_zero_setup(struct vm_area_stru
+diff -up linux-6.19-rc4/mm/shmem.c.29~ linux-6.19-rc4/mm/shmem.c
+--- linux-6.19-rc4/mm/shmem.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/mm/shmem.c	2026-01-10 15:38:25.859022363 +0100
+@@ -5943,6 +5943,7 @@ int shmem_zero_setup_desc(struct vm_area
  
  	return 0;
  }
@@ -97,10 +97,10 @@ diff -up linux-6.18-rc1/mm/shmem.c.27~ linux-6.18-rc1/mm/shmem.c
  
  /**
   * shmem_read_folio_gfp - read into page cache, using specified page allocation flags.
-diff -up linux-6.18-rc1/mm/vmalloc.c.27~ linux-6.18-rc1/mm/vmalloc.c
---- linux-6.18-rc1/mm/vmalloc.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/mm/vmalloc.c	2025-10-15 12:22:39.239455926 +0200
-@@ -3237,6 +3237,7 @@ struct vm_struct *get_vm_area(unsigned l
+diff -up linux-6.19-rc4/mm/vmalloc.c.29~ linux-6.19-rc4/mm/vmalloc.c
+--- linux-6.19-rc4/mm/vmalloc.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/mm/vmalloc.c	2026-01-10 15:38:25.859809903 +0100
+@@ -3263,6 +3263,7 @@ struct vm_struct *get_vm_area(unsigned l
  				  NUMA_NO_NODE, GFP_KERNEL,
  				  __builtin_return_address(0));
  }
@@ -108,10 +108,10 @@ diff -up linux-6.18-rc1/mm/vmalloc.c.27~ linux-6.18-rc1/mm/vmalloc.c
  
  struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
  				const void *caller)
-diff -up linux-6.18-rc1/security/security.c.27~ linux-6.18-rc1/security/security.c
---- linux-6.18-rc1/security/security.c.27~	2025-10-12 22:42:36.000000000 +0200
-+++ linux-6.18-rc1/security/security.c	2025-10-15 12:22:39.239738710 +0200
-@@ -1035,6 +1035,7 @@ int security_binder_set_context_mgr(cons
+diff -up linux-6.19-rc4/security/security.c.29~ linux-6.19-rc4/security/security.c
+--- linux-6.19-rc4/security/security.c.29~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/security/security.c	2026-01-10 15:38:25.860556942 +0100
+@@ -488,6 +488,7 @@ int security_binder_set_context_mgr(cons
  {
  	return call_int_hook(binder_set_context_mgr, mgr);
  }
@@ -119,7 +119,7 @@ diff -up linux-6.18-rc1/security/security.c.27~ linux-6.18-rc1/security/security
  
  /**
   * security_binder_transaction() - Check if a binder transaction is allowed
-@@ -1050,6 +1051,7 @@ int security_binder_transaction(const st
+@@ -503,6 +504,7 @@ int security_binder_transaction(const st
  {
  	return call_int_hook(binder_transaction, from, to);
  }
@@ -127,7 +127,7 @@ diff -up linux-6.18-rc1/security/security.c.27~ linux-6.18-rc1/security/security
  
  /**
   * security_binder_transfer_binder() - Check if a binder transfer is allowed
-@@ -1065,6 +1067,7 @@ int security_binder_transfer_binder(cons
+@@ -518,6 +520,7 @@ int security_binder_transfer_binder(cons
  {
  	return call_int_hook(binder_transfer_binder, from, to);
  }
@@ -135,7 +135,7 @@ diff -up linux-6.18-rc1/security/security.c.27~ linux-6.18-rc1/security/security
  
  /**
   * security_binder_transfer_file() - Check if a binder file xfer is allowed
-@@ -1081,6 +1084,7 @@ int security_binder_transfer_file(const
+@@ -534,6 +537,7 @@ int security_binder_transfer_file(const
  {
  	return call_int_hook(binder_transfer_file, from, to, file);
  }

@@ -1,8 +1,7 @@
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index 50f57d4dfd8f..b83697b75221 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-@@ -151,6 +151,7 @@ struct amdgpu_watchdog_timer
+diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h.33~ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+--- linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h.33~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-01-10 16:27:40.328473672 +0100
+@@ -164,6 +164,7 @@ struct amdgpu_watchdog_timer {
   */
  extern int amdgpu_modeset;
  extern unsigned int amdgpu_vram_limit;
@@ -10,11 +9,10 @@ index 50f57d4dfd8f..b83697b75221 100644
  extern int amdgpu_vis_vram_limit;
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index a7ad77ed09ca..2b7ed2e48e33 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -131,6 +131,7 @@ enum AMDGPU_DEBUG_MASK {
+diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+--- linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.33~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c	2026-01-10 16:27:40.329185210 +0100
+@@ -150,6 +150,7 @@ enum AMDGPU_DEBUG_MASK {
  };
  
  unsigned int amdgpu_vram_limit = UINT_MAX;
@@ -22,11 +20,10 @@ index a7ad77ed09ca..2b7ed2e48e33 100644
  int amdgpu_vis_vram_limit;
  int amdgpu_gart_size = -1; /* auto */
  int amdgpu_gtt_size = -1; /* auto */
-@@ -238,6 +239,15 @@ struct amdgpu_watchdog_timer amdgpu_watchdog_timer = {
- 	.period = 0x0, /* default to 0x0 (timeout disable) */
+@@ -272,6 +273,15 @@ struct amdgpu_watchdog_timer amdgpu_watc
  };
  
-+/**
+ /**
 + * DOC: ignore_min_pcap (int)
 + * Ignore the minimum power cap.
 + * Useful on graphics cards where the minimum power cap is very high.
@@ -35,14 +32,14 @@ index a7ad77ed09ca..2b7ed2e48e33 100644
 +MODULE_PARM_DESC(ignore_min_pcap, "Ignore the minimum power cap");
 +module_param_named(ignore_min_pcap, amdgpu_ignore_min_pcap, int, 0600);
 +
- /**
++/**
   * DOC: vramlimit (int)
   * Restrict the total amount of VRAM in MiB for testing.  The default is 0 (Use full VRAM).
-diff --git a/drivers/gpu/drm/amd/pm/amdgpu_pm.c b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
-index 20c53eefd680..6d00cae9caec 100644
---- a/drivers/gpu/drm/amd/pm/amdgpu_pm.c
-+++ b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
-@@ -2984,6 +2984,9 @@ static ssize_t amdgpu_hwmon_show_power_cap_min(struct device *dev,
+  */
+diff -up linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c
+--- linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c.33~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c	2026-01-10 16:27:40.329882898 +0100
+@@ -3342,6 +3342,9 @@ static ssize_t amdgpu_hwmon_show_power_c
  					 struct device_attribute *attr,
  					 char *buf)
  {
@@ -52,11 +49,10 @@ index 20c53eefd680..6d00cae9caec 100644
  	return amdgpu_hwmon_show_power_cap_generic(dev, attr, buf, PP_PWR_LIMIT_MIN);
  }
  
-diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-index 60dce148b2d7..72891811b2d5 100644
---- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-+++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
-@@ -2487,7 +2487,10 @@ int smu_get_power_limit(void *handle,
+diff -up linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
+--- linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c.33~	2026-01-04 23:41:55.000000000 +0100
++++ linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c	2026-01-10 16:43:43.218199014 +0100
+@@ -2974,7 +2974,10 @@ int smu_get_power_limit(void *handle,
  			*limit = smu->max_power_limit;
  			break;
  		case SMU_PPT_LIMIT_MIN:
@@ -68,19 +64,12 @@ index 60dce148b2d7..72891811b2d5 100644
  			break;
  		default:
  			return -EINVAL;
-@@ -2511,7 +2514,14 @@ static int smu_set_power_limit(void *handle, uint32_t limit)
- 		if (smu->ppt_funcs->set_power_limit)
- 			return smu->ppt_funcs->set_power_limit(smu, limit_type, limit);
- 
--	if ((limit > smu->max_power_limit) || (limit < smu->min_power_limit)) {
-+	if (amdgpu_ignore_min_pcap) {
-+		if ((limit > smu->max_power_limit)) {
-+			dev_err(smu->adev->dev,
-+				"New power limit (%d) is over the max allowed %d\n",
-+				limit, smu->max_power_limit);
-+			return -EINVAL;
-+		}
-+	} else if ((limit > smu->max_power_limit) || (limit < smu->min_power_limit)) {
- 		dev_err(smu->adev->dev,
- 			"New power limit (%d) is out of range [%d,%d]\n",
- 			limit, smu->min_power_limit, smu->max_power_limit);
+@@ -2995,7 +2998,7 @@ static int smu_set_power_limit(void *han
+ 	if (limit_type == SMU_DEFAULT_PPT_LIMIT) {
+ 		if (!limit)
+ 			limit = smu->current_power_limit;
+-		if ((limit > smu->max_power_limit) || (limit < smu->min_power_limit)) {
++		if ((limit > smu->max_power_limit) || (!amdgpu_ignore_min_pcap && (limit < smu->min_power_limit))) {
+ 			dev_err(smu->adev->dev,
+ 				"New power limit (%d) is out of range [%d,%d]\n",
+ 				limit, smu->min_power_limit, smu->max_power_limit);
