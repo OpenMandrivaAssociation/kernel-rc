@@ -1,0 +1,9 @@
+# This file is for temporary workarounds (e.g. disabling 3rd party
+# modules until they've been ported). Keeping them in a separate
+# file rather than modifying the original configs makes it easier to
+# keep track of what needs to be fixed and to restore the original
+# functionality.
+
+# Disable VirtualBox modules until they've been ported to 6.19 upstream
+# CONFIG_VBOXGUEST is not set
+# CONFIG_DRM_VBOXVIDEO is not set

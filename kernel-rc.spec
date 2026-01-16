@@ -63,7 +63,7 @@
 %define kernelversion 6
 %define patchlevel 19
 %define sublevel 0
-%define relc 4
+%define relc 5
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -94,7 +94,7 @@
 %bcond_with build_debug
 # FIXME re-enable once ported to 6.15
 %bcond_without evdi
-%bcond_with vbox_orig_mods
+%bcond_without vbox_orig_mods
 %bcond_without clr
 # FIXME re-enable by default when the patches have been adapted to 5.8
 %bcond_with saa716x
@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -183,6 +183,7 @@ Source33:	security.fragment
 Source34:	trace.fragment
 # Overrides (highest priority) for configs
 Source200:	znver1.overrides
+Source201:	temporary-workarounds.overrides
 # config and systemd service file from fedora
 Source300:	cpupower.service
 Source301:	cpupower.config
@@ -1053,17 +1054,17 @@ sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
 sed -i -e 's,\$(VBOXDRV_DIR),drivers/virt/vboxdrv/,g' drivers/virt/vboxdrv/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/virt/vboxdrv/Makefile*
-echo 'obj-m += vboxdrv/' >>drivers/virt/Makefile
+echo 'obj-\$(CONFIG_VBOXGUEST) += vboxdrv/' >>drivers/virt/Makefile
 # VirtualBox network adapter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetadp drivers/net/
 sed -i -e 's,\$(VBOXNETADP_DIR),drivers/net/vboxnetadp/,g' drivers/net/vboxnetadp/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetadp/Makefile*
-echo 'obj-m += vboxnetadp/' >>drivers/net/Makefile
+echo 'obj-\$(CONFIG_VBOXGUEST) += vboxnetadp/' >>drivers/net/Makefile
 # VirtualBox network filter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/net/
 sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
-echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
+echo 'obj-\$(CONFIG_VBOXGUEST) += vboxnetflt/' >>drivers/net/Makefile
 %if 0
 # VirtualBox PCI
 # https://forums.gentoo.org/viewtopic-t-1105508-start-0.html -- not very
@@ -1072,7 +1073,7 @@ echo 'obj-m += vboxnetflt/' >>drivers/net/Makefile
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
-echo 'obj-m += vboxpci/' >>drivers/pci/Makefile
+echo 'obj-\$(CONFIG_VBOXGUEST) += vboxpci/' >>drivers/pci/Makefile
 %endif
 patch -p1 -z .1007~ -b <%{S:1007}
 #patch -p1 -z .1009~ -b <%{S:1009}
@@ -1262,6 +1263,7 @@ CreateConfig() {
 	fi
 	[ -e ${config_dir}/${arch}.overrides ] && EXTRAFRAGMENTS="$EXTRAFRAGMENTS ${config_dir}/${arch}.overrides"
 	[ -e ${config_dir}/${cfgarch}.overrides ] && EXTRAFRAGMENTS="$EXTRAFRAGMENTS ${config_dir}/${cfgarch}.overrides"
+	[ -e ${config_dir}/temporary-workarounds.overrides ] && EXTRAFRAGMENTS="$EXTRAFRAGMENTS ${config_dir}/temporary-workarounds.overrides"
 	rm -f .config
 	scripts/kconfig/merge_config.sh -m ${BASECONFIG} %{_sourcedir}/generic-omv-defconfig %{_sourcedir}/*.fragment $EXTRAFRAGMENTS
 	printf '%s' ${type} | grep -q gcc || clangify .config

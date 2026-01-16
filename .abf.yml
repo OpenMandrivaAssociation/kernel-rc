@@ -3,6 +3,5 @@ sources:
   hid-tmff2-20251211.tar.gz: 099df79ab9bb48c8033ca83af881f5db191e0b8a
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6
   tp_smapi-0.44.tgz: 16c2229068628ff58d363f61de0d094b2177ea5c
-  v1.14.11.tar.gz: 55f841efd9bf14502a1697870e512ca935094a1e
-  linux-6.19-rc4.tar.gz: f2e4ee1cae639906955513bdbf6d7c931324ead7
   v1.14.12.tar.gz: e78047fc19fae9417f49f33d5c1bb256de44a51b
+  linux-6.19-rc5.tar.gz: 63f349c39c9361f4c1ece312d4b568d3548aace5
