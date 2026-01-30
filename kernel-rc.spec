@@ -130,7 +130,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
@@ -225,6 +225,11 @@ Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 Patch41:	tp_smapi-clang.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
+# Disabling rdseed breaks starting Qt applications
+# https://github.com/qt/qtbase/blob/dev/src/corelib/global/qsimd.cpp#L662-L672
+# Users don't appreaciate not being able to boot to a desktop
+# from which they can download the required BIOS update!
+Patch43:	dont-disable-rdseed.patch
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
 Patch45:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
