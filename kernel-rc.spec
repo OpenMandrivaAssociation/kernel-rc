@@ -44,10 +44,15 @@
     && RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
     [ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
 
-%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/')
+%define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/' -e 's/loongarch64/loongarch/')
 
 # (tpg) define here per arch which kernel flavours you would like to build
+# we don't currently have gcc on loongarch64, enable all kernels when we do
+%ifarch %{loongarch64}
+%define kernel_flavours desktop server
+%else
 %define kernel_flavours desktop server desktop-gcc server-gcc
+%endif
 # possible options are: desktop server desktop-gcc server-gcc
 
 # (tpg) package these kernel modules as subpackages
@@ -133,7 +138,7 @@ Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
 Release:	%{?relc:0.rc%{relc}.}2
 License:	GPLv2
 Group:		System/Kernel and hardware
-ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv}
+ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
 ExclusiveOS:	Linux
 URL:		https://www.kernel.org
 
@@ -1353,7 +1358,11 @@ BuildKernel() {
 	IMAGE=Image
 	DTBS="dtbs"
 %else
+%ifarch %{loongarch64}
+	IMAGE=vmlinux.efi
+%else
 	IMAGE=bzImage
+%endif
 %endif
 %endif
 
@@ -1855,13 +1864,17 @@ install -c -m 644 %{S:7005} %{temp_root}%{_udevrulesdir}/70-hypervfcopy.rules
 %endif
 
 mkdir -p %{temp_root}%{_bindir}
+%if ! %{cross_compiling}
 cp tools/bpf/resolve_btfids/resolve_btfids %{temp_root}%{_bindir}/
+%endif
 
 # We don't make to repeat the depend code at the install phase
 %if %{with build_source}
 PrepareKernel "" %{release}custom
 %make_build -s mrproper
+%if ! %{cross_compiling}
 cp %{temp_root}%{_bindir}/resolve_btfids tools/bpf/resolve_btfids/
+%endif
 %endif
 
 ###
@@ -1977,7 +1990,9 @@ cd -
 
 %if %{with build_source}
 %files -n %{name}-source
+%if ! %{cross_compiling}
 %{_bindir}/resolve_btfids
+%endif
 %dir %{_kerneldir}
 %dir %{_kerneldir}/arch
 %dir %{_kerneldir}/include
