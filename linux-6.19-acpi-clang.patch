@@ -1,0 +1,21 @@
+diff -up linux-6.19/drivers/acpi/acpica/utdebug.c.omv~ linux-6.19/drivers/acpi/acpica/utdebug.c
+--- linux-6.19/drivers/acpi/acpica/utdebug.c.omv~	2026-02-09 22:31:03.977397827 +0000
++++ linux-6.19/drivers/acpi/acpica/utdebug.c	2026-02-09 22:31:19.617460291 +0000
+@@ -38,7 +38,7 @@ void acpi_ut_init_stack_ptr_trace(void)
+ 	acpi_size current_sp;
+ 
+ #pragma GCC diagnostic push
+-#if defined(__GNUC__) && __GNUC__ >= 12
++#if defined(__GNUC__) && __GNUC__ >= 12 && !defined(__clang__)
+ #pragma GCC diagnostic ignored "-Wdangling-pointer="
+ #endif
+ 	acpi_gbl_entry_stack_pointer = &current_sp;
+@@ -63,7 +63,7 @@ void acpi_ut_track_stack_ptr(void)
+ 
+ 	if (&current_sp < acpi_gbl_lowest_stack_pointer) {
+ #pragma GCC diagnostic push
+-#if defined(__GNUC__) && __GNUC__ >= 12
++#if defined(__GNUC__) && __GNUC__ >= 12 && !defined(__clang__)
+ #pragma GCC diagnostic ignored "-Wdangling-pointer="
+ #endif
+ 		acpi_gbl_lowest_stack_pointer = &current_sp;

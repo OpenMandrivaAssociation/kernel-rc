@@ -3,7 +3,3 @@
 # file rather than modifying the original configs makes it easier to
 # keep track of what needs to be fixed and to restore the original
 # functionality.
-
-# Disable VirtualBox modules until they've been ported to 6.19 upstream
-# CONFIG_VBOXGUEST is not set
-# CONFIG_DRM_VBOXVIDEO is not set

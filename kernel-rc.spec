@@ -65,10 +65,10 @@
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
-%define kernelversion 6
-%define patchlevel 19
+%define kernelversion 7
+%define patchlevel 0
 %define sublevel 0
-%define relc 8
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -150,8 +150,8 @@ URL:		https://www.kernel.org
 %if 0%{?relc:1}
 Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-rc%{relc}.tar.gz
 %else
-Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}.tar.xz
-Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}.tar.sign
+Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
+Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
 %endif
 Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20251211.tar.gz
 ### This is for stripped SRC RPM
@@ -203,6 +203,13 @@ Source301:	cpupower.config
 # pulled in as Source: rather than Patch: because it's arch specific
 # and can't be applied by %%autopatch -p1
 
+%if 0%{?sublevel:%{sublevel}}
+# The big upstream patch is added as source rather than patch
+# because "git apply" is needed to handle binary patches it
+# frequently contains (firmware updates etc.)
+Source1000:	https://cdn.kernel.org/pub/linux/kernel/v%(echo %{version}|cut -d. -f1).x/patch-%{version}.xz
+%endif
+
 # FIXME git bisect shows upstream commit
 # 7a8b64d17e35810dc3176fe61208b45c15d25402 breaks
 # booting SynQuacer from USB flash drives on old firmware
@@ -245,6 +252,7 @@ Patch51:	linux-5.5-corsair-strafe-quirks.patch
 Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
 Patch55:	linux-5.16-clang-no-attribute-symver.patch
 Patch60:	linux-6.18-clang.patch
+Patch61:	linux-6.19-acpi-clang.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -276,14 +284,17 @@ Patch209:	extra-wifi-drivers-port-to-5.6.patch
 # VirtualBox patches -- added as Source: rather than Patch:
 # because they need to be applied after stuff from the
 # virtualbox-kernel-module-sources package is copied around
+# Based on https://github.com/rpmfusion/VirtualBox-kmod/raw/refs/heads/master/kernel-6.19.patch
+Source1005:	kernel-6.19.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vbox-modules-7.1.6-compile.patch
 Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.12
+%define evdi_version 1.14.14
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
+Source1011:	evdi-non-x86.patch
 
 # Assorted fixes
 
@@ -425,6 +436,7 @@ Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c2
 #Patch1016:	https://github.com/torvalds/linux/commit/05a7eca409973abbc3d97a726b88b07d256859ae.patch
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
+Source2000:	7.0-rc1-compile.patch
 
 BuildRequires:	make
 BuildRequires:	zstd
@@ -514,9 +526,9 @@ BuildRequires:	uboot-mkimage
 # so end users don't have to install compilers (and worse,
 # get compiler error messages on failures)
 %ifarch %{x86_64}
-BuildRequires:	virtualbox-kernel-module-sources >= 7.1.6
+BuildRequires:	virtualbox-kernel-module-sources >= 7.2.6
 %if %{with vbox_orig_mods}
-BuildRequires:	virtualbox-guest-kernel-module-sources >= 7.1.6
+BuildRequires:	virtualbox-guest-kernel-module-sources >= 7.2.6
 %endif
 %endif
 
@@ -928,9 +940,14 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{!?relc:%{?sublevel:.%{sublevel}}}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
 %if %{with evdi}
 tar xf %{S:1010}
+%endif
+%if 0%{?sublevel:%{sublevel}}
+[ -e .git ] || git init
+xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
+rm -rf .git
 %endif
 
 # uses --sort=name and other gnutar specific options
@@ -984,6 +1001,7 @@ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
+patch -p1 -b -z .1011~ <%{S:1011}
 %endif
 
 # Merge TMFF2
@@ -1064,17 +1082,17 @@ sed -i -e 's|800, 600|1024, 768|g' drivers/gpu/drm/vboxvideo/vbox_mode.c
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxdrv drivers/virt/
 sed -i -e 's,\$(VBOXDRV_DIR),drivers/virt/vboxdrv/,g' drivers/virt/vboxdrv/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/virt/vboxdrv/Makefile*
-echo 'obj-\$(CONFIG_VBOXGUEST) += vboxdrv/' >>drivers/virt/Makefile
+echo 'obj-$(CONFIG_VBOXGUEST) += vboxdrv/' >>drivers/virt/Makefile
 # VirtualBox network adapter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetadp drivers/net/
 sed -i -e 's,\$(VBOXNETADP_DIR),drivers/net/vboxnetadp/,g' drivers/net/vboxnetadp/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetadp/Makefile*
-echo 'obj-\$(CONFIG_VBOXGUEST) += vboxnetadp/' >>drivers/net/Makefile
+echo 'obj-$(CONFIG_VBOXGUEST) += vboxnetadp/' >>drivers/net/Makefile
 # VirtualBox network filter
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxnetflt drivers/net/
 sed -i -e 's,\$(VBOXNETFLT_DIR),drivers/net/vboxnetflt/,g' drivers/net/vboxnetflt/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/net/vboxnetflt/Makefile*
-echo 'obj-\$(CONFIG_VBOXGUEST) += vboxnetflt/' >>drivers/net/Makefile
+echo 'obj-$(CONFIG_VBOXGUEST) += vboxnetflt/' >>drivers/net/Makefile
 %if 0
 # VirtualBox PCI
 # https://forums.gentoo.org/viewtopic-t-1105508-start-0.html -- not very
@@ -1083,8 +1101,9 @@ echo 'obj-\$(CONFIG_VBOXGUEST) += vboxnetflt/' >>drivers/net/Makefile
 cp -a $(ls --sort=time -1d /usr/src/virtualbox-*|head -n1)/vboxpci drivers/pci/
 sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
-echo 'obj-\$(CONFIG_VBOXGUEST) += vboxpci/' >>drivers/pci/Makefile
+echo 'obj-$(CONFIG_VBOXGUEST) += vboxpci/' >>drivers/pci/Makefile
 %endif
+patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1007~ -b <%{S:1007}
 #patch -p1 -z .1009~ -b <%{S:1009}
 %endif
@@ -1121,6 +1140,8 @@ chmod 755 tools/objtool/sync-check.sh
 # Workaround for https://github.com/llvm/llvm-project/issues/82431
 echo 'CFLAGS_ip6_input.o += -march=x86-64-v3' >>net/ipv6/Makefile
 %endif
+
+patch -p1 -z .2000~ -b <%{S:2000}
 
 %build
 %set_build_flags
