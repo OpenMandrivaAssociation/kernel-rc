@@ -1,0 +1,14 @@
+diff -up linux-7.0-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~ linux-7.0-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c
+--- linux-7.0-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c.omv~	2026-02-24 23:34:04.935691652 +0100
++++ linux-7.0-rc1/drivers/gpu/drm/vboxvideo/vbox_fb.c	2026-02-24 23:34:11.869764207 +0100
+@@ -211,8 +211,8 @@ static struct fb_ops vboxfb_ops = {
+ 	.fb_pan_display = drm_fb_helper_pan_display,
+ 	.fb_blank = drm_fb_helper_blank,
+ 	.fb_setcmap = drm_fb_helper_setcmap,
+-	.fb_debug_enter = drm_fb_helper_debug_enter,
+-	.fb_debug_leave = drm_fb_helper_debug_leave,
++//	.fb_debug_enter = drm_fb_helper_debug_enter,
++//	.fb_debug_leave = drm_fb_helper_debug_leave,
+ };
+ 
+ static int vboxfb_create_object(struct vbox_fbdev *fbdev,

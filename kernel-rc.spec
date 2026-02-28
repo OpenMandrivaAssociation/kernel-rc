@@ -437,6 +437,7 @@ Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c2
 # 406e4c9... has landed
 Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 Source2000:	7.0-rc1-compile.patch
+Source2001:	7.0-rc1-compile-x86.patch
 
 BuildRequires:	make
 BuildRequires:	zstd
@@ -1142,6 +1143,9 @@ echo 'CFLAGS_ip6_input.o += -march=x86-64-v3' >>net/ipv6/Makefile
 %endif
 
 patch -p1 -z .2000~ -b <%{S:2000}
+%ifarch %{ix86} %{x86_64}
+patch -p1 -z .2001~ -b <%{S:2001}
+%endif
 
 %build
 %set_build_flags
