@@ -68,7 +68,7 @@
 %define kernelversion 7
 %define patchlevel 0
 %define sublevel 0
-%define relc 5
+%define relc 6
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -295,6 +295,12 @@ Source1009:	vbox-modules-6.15.patch
 %define evdi_version 1.14.14
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 Source1011:	evdi-non-x86.patch
+
+# Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
+# https://github.com/Numerio/Nexus
+# https://v-os.dev/
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260324.tar.gz
+Patch1021:	nexus-compile.patch
 
 # Assorted fixes
 
@@ -941,7 +947,7 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004 -a 1020
 %if %{with evdi}
 tar xf %{S:1010}
 %endif
@@ -950,6 +956,15 @@ tar xf %{S:1010}
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
 %endif
+
+mv Nexus-main/nexus drivers/nexus
+rm drivers/nexus/CMakeLists.txt
+cat >>drivers/Makefile <<'EOF'
+obj-$(CONFIG_NEXUS) += nexus/
+EOF
+sed -i -e '/endmenu/i config NEXUS\n	tristate "BeOS-like IPC etc."\n	help\n	  BeOS like IPC, named semaphores, SHM, thread messaging and FS event notifications' drivers/Kconfig
+sed -i -e 's,obj-m,obj-$(CONFIG_NEXUS),g' drivers/nexus/Makefile
+rm -rf Nexus-main
 
 # uses --sort=name and other gnutar specific options
 sed -i -e '/\${TAR}/iTAR=gtar' kernel/gen_kheaders.sh

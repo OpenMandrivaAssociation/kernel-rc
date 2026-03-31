@@ -1,0 +1,104 @@
+diff -up linux-7.0-rc6/drivers/nexus/nexus.c.omv~ linux-7.0-rc6/drivers/nexus/nexus.c
+--- linux-7.0-rc6/drivers/nexus/nexus.c.omv~	2026-03-31 21:23:22.724180652 +0200
++++ linux-7.0-rc6/drivers/nexus/nexus.c	2026-03-31 21:34:15.487719742 +0200
+@@ -31,12 +31,17 @@ static HLIST_HEAD(nexus_teams);
+ 
+ static struct nexus_port* nexus_ports[MAX_PORTS];
+ 
++struct nexus_thread* find_thread(struct nexus_team *team, const char *name);
++struct nexus_thread* find_thread_by_id(struct nexus_team *team, int32_t pid);
++long nexus_port_find(unsigned long arg);
++status_t nexus_write_port(uint32_t id, int32_t code, const void *buffer, size_t buffer_size);
++
+ // TODO make non-exported functions static
+ // TODO use IDRs
+ // TODO fine-grained locking through spinlocks
+ // TODO per-team lock
+ 
+-struct nexus_team* nexus_team_init()
++struct nexus_team* nexus_team_init(void)
+ {
+ 	struct nexus_team* team = kzalloc(sizeof(struct nexus_team), GFP_KERNEL);
+ 	if (team != NULL) {
+@@ -221,7 +226,8 @@ long nexus_thread_op(struct nexus_thread
+ 		if (thread->id != current->pid)
+ 			return B_BAD_THREAD_ID;
+ 
+-		down_interruptible(&thread->sem_read);
++		if (down_interruptible(&thread->sem_read))
++			return B_ERROR;
+ 
+ 		mutex_unlock(&nexus_main_lock);
+ 		wait_event_interruptible(thread->buffer_read, thread->buffer_ready != 0);
+@@ -277,7 +283,8 @@ long nexus_thread_op(struct nexus_thread
+ 		kref_get(&dest_thread->ref_count);
+ 		mutex_unlock(&nexus_main_lock);
+ 		// if -1 release the process then -ERESTARTSYS
+-		down_interruptible(&dest_thread->sem_write);
++		if(down_interruptible(&dest_thread->sem_write))
++			return B_ERROR;
+ 		mutex_lock(&nexus_main_lock);
+ 		kref_put(&dest_thread->ref_count, nexus_thread_destroy);
+ 
+@@ -542,7 +549,7 @@ long nexus_port_init(struct nexus_team*
+ 	return 0;
+ }
+ 
+-long nexus_port_close(struct nexus_port* port)
++static long nexus_port_close(struct nexus_port* port)
+ {
+ 	port->is_open = false;
+ 
+@@ -578,7 +585,7 @@ void nexus_port_destroy(struct kref* ref
+ 	kfree(port);
+ }
+ 
+-long nexus_set_port_owner(struct nexus_port* port, pid_t target_team)
++static long nexus_set_port_owner(struct nexus_port* port, pid_t target_team)
+ {
+ 	//printk(KERN_INFO "Set port owner %d\n", port->id);
+ 
+@@ -617,7 +624,7 @@ long nexus_set_port_owner(struct nexus_p
+ 	return B_ERROR;
+ }
+ 
+-long nexus_port_read(struct nexus_port* port, int32_t* code, void* buffer,
++static long nexus_port_read(struct nexus_port* port, int32_t* code, void* buffer,
+ 	size_t* size, uint32_t flags, int64_t timeout)
+ {
+ 	struct nexus_buffer* buf = NULL;
+@@ -705,7 +712,7 @@ long nexus_port_read(struct nexus_port*
+ 	return B_OK;
+ }
+ 
+-long nexus_port_write(struct nexus_port* port, int32_t* msg_code,
++static long nexus_port_write(struct nexus_port* port, int32_t* msg_code,
+ 	const void* buffer, size_t size, uint32_t flags, int64_t timeout)
+ {
+ 	struct nexus_buffer* buf = 0;
+@@ -822,7 +829,7 @@ status_t nexus_write_port(uint32_t id, i
+ 
+ EXPORT_SYMBOL(nexus_write_port);
+ 
+-long nexus_port_info(struct nexus_port* port, struct nexus_port_info* info)
++static long nexus_port_info(struct nexus_port* port, struct nexus_port_info* info)
+ {
+ 	struct nexus_port_info message_info;
+ 
+@@ -851,7 +858,7 @@ long nexus_port_info(struct nexus_port*
+ }
+ 
+ 
+-long nexus_port_message_info(struct nexus_port* port,
++static long nexus_port_message_info(struct nexus_port* port,
+ 	struct nexus_port_message_info* info, size_t size, uint32_t flags,
+ 		int64_t timeout)
+ {
+@@ -1292,7 +1299,6 @@ static int nexus_open(struct inode *nodp
+ 
+ static int nexus_release(struct inode *nodp, struct file *filp)
+ {
+-	struct nexus_team *team = filp->private_data;
+ 	mutex_lock(&nexus_main_lock);
+ 	nexus_team_destroy((struct nexus_team*)filp->private_data);
+ 	mutex_unlock(&nexus_main_lock);
