@@ -1,24 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Auke Kok <auke-jan.h.kok@intel.com>
-Date: Thu, 2 Aug 2018 12:03:22 -0700
-Subject: [PATCH] migrate some systemd defaults to the kernel defaults.
-
-These settings are needed to prevent networking issues when
-the networking modules come up by default without explicit
-settings, which breaks some cases.
-
-We don't want the modprobe settings to be read at boot time
-if we're not going to do anything else ever.
----
- drivers/net/dummy.c             | 2 +-
- include/uapi/linux/if_bonding.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/dummy.c b/drivers/net/dummy.c
-index bab3a9bb5e6f..dcd8a33c4a33 100644
---- a/drivers/net/dummy.c
-+++ b/drivers/net/dummy.c
-@@ -43,7 +43,7 @@
+diff -up linux-7.1-rc3/drivers/net/dummy.c.60~ linux-7.1-rc3/drivers/net/dummy.c
+--- linux-7.1-rc3/drivers/net/dummy.c.60~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/drivers/net/dummy.c	2026-05-17 22:28:08.471328600 +0200
+@@ -44,7 +44,7 @@
  
  #define DRV_NAME	"dummy"
  
@@ -26,11 +9,10 @@ index bab3a9bb5e6f..dcd8a33c4a33 100644
 +static int numdummies = 0;
  
  /* fake multicast ability */
- static void set_multicast_list(struct net_device *dev)
-diff --git a/include/uapi/linux/if_bonding.h b/include/uapi/linux/if_bonding.h
-index 45f3750aa861..317f8326ddd7 100644
---- a/include/uapi/linux/if_bonding.h
-+++ b/include/uapi/linux/if_bonding.h
+ static void set_multicast_list(struct net_device *dev,
+diff -up linux-7.1-rc3/include/uapi/linux/if_bonding.h.60~ linux-7.1-rc3/include/uapi/linux/if_bonding.h
+--- linux-7.1-rc3/include/uapi/linux/if_bonding.h.60~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/include/uapi/linux/if_bonding.h	2026-05-17 22:20:48.621598903 +0200
 @@ -82,7 +82,7 @@
  #define BOND_STATE_ACTIVE       0   /* link is active */
  #define BOND_STATE_BACKUP       1   /* link is backup */
@@ -40,6 +22,3 @@ index 45f3750aa861..317f8326ddd7 100644
  
  #define BOND_DEFAULT_TX_QUEUES 16   /* Default number of tx queues per device */
  
--- 
-https://clearlinux.org
-

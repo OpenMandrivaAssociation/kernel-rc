@@ -233,3 +233,38 @@ diff -Nurp ./VirtualBox-kmod-7.2.6-build.orig/VirtualBox-kmod-7.2.6/VirtualBox-k
  
  
  #endif /* !IPRT_INCLUDED_SRC_r0drv_linux_the_linux_kernel_h */
+diff -up linux-7.1-rc3/drivers/virt/vboxdrv/linux/SUPDrv-linux.c.omv~ linux-7.1-rc3/drivers/virt/vboxdrv/linux/SUPDrv-linux.c
+--- linux-7.1-rc3/drivers/virt/vboxdrv/linux/SUPDrv-linux.c.omv~	2026-05-18 02:20:29.612522494 +0200
++++ linux-7.1-rc3/drivers/virt/vboxdrv/linux/SUPDrv-linux.c	2026-05-18 03:07:39.678335097 +0200
+@@ -210,9 +210,9 @@ static bool
+ /** Whether we need to put the corresponding KVM function pointers. */
+ static bool                                     g_fPutKvmEnableVirtualization, g_fPutKvmDisableVirtualization;
+ /** Function pointer to kvm_enable_virtualization(). */
+-static __typeof__(kvm_enable_virtualization)   *g_pfnKvmEnableVirtualization;
++static __typeof__(kvm_arch_enable_virtualization)   *g_pfnKvmEnableVirtualization;
+ /** Function pointer to kvm_disable_virtualization(). */
+-static __typeof__(kvm_disable_virtualization)  *g_pfnKvmDisableVirtualization;
++static __typeof__(kvm_arch_disable_virtualization)  *g_pfnKvmDisableVirtualization;
+ /** Pointer to the KVM hardware specific module. */
+ static struct module                           *g_pKvmHwvirtModule;
+ #endif
+@@ -1959,15 +1959,10 @@ int VBOXCALL supdrvOSEnableHwvirt(bool f
+     if (fEnable)
+     {
+         /* kvm_enable_virtualization() is guarded by kvm_usage_count reference counter inside a mutex. */
+-        int const rc = g_pfnKvmEnableVirtualization();
+-        if (!rc)
+-        {
+-            g_fEnabledHwvirtUsingKvm = true;
+-            printk(KERN_INFO "vboxdrv: Enabled hardware-virtualization using KVM\n");
+-            return VINF_SUCCESS;
+-        }
+-        printk(KERN_ERR "vboxdrv: Failed to enable hardware-virtualization using KVM. rc=%d\n", rc);
+-        return VERR_NOT_AVAILABLE;
++        g_pfnKvmEnableVirtualization();
++        g_fEnabledHwvirtUsingKvm = true;
++        printk(KERN_INFO "vboxdrv: Enabled hardware-virtualization using KVM\n");
++        return VINF_SUCCESS;
+     }
+ 
+     if (g_fEnabledHwvirtUsingKvm)

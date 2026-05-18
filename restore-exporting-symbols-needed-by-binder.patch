@@ -1,26 +1,7 @@
-diff -up linux-6.14-rc2/mm/list_lru.c.omv~ linux-6.14-rc2/mm/list_lru.c
---- linux-6.14-rc2/mm/list_lru.c.omv~	2025-02-16 13:08:32.776957448 +0000
-+++ linux-6.14-rc2/mm/list_lru.c	2025-02-16 16:39:49.877465547 +0000
-@@ -175,6 +175,7 @@ bool list_lru_add(struct list_lru *lru,
- 	unlock_list_lru(l, false);
- 	return false;
- }
-+EXPORT_SYMBOL_GPL(list_lru_add); // still used by binder
- 
- bool list_lru_add_obj(struct list_lru *lru, struct list_head *item)
- {
-@@ -212,6 +213,7 @@ bool list_lru_del(struct list_lru *lru,
- 	unlock_list_lru(l, false);
- 	return false;
- }
-+EXPORT_SYMBOL_GPL(list_lru_del); // Still used by binder
- 
- bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
- {
-diff -up linux-6.18-rc3/drivers/android/binder.c.omv~ linux-6.18-rc3/drivers/android/binder.c
---- linux-6.18-rc3/drivers/android/binder.c.omv~	2025-10-31 20:19:02.850251504 +0000
-+++ linux-6.18-rc3/drivers/android/binder.c	2025-10-31 20:19:38.870370757 +0000
-@@ -6988,6 +6988,9 @@ DEFINE_SHOW_ATTRIBUTE(transactions);
+diff -up linux-7.1-rc3/drivers/android/binder.c.32~ linux-7.1-rc3/drivers/android/binder.c
+--- linux-7.1-rc3/drivers/android/binder.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/drivers/android/binder.c	2026-05-17 22:19:28.643503983 +0200
+@@ -7001,6 +7001,9 @@ DEFINE_SHOW_ATTRIBUTE(transactions);
  DEFINE_SHOW_ATTRIBUTE(transactions_hashed);
  DEFINE_SHOW_ATTRIBUTE(transaction_log);
  
@@ -30,10 +11,21 @@ diff -up linux-6.18-rc3/drivers/android/binder.c.omv~ linux-6.18-rc3/drivers/and
  const struct binder_debugfs_entry binder_debugfs_entries[] = {
  	{
  		.name = "state",
-diff -up linux-6.18-rc3/mm/mmap_lock.c.omv~ linux-6.18-rc3/mm/mmap_lock.c
---- linux-6.18-rc3/mm/mmap_lock.c.omv~	2025-10-31 21:10:47.923556571 +0000
-+++ linux-6.18-rc3/mm/mmap_lock.c	2025-10-31 21:11:03.143628302 +0000
-@@ -267,6 +267,7 @@ inval:
+diff -up linux-7.1-rc3/mm/list_lru.c.32~ linux-7.1-rc3/mm/list_lru.c
+--- linux-7.1-rc3/mm/list_lru.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/mm/list_lru.c	2026-05-17 22:19:28.642788486 +0200
+@@ -217,6 +217,7 @@ bool list_lru_del(struct list_lru *lru,
+ 	unlock_list_lru(l, false);
+ 	return false;
+ }
++EXPORT_SYMBOL_GPL(list_lru_del); // Still used by binder
+ 
+ bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
+ {
+diff -up linux-7.1-rc3/mm/mmap_lock.c.32~ linux-7.1-rc3/mm/mmap_lock.c
+--- linux-7.1-rc3/mm/mmap_lock.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/mm/mmap_lock.c	2026-05-17 22:19:28.643956568 +0200
+@@ -340,6 +340,7 @@ inval:
  	count_vm_vma_lock_event(VMA_LOCK_ABORT);
  	return NULL;
  }
@@ -41,3 +33,14 @@ diff -up linux-6.18-rc3/mm/mmap_lock.c.omv~ linux-6.18-rc3/mm/mmap_lock.c
  
  static struct vm_area_struct *lock_next_vma_under_mmap_lock(struct mm_struct *mm,
  							    struct vma_iterator *vmi,
+diff -up linux-7.1-rc3/mm/memory.c.omv~ linux-7.1-rc3/mm/memory.c
+--- linux-7.1-rc3/mm/memory.c.omv~	2026-05-18 04:24:16.305115201 +0200
++++ linux-7.1-rc3/mm/memory.c	2026-05-18 04:24:42.385038235 +0200
+@@ -2231,6 +2231,7 @@ void zap_vma_range(struct vm_area_struct
+ 	zap_vma_range_batched(&tlb, vma, address, size, NULL);
+ 	tlb_finish_mmu(&tlb);
+ }
++EXPORT_SYMBOL_GPL(zap_vma_range);
+ 
+ /**
+  * zap_special_vma_range - zap all page table entries in a special vma range

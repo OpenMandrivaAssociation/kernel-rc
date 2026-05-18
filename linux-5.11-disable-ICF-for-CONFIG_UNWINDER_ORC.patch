@@ -1,6 +1,6 @@
-diff -up linux-6.19-rc4/scripts/Makefile.9~ linux-6.19-rc4/scripts/Makefile
---- linux-6.19-rc4/scripts/Makefile.9~	2026-01-04 23:41:55.000000000 +0100
-+++ linux-6.19-rc4/scripts/Makefile	2026-01-10 15:37:32.024037877 +0100
+diff -up linux-7.1-rc3/scripts/Makefile.9~ linux-7.1-rc3/scripts/Makefile
+--- linux-7.1-rc3/scripts/Makefile.9~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.1-rc3/scripts/Makefile	2026-05-17 22:09:00.183557302 +0200
 @@ -33,6 +33,7 @@ HOSTCFLAGS_tracepoint-update.o = -I$(src
  HOSTCFLAGS_elf-parse.o = -I$(srctree)/tools/include
  HOSTCFLAGS_sorttable.o = -I$(srctree)/tools/include
@@ -8,4 +8,4 @@ diff -up linux-6.19-rc4/scripts/Makefile.9~ linux-6.19-rc4/scripts/Makefile
 +HOSTLDFLAGS_sorttable = --icf=none
  HOSTCFLAGS_asn1_compiler.o = -I$(srctree)/include
  HOSTCFLAGS_sign-file.o = $(shell $(HOSTPKG_CONFIG) --cflags libcrypto 2> /dev/null)
- HOSTLDLIBS_sign-file = $(shell $(HOSTPKG_CONFIG) --libs libcrypto 2> /dev/null || echo -lcrypto)
+ HOSTCFLAGS_sign-file.o += -I$(srctree)/tools/include/uapi/
