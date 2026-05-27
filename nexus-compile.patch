@@ -1,6 +1,6 @@
-diff -up linux-7.0/drivers/nexus/nexus_core.c.omv~ linux-7.0/drivers/nexus/nexus_core.c
---- linux-7.0/drivers/nexus/nexus_core.c.omv~	2026-04-19 19:38:01.566810321 +0200
-+++ linux-7.0/drivers/nexus/nexus_core.c	2026-04-19 19:39:18.332054133 +0200
+diff -up linux-7.1-rc4/drivers/nexus/nexus_core.c.27~ linux-7.1-rc4/drivers/nexus/nexus_core.c
+--- linux-7.1-rc4/drivers/nexus/nexus_core.c.27~	2026-05-12 02:16:32.000000000 +0200
++++ linux-7.1-rc4/drivers/nexus/nexus_core.c	2026-05-19 03:15:12.637468815 +0200
 @@ -30,6 +30,9 @@ static int major = -1;
  static struct cdev nexus_cdev;
  static struct class *nexus_class = NULL;
@@ -11,20 +11,3 @@ diff -up linux-7.0/drivers/nexus/nexus_core.c.omv~ linux-7.0/drivers/nexus/nexus
  DEFINE_MUTEX(nexus_main_lock);
  HLIST_HEAD(nexus_teams);
  
-@@ -79,7 +82,7 @@ static void nexus_thread_exit_work(struc
- 	mutex_unlock(&nexus_main_lock);
- }
- 
--struct nexus_team* nexus_team_init()
-+struct nexus_team* nexus_team_init(void)
- {
- 	struct nexus_team* team = kzalloc(sizeof(struct nexus_team), GFP_KERNEL);
- 	if (team != NULL) {
-@@ -759,7 +762,6 @@ static int nexus_open(struct inode *nodp
- 
- static int nexus_release(struct inode *nodp, struct file *filp)
- {
--	struct nexus_team *team = filp->private_data;
- 	mutex_lock(&nexus_main_lock);
- 	nexus_team_destroy((struct nexus_team*)filp->private_data);
- 	mutex_unlock(&nexus_main_lock);
