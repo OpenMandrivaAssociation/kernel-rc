@@ -1,0 +1,18 @@
+# aarch64 often boots from USB mass-storage without a rich initramfs.
+# Keep the USB host + storage path built-in; leave peripheral drivers modular.
+# (Shared fragments use =m; USB_STORAGE cannot be =y unless SCSI/sd are =y.)
+CONFIG_USB=y
+CONFIG_USB_XHCI_HCD=y
+CONFIG_USB_XHCI_PCI=y
+CONFIG_USB_XHCI_PLATFORM=y
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_EHCI_PCI=y
+CONFIG_USB_EHCI_HCD_PLATFORM=y
+CONFIG_USB_OHCI_HCD=y
+CONFIG_USB_OHCI_HCD_PLATFORM=y
+CONFIG_SCSI=y
+CONFIG_SCSI_MOD=y
+CONFIG_SCSI_COMMON=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_USB_STORAGE=y
+CONFIG_USB_UAS=y

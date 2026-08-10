@@ -1,8 +1,9 @@
 sources:
   extra-wifi-drivers-20200301.tar.zst: 3390c738c7d91250714ce0f88d26371e93bc40b8
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6
-  v1.14.15.tar.gz: 32928095e379eb486aa2ea2a828a2d752ac35a45
   hid-tmff2-20260310.tar.gz: 0fb4fec5a0294c7eb5654f28fef2123a5f230324
   tp_smapi-0.45.tgz: ced1ea185dc6acdf0dd9f2a51cd75fc14a19fa82
-  linux-7.1-rc5.tar.gz: 2c3abf195d197dc39ab39a0803950b4d13d0d7a7
-  nexus-20260526.tar.gz: 7ba468609fbfa07b42f703a50efe125df04ba2fb
+  linux-7.2-rc6.tar.gz: b87ffb174e78fe6bd38dab6b75d552d317d34185
+  nexus-20260807.tar.gz: c90b7636eccc65f6e9754c60bee7109f6a336920
+  v1.15.0.tar.gz: 412a18d05aa15477141a645d4edb08ce0f3cd6a8
+  610.57.04.tar.gz: 801073926afccd4f02118228bc672f809e5231bf

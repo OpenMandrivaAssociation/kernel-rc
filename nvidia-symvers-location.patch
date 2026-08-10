@@ -1,0 +1,20 @@
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 386b324..de07fd4 100755
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -15,7 +15,14 @@ XEN_PRESENT=1
+ PREEMPT_RT_PRESENT=0
+ 
+ NVIDIA_OOT_PATH="/usr/src/nvidia/nvidia-public"
+-MODULE_SYMVERS_PATHS="$OUTPUT/Module.symvers"
++MODULE_SYMVERS_PATHS=""
++
++# Collect all available symbol version files.
++# Kernel 7.0+ generates vmlinux.symvers instead of (or alongside)
++# Module.symvers for built-in symbol exports.
++for _symvers in "$OUTPUT/Module.symvers" "$OUTPUT/vmlinux.symvers"; do
++    [ -f "$_symvers" ] && MODULE_SYMVERS_PATHS="$MODULE_SYMVERS_PATHS $_symvers"
++done
+ 
+ # Also search in out-of-tree Module.symvers on Tegra
+ if [ -d ${NVIDIA_OOT_PATH} ]; then

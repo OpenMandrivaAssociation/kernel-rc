@@ -1,3 +1,36 @@
+#
+# Security / LSM policy for a generic desktop-friendly kernel.
+#
+# Default stack is minimal: Landlock (app self-sandbox) + BPF LSM (hooks for
+# tools that attach programs). Nothing else enforces until the user opts in.
+#
+# Major MAC frameworks (AppArmor, SELinux) and other stacking LSMs (Yama,
+# Lockdown, LoadPin, SafeSetID, …) are built-in where selected below (they are
+# bool, not modular). Enable at boot via lsm=, e.g.:
+#   lsm=landlock,yama,bpf
+#   lsm=landlock,lockdown,yama,loadpin,safesetid,apparmor,integrity,bpf
+#   lsm=landlock,lockdown,yama,loadpin,safesetid,selinux,integrity,bpf
+#
 CONFIG_SECURITY=y
 CONFIG_SECURITY_LANDLOCK=y
+CONFIG_SECURITY_YAMA=y
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_SECURITY_APPARMOR_HASH=y
+CONFIG_SECURITY_APPARMOR_HASH_DEFAULT=y
+CONFIG_SECURITY_APPARMOR_EXPORT_BINARY=y
+CONFIG_SECURITY_APPARMOR_INTROSPECT_POLICY=y
+CONFIG_SECURITY_SELINUX=y
+CONFIG_SECURITY_SELINUX_BOOTPARAM=y
+CONFIG_SECURITY_SELINUX_DEVELOP=y
+CONFIG_SECURITY_SELINUX_AVC_STATS=y
+CONFIG_BPF_LSM=y
 CONFIG_SECURITY_DMESG_RESTRICT=y
+# No major MAC / ptrace hardening by default
+CONFIG_DEFAULT_SECURITY_DAC=y
+# CONFIG_DEFAULT_SECURITY_APPARMOR is not set
+# CONFIG_DEFAULT_SECURITY_SELINUX is not set
+CONFIG_LSM="landlock,bpf"
+CONFIG_FORTIFY_SOURCE=y
+CONFIG_INIT_STACK_ALL_ZERO=y
+# CONFIG_INIT_STACK_NONE is not set
+# CONFIG_INIT_STACK_ALL_PATTERN is not set

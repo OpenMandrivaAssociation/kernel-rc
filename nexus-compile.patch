@@ -1,13 +1,154 @@
-diff -up linux-7.1-rc4/drivers/nexus/nexus_core.c.27~ linux-7.1-rc4/drivers/nexus/nexus_core.c
---- linux-7.1-rc4/drivers/nexus/nexus_core.c.27~	2026-05-12 02:16:32.000000000 +0200
-+++ linux-7.1-rc4/drivers/nexus/nexus_core.c	2026-05-19 03:15:12.637468815 +0200
-@@ -30,6 +30,9 @@ static int major = -1;
- static struct cdev nexus_cdev;
- static struct class *nexus_class = NULL;
+diff -up linux/drivers/nexus/nexus_core.c.omv~ linux/drivers/nexus/nexus_core.c
+--- linux/drivers/nexus/nexus_core.c.omv~	2026-08-08 15:20:00.000000000 +0200
++++ linux/drivers/nexus/nexus_core.c	2026-08-08 15:20:00.000000000 +0200
+@@ -133,7 +133,7 @@ void nexus_unregister_team_exit(nexus_te
+ }
+ EXPORT_SYMBOL(nexus_unregister_team_exit);
  
-+struct nexus_thread* find_thread(struct nexus_team *team, const char *name);
-+struct nexus_thread* find_thread_by_id(struct nexus_team *team, int32_t pid);
+-struct nexus_team* nexus_team_init()
++struct nexus_team* nexus_team_init(void)
+ {
+ 	struct nexus_team *t = idr_find(&nexus_teams_idr, current->tgid);
+ 	if (t != NULL) {
+@@ -157,3 +157,3 @@ struct nexus_team* nexus_team_init(void)
+-		strncpy(team->main_thread->name, "main", 4);
++		strscpy(team->main_thread->name, "main", B_OS_NAME_LENGTH);
+ 		team->ports = RB_ROOT;
+ 		team->threads = RB_ROOT;
+@@ -791,5 +791,5 @@ static long nexus_ioctl(struct file *filp
+-		case NEXUS_THREAD_RESUME:
+-			thread_id tid = (thread_id)arg;
++		case NEXUS_THREAD_RESUME: {
++			thread_id tid = (thread_id)arg;
+ 			if (tid < 0) {
+ 				ret = B_BAD_THREAD_ID;
+ 				break;
+@@ -833,6 +833,7 @@ static long nexus_ioctl(struct file *filp
+ 			put_task_struct(task);
+ 			ret = B_OK;
+ 			break;
++		}
+ 
+ 		case NEXUS_THREAD_SET_RETURN_CODE:
+ 			thread->exit_status = (int32_t)(long)arg;
+--- linux/drivers/nexus/sem.c.omv~	2026-08-08 15:20:00.000000000 +0200
++++ linux/drivers/nexus/sem.c	2026-08-10 01:35:00.000000000 +0200
+@@ -313,7 +313,7 @@ static int nexus_get_sem_info(sem_id id,
+ 	}
+ 
+ 	info->sem = sem->id;
+-	strncpy(info->name, sem->name, B_OS_NAME_LENGTH);
++	strscpy(info->name, sem->name, B_OS_NAME_LENGTH);
+ 	info->name[B_OS_NAME_LENGTH - 1] = '\0';
+ 	info->count = sem->count;
+ 	info->team = sem->owner;
+@@ -338,7 +338,7 @@ static int nexus_get_next_sem_info(team_
+ 			continue;
+ 
+ 		out->info.sem = sem->id;
+-		strncpy(out->info.name, sem->name, B_OS_NAME_LENGTH);
++		strscpy(out->info.name, sem->name, B_OS_NAME_LENGTH);
+ 		out->info.name[B_OS_NAME_LENGTH - 1] = '\0';
+ 		out->info.count = sem->count;
+ 		out->info.team = sem->owner;
+--- linux/drivers/nexus/port.c.omv~	2026-08-08 15:20:00.000000000 +0200
++++ linux/drivers/nexus/port.c	2026-08-10 01:35:00.000000000 +0200
+@@ -222,7 +222,7 @@ long nexus_get_next_port_for_team(unsign
+ 		req.info.capacity   = p->capacity;
+ 		req.info.queue_count = p->read_count;
+ 		req.info.total_count = p->total_count;
+-		strncpy(req.info.name, p->name, B_OS_NAME_LENGTH);
++		strscpy(req.info.name, p->name, B_OS_NAME_LENGTH);
+ 		req.info.name[B_OS_NAME_LENGTH - 1] = '\0';
+ 		req.ret = B_OK;
+ 		break;
+--- linux/drivers/nexus/index.c.omv~	2026-08-07 09:11:04.000000000 +0200
++++ linux/drivers/nexus/index.c	2026-08-08 16:43:18.309250980 +0200
+@@ -129,22 +129,35 @@ static int ensure_dir(const char *path)
+ 		return ret;
+ 
+ 	inode_lock(d_inode(parent_path.dentry));
+-	child = lookup_one_len(basename, parent_path.dentry, strlen(basename));
+-	if (IS_ERR(child)) {
+-		ret = PTR_ERR(child);
+-		goto out_unlock;
+-	}
++	{
++		struct qstr q = QSTR_INIT(basename, strlen(basename));
++		struct dentry *created;
 +
- DEFINE_MUTEX(nexus_main_lock);
- HLIST_HEAD(nexus_teams);
++		child = lookup_one(&nop_mnt_idmap, &q, parent_path.dentry);
++		if (IS_ERR(child)) {
++			ret = PTR_ERR(child);
++			goto out_unlock;
++		}
  
+-	if (d_is_positive(child)) {
++		if (d_is_positive(child)) {
++			ret = 0;
++			dput(child);
++			goto out_unlock;
++		}
++
++		created = vfs_mkdir(&nop_mnt_idmap, d_inode(parent_path.dentry),
++				    child, 0755, NULL);
++		if (IS_ERR(created)) {
++			ret = PTR_ERR(created);
++			dput(child);
++			goto out_unlock;
++		}
++		if (created != child)
++			dput(child);
++		dput(created);
+ 		ret = 0;
+-		dput(child);
+-		goto out_unlock;
+ 	}
+ 
+-	ret = vfs_mkdir(&nop_mnt_idmap, d_inode(parent_path.dentry),
+-			child, 0755);
+-	dput(child);
+-
+ out_unlock:
+ 	inode_unlock(d_inode(parent_path.dentry));
+ 	path_put(&parent_path);
+@@ -324,8 +337,12 @@ long nexus_index_ioctl_create(unsigned l
+ 
+ 	inode_lock(d_inode(parent_path.dentry));
+ 
+-	marker_dentry = lookup_one_len(req.name, parent_path.dentry,
+-				       strlen(req.name));
++	{
++		struct qstr q = QSTR_INIT(req.name, strlen(req.name));
++
++		marker_dentry = lookup_one(&nop_mnt_idmap, &q,
++					   parent_path.dentry);
++	}
+ 	if (IS_ERR(marker_dentry)) {
+ 		ret = PTR_ERR(marker_dentry);
+ 		goto out_parent_unlock;
+@@ -336,8 +353,7 @@ long nexus_index_ioctl_create(unsigned l
+ 		goto out_dput;
+ 	}
+ 
+-	ret = vfs_create(&nop_mnt_idmap, d_inode(parent_path.dentry),
+-			 marker_dentry, 0644, false);
++	ret = vfs_create(&nop_mnt_idmap, marker_dentry, 0644, NULL);
+ 	if (ret)
+ 		goto out_dput;
+ 
+@@ -403,8 +419,12 @@ long nexus_index_ioctl_remove(unsigned l
+ 
+ 	inode_lock(d_inode(parent_path.dentry));
+ 
+-	marker_dentry = lookup_one_len(req.name, parent_path.dentry,
+-				       strlen(req.name));
++	{
++		struct qstr q = QSTR_INIT(req.name, strlen(req.name));
++
++		marker_dentry = lookup_one(&nop_mnt_idmap, &q,
++					   parent_path.dentry);
++	}
+ 	if (IS_ERR(marker_dentry)) {
+ 		ret = PTR_ERR(marker_dentry);
+ 		goto out_parent_unlock;

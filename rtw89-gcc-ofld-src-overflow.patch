@@ -1,0 +1,25 @@
+# GCC inlines rtw89_fw_cmd_ofld_udelay/mdelay into enqueue and then
+# rejects le32_encode_bits(RTW89_FW_CMD_OFLD_SRC_OTHER, GENMASK(1,0))
+# because SRC_OTHER==4 does not fit a 2-bit H2C SRC field.
+# Delay commands do not use a real register source; encode them as MAC.
+diff -up linux/drivers/net/wireless/realtek/rtw89/fw.c.omv~ linux/drivers/net/wireless/realtek/rtw89/fw.c
+--- linux/drivers/net/wireless/realtek/rtw89/fw.c.omv~	2026-08-10 04:30:00.000000000 +0200
++++ linux/drivers/net/wireless/realtek/rtw89/fw.c	2026-08-10 04:30:00.000000000 +0200
+@@ -11780,7 +11780,7 @@ static void rtw89_fw_cmd_ofld_write_rf(s
+ static void rtw89_fw_cmd_ofld_udelay(struct rtw89_dev *rtwdev, u32 us)
+ {
+ 	struct rtw89_fw_cmd_ofld_arg cmd = {
+-		.src = RTW89_FW_CMD_OFLD_SRC_OTHER,
++		.src = RTW89_FW_CMD_OFLD_SRC_MAC,
+ 		.type = RTW89_FW_CMD_OFLD_DELAY,
+ 		.value = us,
+ 	};
+@@ -11794,7 +11794,7 @@ static void rtw89_fw_cmd_ofld_udelay(str
+ static void rtw89_fw_cmd_ofld_mdelay(struct rtw89_dev *rtwdev, u32 ms)
+ {
+ 	struct rtw89_fw_cmd_ofld_arg cmd = {
+-		.src = RTW89_FW_CMD_OFLD_SRC_OTHER,
++		.src = RTW89_FW_CMD_OFLD_SRC_MAC,
+ 		.type = RTW89_FW_CMD_OFLD_DELAY,
+ 		.value = ms * 1000,
+ 	};

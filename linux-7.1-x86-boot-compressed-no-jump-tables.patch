@@ -1,0 +1,14 @@
+--- a/arch/x86/boot/compressed/Makefile
++++ b/arch/x86/boot/compressed/Makefile
+@@ -42,6 +42,11 @@ KBUILD_CFLAGS += -D__DISABLE_EXPORTS
+ # Disable relocation relaxation in case the link is not PIE.
+ KBUILD_CFLAGS += $(call cc-option,-Wa$(comma)-mrelax-relocations=no)
+ KBUILD_CFLAGS += -include $(srctree)/include/linux/hidden.h
++# This subdir resets KBUILD_CFLAGS, so it does not inherit the main x86
++# -fno-jump-tables. Clang 23 turns handle_zstd_error()'s switch into a
++# .data.rel.ro string-pointer table; with -fPIE that leaves R_X86_64_RELATIVE
++# entries and trips the vmlinux.lds ASSERT on .rela.dyn.
++KBUILD_CFLAGS += $(call cc-option,-fno-jump-tables)
+ 
+ # sev-decode-insn.c indirectly includes inat-table.c which is generated during
+ # compilation and stored in $(objtree). Add the directory to the includes so

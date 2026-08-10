@@ -1,6 +1,5 @@
-diff -up linux-7.1-rc3/drivers/net/dummy.c.60~ linux-7.1-rc3/drivers/net/dummy.c
---- linux-7.1-rc3/drivers/net/dummy.c.60~	2026-05-10 23:08:09.000000000 +0200
-+++ linux-7.1-rc3/drivers/net/dummy.c	2026-05-17 22:28:08.471328600 +0200
+--- linux-7.2-rc6/drivers/net/dummy.c	2026-08-03 01:24:24.000000000 +0200
++++ linux-7.2-rc6/drivers/net/dummy.c	2026-08-09 23:35:42.280710766 +0200
 @@ -44,7 +44,7 @@
  
  #define DRV_NAME	"dummy"
@@ -9,10 +8,10 @@ diff -up linux-7.1-rc3/drivers/net/dummy.c.60~ linux-7.1-rc3/drivers/net/dummy.c
 +static int numdummies = 0;
  
  /* fake multicast ability */
- static void set_multicast_list(struct net_device *dev,
-diff -up linux-7.1-rc3/include/uapi/linux/if_bonding.h.60~ linux-7.1-rc3/include/uapi/linux/if_bonding.h
---- linux-7.1-rc3/include/uapi/linux/if_bonding.h.60~	2026-05-10 23:08:09.000000000 +0200
-+++ linux-7.1-rc3/include/uapi/linux/if_bonding.h	2026-05-17 22:20:48.621598903 +0200
+ static int set_multicast_list(struct net_device *dev,
+
+--- linux-7.2-rc6/include/uapi/linux/if_bonding.h	2026-08-03 01:24:24.000000000 +0200
++++ linux-7.2-rc6/include/uapi/linux/if_bonding.h	2026-08-09 23:35:42.281037421 +0200
 @@ -82,7 +82,7 @@
  #define BOND_STATE_ACTIVE       0   /* link is active */
  #define BOND_STATE_BACKUP       1   /* link is backup */

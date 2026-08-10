@@ -1,0 +1,14 @@
+--- a/drivers/platform/x86/tp_smapi.c
++++ b/drivers/platform/x86/tp_smapi.c
+@@ -670,10 +670,7 @@ static ssize_t show_tp_ec_bat_str(u8 arg
+ 	ret = read_tp_ec_row(arg0, bat, 0, row);
+ 	if (ret)
+ 		return ret;
+-	strncpy(buf, (char *)row+offset, maxlen);
+-	buf[maxlen] = 0;
+-	strcat(buf, "\n");
+-	return strlen(buf);
++	return sysfs_emit(buf, "%.*s\n", maxlen, (char *)row + offset);
+ }
+ 
+ /**

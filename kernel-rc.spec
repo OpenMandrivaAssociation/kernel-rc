@@ -32,17 +32,17 @@
 
 %global cross_header_archs aarch64-linux armv7hnl-linux i686-linux x86_64-linux x32-linux riscv32-linux riscv64-linux aarch64-linuxmusl armv7hnl-linuxmusl i686-linuxmusl x86_64-linuxmusl x32-linuxmusl riscv32-linuxmusl riscv64-linuxmusl aarch64-android armv7l-android armv8l-android x86_64-android aarch64-linuxuclibc armv7hnl-linuxuclibc i686-linuxuclibc x86_64-linuxuclibc x32-linuxuclibc riscv32-linuxuclibc riscv64-linuxuclibc ppc64le-linux ppc64-linux ppc64le-linuxmusl ppc64-linuxmusl ppc64le-linuxuclibc ppc64-linuxuclibc loongarch64-linux loongarch64-linuxmusl loongarch64-linuxuclibc
 %global long_cross_header_archs %(
-    for i in %{cross_header_archs}; do
+	for i in %{cross_header_archs}; do
 	CPU=$(echo $i |cut -d- -f1)
 	OS=$(echo $i |cut -d- -f2)
 	echo -n "$(rpm --target=${CPU}-${OS} -E %%{_target_platform}) "
-    done
+	done
 )
 
 # Parallelize xargs invocations on smp machines
 %define kxargs xargs %([ -z "$RPM_BUILD_NCPUS" ] \\\
-    && RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
-    [ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
+	&& RPM_BUILD_NCPUS="$(/usr/bin/getconf _NPROCESSORS_ONLN)"; \\\
+	[ "$RPM_BUILD_NCPUS" -gt 1 ] && echo "-P $RPM_BUILD_NCPUS")
 
 %define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/' -e 's/loongarch64/loongarch/')
 
@@ -54,21 +54,44 @@
 %define kernel_flavours desktop server desktop-gcc server-gcc
 %endif
 # possible options are: desktop server desktop-gcc server-gcc
+#define kernel_flavours desktop server desktop-gcc server-gcc
 
-# (tpg) package these kernel modules as subpackages
-%ifarch %{aarch64}
-%define modules_subpackages appletalk fddi can adfs affs afs bfs coda efs freevxfs hfs hfsplus hpfs jfs minix ocfs2 omfs orangefs qnx4 qnx6
-%else
-%define modules_subpackages appletalk arcnet comedi infiniband isdn can adfs affs afs bfs coda efs freevxfs hfs hfsplus hpfs jfs minix ocfs2 omfs orangefs qnx4 qnx6
+# Rarely used modules → separate kernel-*-modules-* subpackages (see install loop).
+# Matched by directory basename under .../kernel/ or by exact foo.ko basenames.
+#
+# Keep everyday hardware in the main package (USB, common Wi‑Fi, webcams/V4L,
+# NVMe/AHCI, etc.). Split only niche protocols, legacy buses, DVB/TV, staging,
+# and odd firmware-bound drivers.
+
+# Rare / legacy filesystems
+%global modules_subpackages appletalk can adfs affs afs befs bfs coda cramfs efs freevxfs gfs2 hfs hfsplus hpfs jffs2 jfs minix nilfs2 ocfs2 omfs orangefs qnx4 qnx6 romfs ubifs ufs zonefs zd1211rw
+
+# Rare networking (ATM kept available for legacy PPPoA/ADSL; not needed for PPPoE)
+%global modules_subpackages %{modules_subpackages} atm sctp rds tipc hsr batman-adv x25 phonet caif nfc 6lowpan ieee802154 mac802154 openvswitch fddi arcnet isdn
+
+# Legacy / industrial / hobbyist hardware classes
+%global modules_subpackages %{modules_subpackages} firewire pcmcia parport comedi infiniband fpga greybus rapidio gnss w1 uio most siox auxdisplay accessibility staging
+
+# DVB / digital TV / FM radio only — leave media core + UVC webcams in main
+%global modules_subpackages %{modules_subpackages} dvb-core dvb-frontends dvb-usb tuners radio
+
+# Specialized accelerators (not everyday laptop NPUs)
+%global modules_subpackages %{modules_subpackages} habanalabs
+
+%ifarch %{aarch64} %{x86_64}
+%global modules_subpackages %{modules_subpackages} nvidia
 %endif
+
+# Modules with obscure firmware dependencies (not covered by the kernel-firmware packages)
+%global modules_subpackages %{modules_subpackages} p54spi.ko snd-asihpi.ko snd-usb-6fire.ko bcm203x.ko adf7242.ko ast ath10k_pci.ko ath6kl_sdio.ko at76c50x-usb.ko smsmdtv.ko b43 b43legacy bfusb.ko hci_bcm4377.ko moxa.ko
 
 # IMPORTANT
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 7
-%define patchlevel 1
+%define patchlevel 2
 %define sublevel 0
-%define relc 5
+%define relc 6
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -122,6 +145,7 @@
 # cpupower is currently x86 only
 %bcond_with build_cpupower
 %endif
+%bcond_without nvidia
 
 # End of user definitions
 
@@ -185,9 +209,25 @@ Source31:	cgroups.fragment
 Source32:	firmware.fragment
 Source33:	security.fragment
 Source34:	trace.fragment
+# Extracted shared subsystem fragments (see CONFIGS.md / manage-kernel-configs.py)
+Source35:	usb.fragment
+Source36:	sound.fragment
+Source37:	media.fragment
+Source38:	crypto.fragment
+Source39:	drm.fragment
+Source40:	scsi.fragment
+Source41:	input.fragment
+Source42:	wireless.fragment
+Source43:	mtd.fragment
+Source44:	net-phy.fragment
+Source45:	gpio.fragment
+Source46:	infiniband.fragment
+Source47:	virt.fragment
+Source48:	misc-drivers.fragment
 # Overrides (highest priority) for configs
 Source200:	znver1.overrides
 Source201:	temporary-workarounds.overrides
+Source202:	arm64.overrides
 # config and systemd service file from fedora
 Source300:	cpupower.service
 Source301:	cpupower.config
@@ -234,6 +274,8 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 #Patch41:	tp_smapi-clang.patch
+# strncpy() was removed from <linux/string.h> in 7.2
+Patch41:	tp_smapi-string.h.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
 # Disabling rdseed breaks starting Qt applications
@@ -252,6 +294,11 @@ Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.pa
 Patch55:	linux-5.16-clang-no-attribute-symver.patch
 Patch60:	linux-6.18-clang.patch
 Patch61:	linux-6.19-acpi-clang.patch
+# Clang 23: compressed boot PIE link fails with "Unexpected run-time relocations (.rela)"
+# because this subdir resets KBUILD_CFLAGS and loses main x86 -fno-jump-tables.
+Patch62:	linux-7.1-x86-boot-compressed-no-jump-tables.patch
+# GCC: rtw89 delay ofld used SRC_OTHER=4 in a 2-bit H2C SRC field (clang did not diagnose)
+Patch63:	rtw89-gcc-ofld-src-overflow.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -291,15 +338,23 @@ Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.14.15
+%define evdi_version 1.15.0
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260526.tar.gz
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260807.tar.gz
 Patch1021:	nexus-compile.patch
-Patch1022:	nexus-clang.patch
+
+# Nvidia GPU driver
+%define nvidia_version 610.57.04
+Source1030:	https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/%{nvidia_version}.tar.gz
+# Script to internalize nvidia modules
+Source1031:	install-to-kernel-tree.sh
+# Documentation of the above
+Source1032:	CHANGES.md
+Source1033:	nvidia-symvers-location.patch
 
 # Assorted fixes
 
@@ -459,6 +514,7 @@ BuildRequires:	lld
 BuildRequires:	pkgconfig(libcap)
 BuildRequires:	pkgconfig(libssl)
 BuildRequires:	diffutils
+BuildRequires:	atomic-devel
 # For git apply
 BuildRequires:	git-core
 # For power tools
@@ -692,42 +748,6 @@ done
 %endif
 
 #
-# kernel extra modules
-#
-%(for modules in %{modules_subpackages}; do
-    for flavour in %{kernel_flavours}; do
-	cat <<EOF
-%package -n %{name}-${flavour}-modules-${modules}
-Summary:	 ${modules} for kernel %{name}-${flavour}
-Group:		System/Kernel and hardware
-Requires:	%{name}-${flavour} = %{version}-%{release}
-Provides:	installonlypkg(kernel-module)
-Requires(posttrans,postun):	kmod
-EOF
-
-	if [ "$modules" = "hfs" -a "${flavour}" = "desktop" ]; then
-		echo "Obsoletes: hfsutils < 3.2.6-42"
-	fi
-
-	cat <<EOF
-%description -n %{name}-${flavour}-modules-${modules}
-%{modules} modules for kernel %{name}-${flavour} .
-
-%postun -n %{name}-${flavour}-modules-${modules}
-[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
-
-%files -n %{name}-${flavour}-modules-${modules}
-%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/fs/${modules}
-%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/net/${modules}
-%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/${modules}
-%optional %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel/drivers/net/${modules}
-
-EOF
-    done
-done
-)
-
-#
 # kernel-source
 #
 %if %{with build_source}
@@ -886,7 +906,6 @@ Summary:	Linux kernel header files mostly used by your C library
 Version:	%{version}
 Release:	%{release}
 Group:		System/Kernel and hardware
-Epoch:		1
 %if 0%{!?relc:1}
 # (tpg) fix bug https://issues.openmandriva.org/show_bug.cgi?id=1580
 Provides:	kernel-headers = 1:%{version}-%{release}
@@ -947,6 +966,8 @@ done
 %prep
 
 %setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004 -a 1020
+TOPDIR="$(pwd)"
+
 %if %{with evdi}
 tar xf %{S:1010}
 %endif
@@ -954,6 +975,17 @@ tar xf %{S:1010}
 [ -e .git ] || git init
 xzcat %{SOURCE1000} |git apply - || git apply %{SOURCE1000}
 rm -rf .git
+%endif
+
+%if %{with nvidia}
+tar xf %{S:1030}
+cd open-gpu-kernel-modules-%{nvidia_version}
+patch -p1 -b -z .1033~ <%{S:1033}
+cp %{S:1031} .
+chmod +x install-to-kernel-tree.sh
+./install-to-kernel-tree.sh ${TOPDIR}
+cd ..
+rm -rf open-gpu-kernel-modules-%{nvidia_version}
 %endif
 
 mv Nexus-main/nexus drivers/nexus
@@ -1027,11 +1059,23 @@ find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h"
 mv evdi-%{evdi_version}/module drivers/gpu/drm/evdi
 rm -rf evdi-%{evdi_version}
 sed -i -e '/imagination/isource "drivers/gpu/drm/evdi/Kconfig"' drivers/gpu/drm/Kconfig
-# The dkms makefile is not really useful for a proper in-tree build
+# DKMS/out-of-tree Makefile is not usable in-tree. Keep the same objects as
+# upstream 1.15, plus conftest.sh → evdi_detect.h (EVDI_HAVE_* probes).
+# Do not build the kunit tests/ subtree.
 cat >drivers/gpu/drm/evdi/Makefile <<'EOF'
+ccflags-y += -include $(obj)/evdi_detect.h
+clean-files := evdi_detect.h evdi_detect.h.tmp
+
 evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
 evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
 obj-$(CONFIG_DRM_EVDI) := evdi.o
+
+$(addprefix $(obj)/, $(evdi-y) evdi_ioc32.o): $(obj)/evdi_detect.h
+
+$(obj)/evdi_detect.h: $(src)/conftest.sh FORCE
+	$(Q)$(CONFIG_SHELL) $(src)/conftest.sh "$(CC)" $@.tmp \
+		$(NOSTDINC_FLAGS) $(LINUXINCLUDE) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -DMODULE
+	$(Q)cmp -s $@.tmp $@ 2>/dev/null && rm -f $@.tmp || mv $@.tmp $@
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
 %endif
@@ -1135,7 +1179,10 @@ sed -i -e 's,\$(VBOXPCI_DIR),drivers/pci/vboxpci/,g' drivers/pci/vboxpci/Makefil
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/pci/vboxpci/Makefile*
 echo 'obj-$(CONFIG_VBOXGUEST) += vboxpci/' >>drivers/pci/Makefile
 %endif
-patch -p1 -z .1005~ -b <%{S:1005}
+# VirtualBox 7.2+ hosts no longer call kvm_enable_virtualization() /
+# ASMCpuIdEx_EDX(); they open a dummy /dev/kvm instead.  The 7.0-era
+# SUPDrv-linux.c patch does not apply and is not needed.
+#patch -p1 -z .1005~ -b <%{S:1005}
 patch -p1 -z .1007~ -b <%{S:1007}
 #patch -p1 -z .1009~ -b <%{S:1009}
 %endif
@@ -1288,15 +1335,7 @@ CreateConfig() {
 		#BUILD_KBUILD_LDFLAGS="-fuse-ld=bfd"
 		BUILD_LD="ld.lld --icf=none --no-gc-sections"
 		BUILD_KBUILD_LDFLAGS="-Wl,--icf=none -Wl,--no-gc-sections"
-%ifarch %{aarch64}
-		# Using objcopy rather than llvm-objcopy is a workaround for a BTF
-		# generation problem on aarch64
-		BUILD_TOOLS='LLVM=1 LLVM_IAS=1 OBJCOPY=objcopy'
-%else
-		# Using objcopy rather than llvm-objcopy is a workaround for a BTF
-		# generation problem on aarch64
 		BUILD_TOOLS='LLVM=1 LLVM_IAS=1'
-%endif
 	fi
 
 # (crazy) do not use %{S:X} to copy, if someone messes up we end up with broken stuff again
@@ -1422,7 +1461,8 @@ BuildKernel() {
 %endif
 %endif
 
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE modules $DTBS
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules
 
 # Start installing stuff
 	install -d %{temp_boot}
@@ -1453,17 +1493,17 @@ BuildKernel() {
 # (tpg) strip modules out of debug bits
 	find %{temp_modules}/$KernelVer -name "*.ko" -type f > all_modules
 %if %{with build_debug}
-	cat all_modules | %kxargs -I '{}' objcopy --only-keep-debug '{}' '{}'.debug
-	cat all_modules | %kxargs -I '{}' sh -c 'cd $(dirname {}); objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
+	cat all_modules | %kxargs -I '{}' llvm-objcopy --only-keep-debug '{}' '{}'.debug
+	cat all_modules | %kxargs -I '{}' sh -c 'cd $(dirname {}); llvm-objcopy --add-gnu-debuglink=$(basename {}).debug --strip-debug $(basename {})'
 %endif
-	cat all_modules | %kxargs -I '{}' strip --strip-debug {}
+	cat all_modules | %kxargs -I '{}' llvm-strip --strip-debug {}
 
 # sign modules after stripping
 	cat all_modules | %kxargs -r -n16 sh -c "
-	    for mod; do
+		for mod; do
 		scripts/sign-file sha3-512 certs/signing_key.pem certs/signing_key.x509 \$mod
 		rm -f \$mod.sig \$mod.dig
-	    done
+		done
 	" DUMMYARG0
 	rm -rf all_modules
 }
@@ -1527,6 +1567,11 @@ SaveDevel() {
 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
 		rm -rf $TempDevelRoot/arch/$i
 	done
+
+%if %{with bpftool}
+# Needed by systemd build
+	tools/bpf/bpftool/bootstrap/bpftool btf dump file vmlinux format c >$TempDevelRoot/include/vmlinux.h
+%endif
 
 # Clean the scripts tree, and make sure everything is ok (sanity check)
 # running prepare+scripts (tree was already "prepared" in build)
@@ -1594,6 +1639,7 @@ $DevelRoot/include/ufs
 $DevelRoot/include/vdso
 $DevelRoot/include/video
 $DevelRoot/include/xen
+$DevelRoot/include/vmlinux.h
 $DevelRoot/init
 $DevelRoot/io_uring
 $DevelRoot/ipc
@@ -1620,19 +1666,19 @@ EOF
 ### Create -devel Post script on the fly
 cat > $kernel_devel_files-post <<EOF
 if [ -d %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag} ]; then
-    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/{build,source}
-    ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
-    ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
+	rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/{build,source}
+	ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
+	ln -sf $DevelRoot %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 EOF
 
 ### Create -devel Preun script on the fly
 cat > $kernel_devel_files-preun <<EOF
 if [ -L %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build ]; then
-    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
+	rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/build
 fi
 if [ -L %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source ]; then
-    rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
+	rm -f %{_modulesdir}/%{version}-$devel_flavour-%{release}%{disttag}/source
 fi
 exit 0
 EOF
@@ -1664,36 +1710,9 @@ CreateFiles() {
 %{_bootdir}/System.map-%{version}-$kernel_flavour-%{release}%{disttag}
 %{_bootdir}/config-%{version}-$kernel_flavour-%{release}%{disttag}
 %{_bootdir}/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag}
-%dir %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/System.map
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/config
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
-%{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/adfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/affs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/afs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/bfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/coda
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/efs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/freevxfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hfsplus
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/hpfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/jfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/minix
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/ocfs2
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/omfs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/orangefs
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/qnx4
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/fs/qnx6
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/appletalk
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/net/can
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/comedi
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/infiniband
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/isdn
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/arcnet
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/can
-%exclude %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/kernel/drivers/net/fddi
 %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/modules.*
 # device tree binary
 %ifarch %{armx}
@@ -1717,7 +1736,7 @@ cat > $kernel_files-posttrans <<EOF
 
 %ifarch %{aarch64}
 if [ -d /boot/efi ] && [ -x %{_bindir}/kernel-install ]; then
-    %{_bindir}/kernel-install add %{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
+	%{_bindir}/kernel-install add %{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
 fi
 %endif
 
@@ -1727,20 +1746,20 @@ rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop} || :
 %if %{with build_devel}
 # create kernel-devel symlinks if matching -devel- rpm is installed
 if [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/{build,source}
-    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
-    ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
+	rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/{build,source}
+	ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
+	ln -sf /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 
 if [ -x %{_bindir}/dkms_autoinstaller ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    %{_bindir}/dkms_autoinstaller start %{version}-$kernel_flavour-%{release}%{disttag}
+	%{_bindir}/dkms_autoinstaller start %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 
 if [ -x %{_bindir}/dkms ] && [ -e %{_unitdir}/dkms.service ] && [ -d /usr/src/linux-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
-    %{_bindir}/systemctl --quiet restart dkms.service
-    %{_bindir}/systemctl --quiet try-restart loadmodules.service
-    %{_bindir}/dkms autoinstall --verbose --kernelver %{version}-$kernel_flavour-%{release}%{disttag}
+	%{_bindir}/systemctl --quiet restart dkms.service
+	%{_bindir}/systemctl --quiet try-restart loadmodules.service
+	%{_bindir}/dkms autoinstall --verbose --kernelver %{version}-$kernel_flavour-%{release}%{disttag}
 fi
 EOF
 
@@ -1757,7 +1776,7 @@ fi
 
 %ifarch %{aarch64}
 if [ -d /boot/efi ] && [ -x %{_bindir}/kernel-install ]; then
-    %{_bindir}/kernel-install remove %{version}-$kernel_flavour-%{release}%{disttag} || :
+	%{_bindir}/kernel-install remove %{version}-$kernel_flavour-%{release}%{disttag} || :
 fi
 %endif
 
@@ -1766,18 +1785,18 @@ rm -rf %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag} >/dev/null
 fi
 
 if [ -d /var/lib/dkms ]; then
-    rm -f /var/lib/dkms/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
-    rm -f /var/lib/dkms-binary/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
-    rm -rf /var/lib/dkms-binary/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
+	rm -f /var/lib/dkms/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
+	rm -rf /var/lib/dkms/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
+	rm -f /var/lib/dkms-binary/*/kernel-%{version}-$devel_flavour-%{release}%{disttag}-%{_target_cpu} >/dev/null
+	rm -rf /var/lib/dkms-binary/*/*/%{version}-$devel_flavour-%{release}%{disttag} >/dev/null
 fi
 
 %if %{with build_devel}
 if [ -L %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build ]; then
-    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
+	rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/build
 fi
 if [ -L %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source ]; then
-    rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
+	rm -f %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/source
 fi
 %endif
 exit 0
@@ -1853,10 +1872,16 @@ done
 unset ARCH
 make mrproper
 
+# Build bpftool first so SaveDevel can use it
+%if %{with bpftool}
+%make_build -C tools/bpf/bpftool CC=%{__cc} HOSTCC=%{__cc} ARCH=%{target_arch} LLVM=1 DESTDIR="%{temp_root}" V=0 VERBOSE=0
+%make_install -C tools/bpf/bpftool DESTDIR="%{temp_root}" prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} ARCH=%{target_arch} LLVM=1 install V=0 VERBOSE=0
+%endif
+
 # (tpg) build kernels for all flavours
 for flavour in %{kernel_flavours}; do
-    PrepareKernel ${flavour} ${flavour}-%{release}%{disttag}
-    BuildKernel %{version}-${flavour}-%{release}%{disttag}
+	PrepareKernel ${flavour} ${flavour}-%{release}%{disttag}
+	BuildKernel %{version}-${flavour}-%{release}%{disttag}
 %if %{with build_devel}
 	SaveDevel ${flavour}
 %endif
@@ -1892,11 +1917,6 @@ mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 mkdir -p %{temp_root}%{_bindir} %{temp_root}%{_mandir}/man8
 %make_install -C tools/power/x86/turbostat DESTDIR="%{temp_root}" V=0 VERBOSE=0
 %endif
-%endif
-
-%if %{with bpftool}
-%make_build -C tools/bpf/bpftool CC=%{__cc} HOSTCC=%{__cc} ARCH=%{target_arch} LLVM=1 DESTDIR="%{temp_root}" V=0 VERBOSE=0
-%make_install -C tools/bpf/bpftool DESTDIR="%{temp_root}" prefix=%{_prefix} bash_compdir=%{_sysconfdir}/bash_completion.d/ mandir=%{_mandir} ARCH=%{target_arch} LLVM=1 install V=0 VERBOSE=0
 %endif
 
 %if %{with perf}
@@ -1936,6 +1956,8 @@ cp %{temp_root}%{_bindir}/resolve_btfids tools/bpf/resolve_btfids/
 ###
 
 %install
+export TOP="$(pwd)"
+
 # We want to be able to test several times the install part
 rm -rf %{buildroot}
 cp -a %{temp_root} %{buildroot}
@@ -1943,7 +1965,7 @@ cp -a %{temp_root} %{buildroot}
 # We used to have a copy of PrepareKernel here
 # Now, we make sure that the thing in the linux dir is what we want it to be
 for i in %{buildroot}%{_modulesdir}/*; do
-    rm -f $i/build $i/source
+	rm -f $i/build $i/source
 done
 
 # binmerge
@@ -1958,14 +1980,14 @@ find %{buildroot}%{_modulesdir} -name "*.ko" -type f | %kxargs zstd --format=zst
 # sniff, if we compressed all the modules, we change the stamp :(
 # we really need the depmod -ae here
 for i in $(ls -d %{buildroot}%{_modulesdir}/* ); do
-    KernelVer=$(basename "$i")
+	KernelVer=$(basename "$i")
 # (tpg) this is needed workaround to not get wrong depmod output
 # unless somebody place vmlinuz into modulesdir and the copy it to bootdir on install
-    [ -L %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz ] && rm -rf %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz && cp -a %{buildroot}%{_bootdir}/vmlinuz-$KernelVer %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz
-    %{_bindir}/depmod -ae -b %{buildroot} -F %{buildroot}%{_modulesdir}/$KernelVer/System.map $KernelVer
-    echo $?
+	[ -L %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz ] && rm -rf %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz && cp -a %{buildroot}%{_bootdir}/vmlinuz-$KernelVer %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz
+	%{_bindir}/depmod -ae -b %{buildroot} -F %{buildroot}%{_modulesdir}/$KernelVer/System.map $KernelVer
+	echo $?
 # (tpg) see above workaround
-    [ -f %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz ] && rm -rf %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz && ln -sr %{_bootdir}/vmlinuz-$KernelVer %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz
+	[ -f %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz ] && rm -rf %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz && ln -sr %{_bootdir}/vmlinuz-$KernelVer %{buildroot}%{_modulesdir}/$KernelVer/vmlinuz
 done
 
 # need to set extraversion to match srpm again to avoid rebuild
@@ -1997,16 +2019,16 @@ rm -f %{buildroot}%{_kerneldir}/*_files.* %{buildroot}%{_kerneldir}/README.kerne
 # first architecture files
 for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 	mips nds32 nios2 openrisc parisc s390 score sh sh64 sparc tile unicore32 v850 xtensa mn10300; do
-    rm -rf %{buildroot}%{_kerneldir}/arch/$i
-    rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/$i
-    rm -rf %{buildroot}%{_kerneldir}/tools/arch/$i
-    rm -rf %{buildroot}%{_kerneldir}/tools/testing/selftests/$i
-    sed -i -e "/source.*${i}/d" %{buildroot}%{_kerneldir}/crypto/Kconfig
+	rm -rf %{buildroot}%{_kerneldir}/arch/$i
+	rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/$i
+	rm -rf %{buildroot}%{_kerneldir}/tools/arch/$i
+	rm -rf %{buildroot}%{_kerneldir}/tools/testing/selftests/$i
+	sed -i -e "/source.*${i}/d" %{buildroot}%{_kerneldir}/crypto/Kconfig
 done
 
 %ifnarch %{armx}
-    rm -rf %{buildroot}%{_kerneldir}/include/kvm/arm*
-    rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/arm*
+	rm -rf %{buildroot}%{_kerneldir}/include/kvm/arm*
+	rm -rf %{buildroot}%{_kerneldir}/scripts/dtc/include-prefixes/arm*
 %endif
 
 # other misc files
@@ -2033,14 +2055,114 @@ rm -f .cache.mk
 
 # Drop script binaries that can be rebuilt
 find tools scripts -executable |while read r; do
-    if file $r |grep -q ELF; then
-	rm -f $r
-    fi
+	if file $r |grep -q ELF; then
+		rm -f $r
+	fi
 done
 cd -
 
 # build_source
 %endif
+
+# Set up module packages
+cd %{buildroot}
+description() {
+	local D=$(modinfo -d $1)
+	if [[ -z "$D" ]]; then
+		local D="The $(modinfo $1 |grep ^name: |cut -d: -f2- |sed -E 's,^[[:space:]]+,,g') module"
+	fi
+	if [[ -z "$D" ]]; then
+		local D="The $(basename $1 |sed -e 's,\.ko.*,,') module"
+	fi
+	echo $D
+}
+PERCENT='%%'
+DONE=""
+for flavour in %{kernel_flavours}; do
+	while read d; do
+		M="$(basename $d)"
+		DN="$(echo $d |cut -b2-)"
+		# FIXME we need to skip subdirectories of already handled directories here
+		# No handling of kernel/drivers/comedi/drivers if kernel/drivers/comedi has already
+		# been taken care of
+		if echo " %{modules_subpackages} " |grep -q " ${M} "; then
+			# Let's see if it's a group of modules (e.g. "all ISDN drivers") or
+			# an individual module that has its own directory (e.g. most filesystems,
+			# with paths like fs/jfs/jfs.ko)
+			if [[ $(ls -1 $d |wc -l) -eq 1 ]]; then
+				D="$(description $d/*.ko*) for the ${flavour} kernel"
+			else
+				D="$M modules for the ${flavour} kernel"
+			fi
+			SP="%{specpartsdir}/%{name}-${flavour}-modules-${M}.specpart"
+			if ! [ -e "$SP" ]; then
+				cat >"$SP" <<EOF
+${PERCENT}package -n %{name}-${flavour}-modules-${M}
+Summary:	${D}
+Group:		System/Kernel and hardware
+Requires:	%{name}-${flavour} = %{EVRD}
+Provides:	installonlypkg(kernel-module)
+Requires(posttrans,postun):	kmod
+EOF
+				if [ "$M" = "hfs" -a "${flavour}" = "desktop" ]; then
+					echo "Obsoletes: hfsutils < 3.2.6-42" >>$SP
+				fi
+				cat >>"$SP" <<EOF
+${PERCENT}description -n %{name}-${flavour}-modules-${M}
+${D}
+
+${PERCENT}postun -n %{name}-${flavour}-modules-${M}
+[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
+
+${PERCENT}files -n %{name}-${flavour}-modules-${M}
+EOF
+			fi
+			echo "${DN}" >>"$SP"
+			DONE="$DONE ${DN}"
+		else
+			echo "%%dir ${DN}" >>${TOP}/kernel_files.${flavour}
+		fi
+	done < <(find .%{_modulesdir}/%{version}-${flavour}-%{release}%{disttag} -type d)
+	while read f; do
+		M="$(basename $f)"
+		BN="$(echo $M |sed -e 's,\.ko.*,,')"
+		FN="$(echo $f |cut -b2-)"
+		IS_DONE=false
+		for d in $DONE; do
+			if echo $FN |grep -q "^$d/"; then
+				IS_DONE=true
+				break
+			fi
+		done
+		$IS_DONE && continue
+		if echo " %{modules_subpackages} " |grep -q " ${BN}.ko "; then
+			D="$(description $f) for the ${flavour} kernel"
+			SP="%{specpartsdir}/%{name}-${flavour}-modules-${BN}.specpart"
+			if ! [ -e "$SP" ]; then # Deal with e.g. net/can and drivers/can going together
+				cat >"$SP" <<EOF
+${PERCENT}package -n %{name}-${flavour}-modules-${BN}
+Summary:	${D}
+Group:		System/Kernel and hardware
+Requires:	%{name}-${flavour} = %{EVRD}
+Provides:	installonlypkg(kernel-module)
+Requires(posttrans,postun):	kmod
+EOF
+				cat >>"$SP" <<EOF
+${PERCENT}description -n %{name}-${flavour}-modules-${BN}
+${D}
+
+${PERCENT}postun -n %{name}-${flavour}-modules-${BN}
+[ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
+
+${PERCENT}files -n %{name}-${flavour}-modules-${BN}
+EOF
+			fi
+			echo "${FN}" >>"$SP"
+		else
+			echo "${FN}" >>${TOP}/kernel_files.${flavour}
+		fi
+	done < <(find .%{_modulesdir}/%{version}-${flavour}-%{release}%{disttag} -type f -name "*.ko*")
+done
 
 %if %{with build_source}
 %files -n %{name}-source
