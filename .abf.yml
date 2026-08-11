@@ -3,7 +3,7 @@ sources:
   saa716x-driver.tar.xz: f9b6ef1cd6f1f71f53d9a8aadfba2cf6b5c3d7b6
   hid-tmff2-20260310.tar.gz: 0fb4fec5a0294c7eb5654f28fef2123a5f230324
   tp_smapi-0.45.tgz: ced1ea185dc6acdf0dd9f2a51cd75fc14a19fa82
-  linux-7.2-rc6.tar.gz: b87ffb174e78fe6bd38dab6b75d552d317d34185
   nexus-20260807.tar.gz: c90b7636eccc65f6e9754c60bee7109f6a336920
   v1.15.0.tar.gz: 412a18d05aa15477141a645d4edb08ce0f3cd6a8
   610.57.04.tar.gz: 801073926afccd4f02118228bc672f809e5231bf
+  linux-7.2-rc7.tar.gz: 2b7d05fcf5c1faa27d68cd457f96a883567b24f7
