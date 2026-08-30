@@ -148,26 +148,6 @@ echo "    Done."
 echo
 
 ##############################################################################
-# 2b2. Linux 7.2: gpio_device_get_chip() takes a non-const gpio_device *
-#
-# NVIDIA's of_gpio.h compat wrapper passes a const gpio_device * into
-# gpio_device_get_chip(). On aarch64 CONFIG_WERROR turns that into
-# -Wincompatible-pointer-types-discards-qualifiers. The only caller
-# already has a non-const pointer, so drop const from the helper.
-##############################################################################
-
-echo "==> Patching nv-linux.h gpio_device_get_chip const mismatch ..."
-nvlinux="$DRV_DIR/kernel-open/common/inc/nv-linux.h"
-if [ -f "$nvlinux" ]; then
-	sed -i 's/static inline int __to_hwgpio(const struct gpio_device \*gdev,/static inline int __to_hwgpio(struct gpio_device *gdev,/' \
-		"$nvlinux"
-	echo "    Done."
-else
-	echo "    WARNING: nv-linux.h not found, skipped."
-fi
-echo
-
-##############################################################################
 # 2c. Patch generated HAL vtable initializers for GCC RANDSTRUCT compatibility
 #
 # The RM code-generator emits positional struct initializers for every HAL

@@ -1,0 +1,18 @@
+Drop const from NVIDIA's of_gpio compat helper.
+
+610.57.04 added __to_hwgpio(const struct gpio_device *) for kernels that
+removed linux/of_gpio.h. gpio_device_get_chip() still takes a non-const
+pointer, so clang -Werror fails on aarch64 where CONFIG_OF_GPIO is set.
+The only caller already has a non-const gpio_device *.
+
+--- a/kernel-open/common/inc/nv-linux.h
++++ b/kernel-open/common/inc/nv-linux.h
+@@ -1724,7 +1724,7 @@
+ #else
+ #include <linux/gpio/driver.h>
+ 
+-static inline int __to_hwgpio(const struct gpio_device *gdev,
++static inline int __to_hwgpio(struct gpio_device *gdev,
+                               const struct of_phandle_args *gpiospec)
+ {
+ #if defined(CONFIG_OF_GPIO)

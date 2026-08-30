@@ -1,27 +1,28 @@
-diff -up linux-7.2-rc6/tools/build/feature/test-libperl.c.omv~ linux-7.2-rc6/tools/build/feature/test-libperl.c
---- linux-7.2-rc6/tools/build/feature/test-libperl.c.omv~	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/tools/build/feature/test-libperl.c	2026-08-09 23:24:11.124168805 +0200
+diff -up linux-6.14-rc2/tools/build/feature/test-libperl.c.35~ linux-6.14-rc2/tools/build/feature/test-libperl.c
+--- linux-6.14-rc2/tools/build/feature/test-libperl.c.35~	2025-02-09 21:45:03.000000000 +0100
++++ linux-6.14-rc2/tools/build/feature/test-libperl.c	2025-02-15 02:48:04.730592736 +0100
 @@ -1,4 +1,5 @@
  // SPDX-License-Identifier: GPL-2.0
 +#pragma GCC diagnostic ignored "-Wcompound-token-split-by-macro"
  #include <EXTERN.h>
  #include <perl.h>
  
-diff -up linux-7.2-rc6/tools/perf/Makefile.config.omv~ linux-7.2-rc6/tools/perf/Makefile.config
---- linux-7.2-rc6/tools/perf/Makefile.config.omv~	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/tools/perf/Makefile.config	2026-08-09 23:24:11.157396270 +0200
-@@ -127,6 +127,10 @@ endif
- LIBUNWIND_ARCHS:=aarch64 arm loongarch64 mips ppc32 ppc64 riscv s390x x86 x86_64
+diff -up linux-6.14-rc2/tools/perf/Makefile.config.35~ linux-6.14-rc2/tools/perf/Makefile.config
+--- linux-6.14-rc2/tools/perf/Makefile.config.35~	2025-02-09 21:45:03.000000000 +0100
++++ linux-6.14-rc2/tools/perf/Makefile.config	2025-02-15 02:51:40.247270425 +0100
+@@ -114,6 +114,11 @@ ifdef LIBUNWIND_DIR
+   LIBUNWIND_LDFLAGS = -L$(LIBUNWIND_DIR)/lib
+   LIBUNWIND_ARCHS = x86 x86_64 arm aarch64 debug-frame-arm debug-frame-aarch64 loongarch
+   $(foreach libunwind_arch,$(LIBUNWIND_ARCHS),$(call libunwind_arch_set_flags,$(libunwind_arch)))
++else
++  LIBUNWIND_CFLAGS  = -I/usr/include/libunwind
++  LIBUNWIND_LDFLAGS = -L/usr/lib64/libunwind
++  LIBUNWIND_ARCHS = x86 x86_64 arm aarch64 debug-frame-arm debug-frame-aarch64 loongarch
++  $(foreach libunwind_arch,$(LIBUNWIND_ARCHS),$(call libunwind_arch_set_flags,$(libunwind_arch)))
+ endif
  
- # "Local" (no arch specified) feature test flags.
-+ifndef LIBUNWIND_DIR
-+  LIBUNWIND_CFLAGS  ?= -I/usr/include/libunwind
-+  LIBUNWIND_LDFLAGS ?= -L/usr/lib64
-+endif
- FEATURE_CHECK_CFLAGS-libunwind = $(LIBUNWIND_CFLAGS)
- FEATURE_CHECK_LDFLAGS-libunwind = $(LIBUNWIND_LDFLAGS) $(LIBUNWIND_LIBS)
- FEATURE_CHECK_CFLAGS-libunwind-debug-frame = $(LIBUNWIND_CFLAGS)
-@@ -1067,11 +1071,15 @@ ifdef EXTRA_TESTS
+ ifndef NO_LIBUNWIND
+@@ -1115,11 +1120,15 @@ ifdef EXTRA_TESTS
  endif
  
  ifndef NO_JVMTI
@@ -41,3 +42,18 @@ diff -up linux-7.2-rc6/tools/perf/Makefile.config.omv~ linux-7.2-rc6/tools/perf/
      endif
    endif
    ifndef JDIR
+diff -up linux-6.14-rc2/tools/perf/Makefile.perf.35~ linux-6.14-rc2/tools/perf/Makefile.perf
+--- linux-6.14-rc2/tools/perf/Makefile.perf.35~	2025-02-09 21:45:03.000000000 +0100
++++ linux-6.14-rc2/tools/perf/Makefile.perf	2025-02-15 02:48:04.730786222 +0100
+@@ -553,6 +553,11 @@ asm_generic_uapi_dir := $(srctree)/tools
+ arch_asm_uapi_dir := $(srctree)/tools/arch/$(SRCARCH)/include/uapi/asm/
+ x86_arch_asm_dir := $(srctree)/tools/arch/x86/include/asm/
+ 
++ifeq ($(ARCH),x86)
++# Make sure we can find <asm/cmpxchg.h>
++CPPFLAGS += -I$(x86_arch_asm_dir)
++endif
++
+ beauty_outdir := $(OUTPUT)trace/beauty/generated
+ beauty_ioctl_outdir := $(beauty_outdir)/ioctl
+ 

@@ -1,7 +1,6 @@
-diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h.33~ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h
---- linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h.33~	2026-01-04 23:41:55.000000000 +0100
-+++ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-01-10 16:27:40.328473672 +0100
-@@ -164,6 +164,7 @@ struct amdgpu_watchdog_timer {
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-08-31 00:33:08.337033106 +0200
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-08-31 00:33:08.363971569 +0200
+@@ -157,6 +157,7 @@ struct amdgpu_watchdog_timer {
   */
  extern int amdgpu_modeset;
  extern unsigned int amdgpu_vram_limit;
@@ -9,9 +8,8 @@ diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu.h.33~ linux-6.19-rc4/d
  extern int amdgpu_vis_vram_limit;
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
-diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
---- linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.33~	2026-01-04 23:41:55.000000000 +0100
-+++ linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c	2026-01-10 16:27:40.329185210 +0100
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c	2026-08-31 00:33:08.340158156 +0200
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c	2026-08-31 00:33:08.364305333 +0200
 @@ -150,6 +150,7 @@ enum AMDGPU_DEBUG_MASK {
  };
  
@@ -36,10 +34,9 @@ diff -up linux-6.19-rc4/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c.33~ linux-6.19-r
   * DOC: vramlimit (int)
   * Restrict the total amount of VRAM in MiB for testing.  The default is 0 (Use full VRAM).
   */
-diff -up linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c
---- linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c.33~	2026-01-04 23:41:55.000000000 +0100
-+++ linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c	2026-01-10 16:27:40.329882898 +0100
-@@ -3342,6 +3342,9 @@ static ssize_t amdgpu_hwmon_show_power_c
+--- a/drivers/gpu/drm/amd/pm/amdgpu_pm.c	2026-08-31 00:33:08.343069813 +0200
++++ b/drivers/gpu/drm/amd/pm/amdgpu_pm.c	2026-08-31 00:33:08.364646558 +0200
+@@ -3422,6 +3422,9 @@ static ssize_t amdgpu_hwmon_show_power_c
  					 struct device_attribute *attr,
  					 char *buf)
  {
@@ -49,27 +46,30 @@ diff -up linux-6.19-rc4/drivers/gpu/drm/amd/pm/amdgpu_pm.c.33~ linux-6.19-rc4/dr
  	return amdgpu_hwmon_show_power_cap_generic(dev, attr, buf, PP_PWR_LIMIT_MIN);
  }
  
-diff -up linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c.33~ linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
---- linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c.33~	2026-01-04 23:41:55.000000000 +0100
-+++ linux-6.19-rc4/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c	2026-01-10 16:43:43.218199014 +0100
-@@ -2974,7 +2974,10 @@ int smu_get_power_limit(void *handle,
- 			*limit = smu->max_power_limit;
- 			break;
- 		case SMU_PPT_LIMIT_MIN:
--			*limit = smu->min_power_limit;
-+			if (amdgpu_ignore_min_pcap)
-+				*limit = 0;
-+			else
-+				*limit = smu->min_power_limit;
- 			break;
- 		default:
- 			return -EINVAL;
-@@ -2995,7 +2998,7 @@ static int smu_set_power_limit(void *han
- 	if (limit_type == SMU_DEFAULT_PPT_LIMIT) {
- 		if (!limit)
- 			limit = smu->current_power_limit;
--		if ((limit > smu->max_power_limit) || (limit < smu->min_power_limit)) {
-+		if ((limit > smu->max_power_limit) || (!amdgpu_ignore_min_pcap && (limit < smu->min_power_limit))) {
- 			dev_err(smu->adev->dev,
- 				"New power limit (%d) is out of range [%d,%d]\n",
- 				limit, smu->min_power_limit, smu->max_power_limit);
+--- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c	2026-08-31 00:33:08.345849128 +0200
++++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c	2026-08-31 00:33:08.364835540 +0200
+@@ -3001,9 +3001,12 @@ int smu_get_ppt_limit(void *handle,
+ 			smu->ppt_limits.range[power_source][limit_type].max;
+ 		break;
+ 	case SMU_PPT_LIMIT_MIN:
+-		*limit = smu->od_enabled ?
+-			smu->ppt_limits.range[power_source][limit_type].od_min :
+-			smu->ppt_limits.range[power_source][limit_type].min;
++		if (amdgpu_ignore_min_pcap)
++			*limit = 0;
++		else
++			*limit = smu->od_enabled ?
++				smu->ppt_limits.range[power_source][limit_type].od_min :
++				smu->ppt_limits.range[power_source][limit_type].min;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -3040,7 +3043,7 @@ static int smu_set_ppt_limit(void *handl
+ 			return ret;
+ 	}
+ 
+-	if (limit > max_limit || limit < min_limit) {
++	if (limit > max_limit || (!amdgpu_ignore_min_pcap && limit < min_limit)) {
+ 		dev_err(smu->adev->dev,
+ 			"New PPT limit (%d) is out of range [%d,%d]\n",
+ 			limit, min_limit, max_limit);

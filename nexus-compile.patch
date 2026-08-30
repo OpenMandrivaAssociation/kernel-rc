@@ -1,69 +1,5 @@
-diff -up linux/drivers/nexus/nexus_core.c.omv~ linux/drivers/nexus/nexus_core.c
---- linux/drivers/nexus/nexus_core.c.omv~	2026-08-08 15:20:00.000000000 +0200
-+++ linux/drivers/nexus/nexus_core.c	2026-08-08 15:20:00.000000000 +0200
-@@ -133,7 +133,7 @@ void nexus_unregister_team_exit(nexus_te
- }
- EXPORT_SYMBOL(nexus_unregister_team_exit);
- 
--struct nexus_team* nexus_team_init()
-+struct nexus_team* nexus_team_init(void)
- {
- 	struct nexus_team *t = idr_find(&nexus_teams_idr, current->tgid);
- 	if (t != NULL) {
-@@ -157,3 +157,3 @@ struct nexus_team* nexus_team_init(void)
--		strncpy(team->main_thread->name, "main", 4);
-+		strscpy(team->main_thread->name, "main", B_OS_NAME_LENGTH);
- 		team->ports = RB_ROOT;
- 		team->threads = RB_ROOT;
-@@ -791,5 +791,5 @@ static long nexus_ioctl(struct file *filp
--		case NEXUS_THREAD_RESUME:
--			thread_id tid = (thread_id)arg;
-+		case NEXUS_THREAD_RESUME: {
-+			thread_id tid = (thread_id)arg;
- 			if (tid < 0) {
- 				ret = B_BAD_THREAD_ID;
- 				break;
-@@ -833,6 +833,7 @@ static long nexus_ioctl(struct file *filp
- 			put_task_struct(task);
- 			ret = B_OK;
- 			break;
-+		}
- 
- 		case NEXUS_THREAD_SET_RETURN_CODE:
- 			thread->exit_status = (int32_t)(long)arg;
---- linux/drivers/nexus/sem.c.omv~	2026-08-08 15:20:00.000000000 +0200
-+++ linux/drivers/nexus/sem.c	2026-08-10 01:35:00.000000000 +0200
-@@ -313,7 +313,7 @@ static int nexus_get_sem_info(sem_id id,
- 	}
- 
- 	info->sem = sem->id;
--	strncpy(info->name, sem->name, B_OS_NAME_LENGTH);
-+	strscpy(info->name, sem->name, B_OS_NAME_LENGTH);
- 	info->name[B_OS_NAME_LENGTH - 1] = '\0';
- 	info->count = sem->count;
- 	info->team = sem->owner;
-@@ -338,7 +338,7 @@ static int nexus_get_next_sem_info(team_
- 			continue;
- 
- 		out->info.sem = sem->id;
--		strncpy(out->info.name, sem->name, B_OS_NAME_LENGTH);
-+		strscpy(out->info.name, sem->name, B_OS_NAME_LENGTH);
- 		out->info.name[B_OS_NAME_LENGTH - 1] = '\0';
- 		out->info.count = sem->count;
- 		out->info.team = sem->owner;
---- linux/drivers/nexus/port.c.omv~	2026-08-08 15:20:00.000000000 +0200
-+++ linux/drivers/nexus/port.c	2026-08-10 01:35:00.000000000 +0200
-@@ -222,7 +222,7 @@ long nexus_get_next_port_for_team(unsign
- 		req.info.capacity   = p->capacity;
- 		req.info.queue_count = p->read_count;
- 		req.info.total_count = p->total_count;
--		strncpy(req.info.name, p->name, B_OS_NAME_LENGTH);
-+		strscpy(req.info.name, p->name, B_OS_NAME_LENGTH);
- 		req.info.name[B_OS_NAME_LENGTH - 1] = '\0';
- 		req.ret = B_OK;
- 		break;
---- linux/drivers/nexus/index.c.omv~	2026-08-07 09:11:04.000000000 +0200
-+++ linux/drivers/nexus/index.c	2026-08-08 16:43:18.309250980 +0200
+--- linux/drivers/nexus/index.c	2026-08-29 22:58:38.000000000 +0200
++++ linux/drivers/nexus/index.c	2026-08-31 00:42:03.232320161 +0200
 @@ -129,22 +129,35 @@ static int ensure_dir(const char *path)
  		return ret;
  
@@ -152,3 +88,81 @@ diff -up linux/drivers/nexus/nexus_core.c.omv~ linux/drivers/nexus/nexus_core.c
  	if (IS_ERR(marker_dentry)) {
  		ret = PTR_ERR(marker_dentry);
  		goto out_parent_unlock;
+--- linux/drivers/nexus/nexus_core.c	2026-08-29 22:58:38.000000000 +0200
++++ linux/drivers/nexus/nexus_core.c	2026-08-31 00:42:03.232400162 +0200
+@@ -16,6 +16,7 @@
+ #include <linux/rbtree.h>
+ #include <linux/kallsyms.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/uaccess.h>
+ #include <linux/version.h>
+ #include <linux/signal.h>
+@@ -162,7 +163,7 @@ static struct nexus_team* nexus_team_ini
+ 			return NULL;
+ 		}
+ 
+-		strncpy(team->main_thread->name, "main", 4);
++		strscpy(team->main_thread->name, "main");
+ 		team->ports = RB_ROOT;
+ 		team->threads = RB_ROOT;
+ 
+@@ -176,7 +177,7 @@ static struct nexus_team* nexus_team_ini
+ 	return team;
+ }
+ 
+-struct nexus_team* nexus_team_init()
++struct nexus_team* nexus_team_init(void)
+ {
+ 	return nexus_team_init_for(current->tgid);
+ }
+--- linux/drivers/nexus/port.c	2026-08-29 22:58:38.000000000 +0200
++++ linux/drivers/nexus/port.c	2026-08-31 00:42:03.232468042 +0200
+@@ -15,6 +15,7 @@
+ #include <linux/mutex.h>
+ #include <linux/rbtree.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/uaccess.h>
+ #include <linux/wait.h>
+ 
+@@ -257,8 +258,7 @@ long nexus_get_next_port_for_team(unsign
+ 		req.info.capacity   = p->capacity;
+ 		req.info.queue_count = p->read_count;
+ 		req.info.total_count = p->total_count;
+-		strncpy(req.info.name, p->name, B_OS_NAME_LENGTH);
+-		req.info.name[B_OS_NAME_LENGTH - 1] = '\0';
++		strscpy(req.info.name, p->name);
+ 		req.ret = B_OK;
+ 		break;
+ 	}
+--- linux/drivers/nexus/sem.c	2026-08-29 22:58:38.000000000 +0200
++++ linux/drivers/nexus/sem.c	2026-08-31 00:42:18.476180470 +0200
+@@ -11,6 +11,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/semaphore.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/spinlock.h>
+ #include <linux/uaccess.h>
+ 
+@@ -389,8 +390,7 @@ static int nexus_get_sem_info(sem_id id,
+ 	}
+ 
+ 	info->sem = sem->id;
+-	strncpy(info->name, sem->name, B_OS_NAME_LENGTH);
+-	info->name[B_OS_NAME_LENGTH - 1] = '\0';
++	strscpy(info->name, sem->name);
+ 	spin_lock(&sem->lock);
+ 	info->count = sem_unreserved_count(sem);
+ 	info->latest_holder = sem->latest_holder;
+@@ -417,8 +417,7 @@ static int nexus_get_next_sem_info(team_
+ 			continue;
+ 
+ 		out->info.sem = sem->id;
+-		strncpy(out->info.name, sem->name, B_OS_NAME_LENGTH);
+-		out->info.name[B_OS_NAME_LENGTH - 1] = '\0';
++		strscpy(out->info.name, sem->name);
+ 		spin_lock(&sem->lock);
+ 		out->info.count = sem_unreserved_count(sem);
+ 		spin_unlock(&sem->lock);

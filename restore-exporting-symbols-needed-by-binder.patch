@@ -1,5 +1,6 @@
---- linux-7.2-rc6/drivers/android/binder.c	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/drivers/android/binder.c	2026-08-09 23:35:42.277506921 +0200
+diff -up linux-7.2/drivers/android/binder.c.32~ linux-7.2/drivers/android/binder.c
+--- linux-7.2/drivers/android/binder.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.2/drivers/android/binder.c	2026-05-17 22:19:28.643503983 +0200
 @@ -7016,6 +7016,9 @@ DEFINE_SHOW_ATTRIBUTE(transactions);
  DEFINE_SHOW_ATTRIBUTE(transactions_hashed);
  DEFINE_SHOW_ATTRIBUTE(transaction_log);
@@ -10,10 +11,10 @@
  const struct binder_debugfs_entry binder_debugfs_entries[] = {
  	{
  		.name = "state",
-
---- linux-7.2-rc6/mm/list_lru.c	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/mm/list_lru.c	2026-08-09 23:35:42.278867157 +0200
-@@ -273,6 +273,7 @@ bool list_lru_del(struct list_lru *lru,
+diff -up linux-7.2/mm/list_lru.c.32~ linux-7.2/mm/list_lru.c
+--- linux-7.2/mm/list_lru.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.2/mm/list_lru.c	2026-05-17 22:19:28.642788486 +0200
+@@ -273,6 +273,7 @@ bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
  	list_lru_unlock(l);
  	return ret;
  }
@@ -21,9 +22,9 @@
  
  bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
  {
-
---- linux-7.2-rc6/mm/mmap_lock.c	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/mm/mmap_lock.c	2026-08-09 23:35:42.279253423 +0200
+diff -up linux-7.2/mm/mmap_lock.c.32~ linux-7.2/mm/mmap_lock.c
+--- linux-7.2/mm/mmap_lock.c.32~	2026-05-10 23:08:09.000000000 +0200
++++ linux-7.2/mm/mmap_lock.c	2026-05-17 22:19:28.643956568 +0200
 @@ -340,6 +340,7 @@ inval:
  	count_vm_vma_lock_event(VMA_LOCK_ABORT);
  	return NULL;
@@ -32,10 +33,10 @@
  
  static struct vm_area_struct *lock_next_vma_under_mmap_lock(struct mm_struct *mm,
  							    struct vma_iterator *vmi,
-
---- linux-7.2-rc6/mm/memory.c	2026-08-03 01:24:24.000000000 +0200
-+++ linux-7.2-rc6/mm/memory.c	2026-08-09 23:35:42.280105387 +0200
-@@ -2247,6 +2247,7 @@ void zap_vma_range(struct vm_area_struct
+diff -up linux-7.2/mm/memory.c.omv~ linux-7.2/mm/memory.c
+--- linux-7.2/mm/memory.c.omv~	2026-05-18 04:24:16.305115201 +0200
++++ linux-7.2/mm/memory.c	2026-05-18 04:24:42.385038235 +0200
+@@ -2247,6 +2247,7 @@ void zap_vma_range(struct vm_area_struct *vma, unsigned long address,
  	zap_vma_range_batched(&tlb, vma, address, size, NULL);
  	tlb_finish_mmu(&tlb);
  }

@@ -46,25 +46,47 @@
 
 %define target_arch %(echo %{_arch} | sed -e 's/mips.*/mips/' -e 's/arm.*/arm/' -e 's/aarch64/arm64/' -e 's/x86_64/x86/' -e 's/i.86/x86/' -e 's/znver1/x86/' -e 's/riscv.*/riscv/' -e 's/ppc.*/powerpc/' -e 's/loongarch64/loongarch/')
 
-# (tpg) define here per arch which kernel flavours you would like to build
-# we don't currently have gcc on loongarch64, enable all kernels when we do
+# Kernel flavours as bconds. rpm does not accept hyphens in bcond names,
+# so the gcc flavours are desktop_gcc / server_gcc (--without desktop_gcc).
+# Flavour strings in the build remain desktop-gcc / server-gcc.
+# Defaults match the previous per-arch list (LoongArch has no gcc yet).
+%bcond_without desktop
+%bcond_without server
 %ifarch %{loongarch64}
-%define kernel_flavours desktop server
+%bcond_with desktop_gcc
+%bcond_with server_gcc
 %else
-%define kernel_flavours desktop server desktop-gcc server-gcc
+%bcond_without desktop_gcc
+%bcond_without server_gcc
 %endif
-# possible options are: desktop server desktop-gcc server-gcc
-#define kernel_flavours desktop server desktop-gcc server-gcc
+%if %{with desktop}
+%global kf_desktop desktop
+%endif
+%if %{with server}
+%global kf_server server
+%endif
+%if %{with desktop_gcc}
+%global kf_desktop_gcc desktop-gcc
+%endif
+%if %{with server_gcc}
+%global kf_server_gcc server-gcc
+%endif
+%define kernel_flavours %{?kf_desktop} %{?kf_server} %{?kf_desktop_gcc} %{?kf_server_gcc}
 
 # Rarely used modules → separate kernel-*-modules-* subpackages (see install loop).
-# Matched by directory basename under .../kernel/ or by exact foo.ko basenames.
+# Token forms:
+#   name           directory basename under .../kernel/ (e.g. jfs, firewire)
+#   path/to/dir    path suffix, so sound/soc/qcom does not steal drm/qcom
+#   foo.ko         exact module basename
+#   src=pkg        map any of the above onto package kernel-*-modules-pkg
 #
 # Keep everyday hardware in the main package (USB, common Wi‑Fi, webcams/V4L,
-# NVMe/AHCI, etc.). Split only niche protocols, legacy buses, DVB/TV, staging,
-# and odd firmware-bound drivers.
+# NVMe/AHCI, HDA/SOF laptop audio, etc.). Split only niche protocols, legacy
+# buses, DVB/TV, staging, embedded-SoC audio, and odd firmware-bound drivers.
 
 # Rare / legacy filesystems
-%global modules_subpackages appletalk can adfs affs afs befs bfs coda cramfs efs freevxfs gfs2 hfs hfsplus hpfs jffs2 jfs minix nilfs2 ocfs2 omfs orangefs qnx4 qnx6 romfs ubifs ufs zonefs zd1211rw
+# 7.3 removed appletalk, efs and freevxfs
+%global modules_subpackages can adfs affs afs befs bfs coda cramfs gfs2 hfs hfsplus hpfs jffs2 jfs minix nilfs2 ocfs2 omfs orangefs qnx4 qnx6 romfs ubifs ufs zonefs zd1211rw
 
 # Rare networking (ATM kept available for legacy PPPoA/ADSL; not needed for PPPoE)
 %global modules_subpackages %{modules_subpackages} atm sctp rds tipc hsr batman-adv x25 phonet caif nfc 6lowpan ieee802154 mac802154 openvswitch fddi arcnet isdn
@@ -74,13 +96,86 @@
 
 # DVB / digital TV / FM radio only — leave media core + UVC webcams in main
 %global modules_subpackages %{modules_subpackages} dvb-core dvb-frontends dvb-usb tuners radio
+# Pre-UVC gspca webcams (not common anymore). Package: kernel-*-modules-gspca
+%global modules_subpackages %{modules_subpackages} gspca
 
 # Specialized accelerators (not everyday laptop NPUs)
 %global modules_subpackages %{modules_subpackages} habanalabs
 
+# ASoC platform drivers for embedded SoCs (SBCs, phones, FPGA). Path tokens
+# match only sound/soc/<vendor>. Package: kernel-*-modules-snd-soc-<vendor>.
+# Left in the main image: amd / intel / sof (x86 laptops), qcom (Snapdragon X
+# Elite), apple (Macs), loongson (everyday on loongarch), plus codecs/generic/
+# sdca/sdw_utils (shared laptop codecs and simple-card).
+%global modules_subpackages %{modules_subpackages} sound/soc/adi sound/soc/atmel sound/soc/au1x sound/soc/bcm sound/soc/cirrus sound/soc/dwc sound/soc/fsl sound/soc/google sound/soc/hisilicon sound/soc/img sound/soc/jz4740 sound/soc/kirkwood sound/soc/mediatek sound/soc/meson sound/soc/mxs sound/soc/pxa sound/soc/renesas sound/soc/rockchip sound/soc/samsung sound/soc/sophgo sound/soc/spacemit sound/soc/spear sound/soc/sprd sound/soc/starfive sound/soc/sti sound/soc/stm sound/soc/sunxi sound/soc/tegra sound/soc/ti sound/soc/uniphier sound/soc/ux500 sound/soc/xilinx sound/soc/xtensa
+
+# Codecs that only exist on those SoCs (they live in sound/soc/codecs/)
+%global modules_subpackages %{modules_subpackages} snd-soc-mt6351.ko=snd-soc-mediatek snd-soc-mt6357.ko=snd-soc-mediatek snd-soc-mt6358.ko=snd-soc-mediatek snd-soc-mt6359.ko=snd-soc-mediatek snd-soc-mt6660.ko=snd-soc-mediatek snd-soc-chv3-codec.ko=snd-soc-google snd-soc-sti-sas.ko=snd-soc-sti
+
 %ifarch %{aarch64} %{x86_64}
 %global modules_subpackages %{modules_subpackages} nvidia
 %endif
+
+# Nouveau is split so NVIDIA-proprietary users can uninstall it. The main
+# flavour package Requires it for now so existing nouveau setups keep working.
+%global modules_subpackages %{modules_subpackages} nouveau
+
+# Industrial / eval-board IIO (ADC/DAC/chemical/…). Laptop bits stay in main:
+# industrialio core, hid-sensor-*, Cros EC, ACPI ALS, ST LSM6DSx, BMI160/270/323,
+# BMC150, KXCJK-1013.
+%global modules_subpackages %{modules_subpackages} iio/adc=iio iio/dac=iio iio/addac=iio iio/afe=iio iio/amplifiers=iio iio/cdc=iio iio/chemical=iio iio/filter=iio iio/frequency=iio iio/health=iio iio/potentiometer=iio iio/potentiostat=iio iio/resolver=iio iio/multiplexer=iio
+
+# Mixed IIO class drivers that are not laptop HID/Cros-EC/common IMUs
+%global modules_subpackages %{modules_subpackages} abp060mg.ko=iio abp2030pa.ko=iio abp2030pa_i2c.ko=iio abp2030pa_spi.ko=iio adis16080.ko=iio adis16130.ko=iio adis16136.ko=iio adis16201.ko=iio adis16209.ko=iio adis16260.ko=iio
+%global modules_subpackages %{modules_subpackages} adis16400.ko=iio adis16460.ko=iio adis16475.ko=iio adis16480.ko=iio adis16550.ko=iio adis_lib.ko=iio adjd_s311.ko=iio adp810.ko=iio adux1020.ko=iio adxl313_core.ko=iio adxl313_i2c.ko=iio adxl313_spi.ko=iio
+%global modules_subpackages %{modules_subpackages} adxl345_core.ko=iio adxl345_i2c.ko=iio adxl345_spi.ko=iio adxl355_core.ko=iio adxl355_i2c.ko=iio adxl355_spi.ko=iio adxl367.ko=iio adxl367_i2c.ko=iio adxl367_spi.ko=iio adxl372.ko=iio adxl372_i2c.ko=iio adxl372_spi.ko=iio
+%global modules_subpackages %{modules_subpackages} adxl380.ko=iio adxl380_i2c.ko=iio adxl380_spi.ko=iio adxrs290.ko=iio adxrs450.ko=iio af8133j.ko=iio ak8974.ko=iio ak8975.ko=iio al3000a.ko=iio al3010.ko=iio al3320a.ko=iio als31300.ko=iio
+%global modules_subpackages %{modules_subpackages} am2315.ko=iio apds9160.ko=iio apds9300.ko=iio apds9306.ko=iio apds9960.ko=iio apds9999.ko=iio as3935.ko=iio as73211.ko=iio aw96103.ko=iio bh1745.ko=iio bh1750.ko=iio bh1780.ko=iio
+%global modules_subpackages %{modules_subpackages} bma180.ko=iio bma220_core.ko=iio bma220_i2c.ko=iio bma220_spi.ko=iio bma400_core.ko=iio bma400_i2c.ko=iio bma400_spi.ko=iio bmc150_magn.ko=iio bmc150_magn_i2c.ko=iio bmc150_magn_spi.ko=iio bmg160_core.ko=iio bmg160_i2c.ko=iio
+%global modules_subpackages %{modules_subpackages} bmg160_spi.ko=iio bmi088-accel-core.ko=iio bmi088-accel-i2c.ko=iio bmi088-accel-spi.ko=iio bmi160_core.ko=iio bmi270_core.ko=iio bmi323_core.ko=iio bmp280.ko=iio bmp280-i2c.ko=iio bmp280-spi.ko=iio bno055.ko=iio bno055_i2c.ko=iio
+%global modules_subpackages %{modules_subpackages} bno055_ser.ko=iio cm32181.ko=iio cm3232.ko=iio cm3323.ko=iio cm3605.ko=iio cm36651.ko=iio d3323aa.ko=iio da280.ko=iio da311.ko=iio dht11.ko=iio dlhl60d.ko=iio dmard06.ko=iio
+%global modules_subpackages %{modules_subpackages} dmard09.ko=iio dmard10.ko=iio dps310.ko=iio ens210.ko=iio fxas21002c_core.ko=iio fxas21002c_i2c.ko=iio fxas21002c_spi.ko=iio fxls8962af-core.ko=iio fxls8962af-i2c.ko=iio fxls8962af-spi.ko=iio fxos8700_core.ko=iio fxos8700_i2c.ko=iio
+%global modules_subpackages %{modules_subpackages} fxos8700_spi.ko=iio gp2ap002.ko=iio gp2ap020a00f.ko=iio hdc100x.ko=iio hdc2010.ko=iio hdc3020.ko=iio hmc5843_core.ko=iio hmc5843_i2c.ko=iio hmc5843_spi.ko=iio hp03.ko=iio hp206c.ko=iio hsc030pa.ko=iio
+%global modules_subpackages %{modules_subpackages} hsc030pa_i2c.ko=iio hsc030pa_spi.ko=iio hts221.ko=iio hts221_i2c.ko=iio hts221_spi.ko=iio htu21.ko=iio hx9023s.ko=iio icp10100.ko=iio inv-icm42600.ko=iio inv-icm42600-i2c.ko=iio inv-icm42600-spi.ko=iio inv-icm45600.ko=iio
+%global modules_subpackages %{modules_subpackages} inv-icm45600-i2c.ko=iio inv-icm45600-i3c.ko=iio inv-icm45600-spi.ko=iio inv-mpu6050.ko=iio inv-mpu6050-i2c.ko=iio inv-mpu6050-spi.ko=iio inv_sensors_timestamp.ko=iio iqs620at-temp.ko=iio iqs621-als.ko=iio iqs624-pos.ko=iio irsd200.ko=iio isl29018.ko=iio
+%global modules_subpackages %{modules_subpackages} isl29028.ko=iio isl29125.ko=iio isl29501.ko=iio isl76682.ko=iio itg3200.ko=iio jsa1212.ko=iio kionix-kx022a.ko=iio kionix-kx022a-i2c.ko=iio kionix-kx022a-spi.ko=iio kmx61.ko=iio kxsd9.ko=iio kxsd9-i2c.ko=iio
+%global modules_subpackages %{modules_subpackages} kxsd9-spi.ko=iio lm3533-als.ko=iio ltc2983.ko=iio ltr390.ko=iio ltr501.ko=iio ltrf216a.ko=iio lv0104cs.ko=iio mag3110.ko=iio max30208.ko=iio max31856.ko=iio max31865.ko=iio max44000.ko=iio
+%global modules_subpackages %{modules_subpackages} max44009.ko=iio maxim_thermocouple.ko=iio mb1232.ko=iio mc3230.ko=iio mcp9600.ko=iio mlx90614.ko=iio mlx90632.ko=iio mlx90635.ko=iio mma7455_core.ko=iio mma7455_i2c.ko=iio mma7455_spi.ko=iio mma7660.ko=iio
+%global modules_subpackages %{modules_subpackages} mma8452.ko=iio mma9551.ko=iio mma9551_core.ko=iio mma9553.ko=iio mmc35240.ko=iio mmc5633.ko=iio mmc5983.ko=iio mpl115.ko=iio mpl115_i2c.ko=iio mpl115_spi.ko=iio mpl3115.ko=iio mprls0025pa.ko=iio
+%global modules_subpackages %{modules_subpackages} mprls0025pa_i2c.ko=iio mprls0025pa_spi.ko=iio mpu3050.ko=iio ms5611_core.ko=iio ms5611_i2c.ko=iio ms5611_spi.ko=iio ms5637.ko=iio ms_sensors_i2c.ko=iio msa311.ko=iio mxc4005.ko=iio mxc6255.ko=iio noa1305.ko=iio
+%global modules_subpackages %{modules_subpackages} opt3001.ko=iio opt4001.ko=iio opt4060.ko=iio pa12203001.ko=iio ping.ko=iio pulsedlight-lidar-lite-v2.ko=iio rfd77402.ko=iio rm3100-core.ko=iio rm3100-i2c.ko=iio rm3100-spi.ko=iio rohm-bm1390.ko=iio rohm-bu27034.ko=iio
+%global modules_subpackages %{modules_subpackages} rpr0521.ko=iio sca3000.ko=iio sca3300.ko=iio scmi_iio.ko=iio sdp500.ko=iio sensorhub.ko=iio si1133.ko=iio si1145.ko=iio si7005.ko=iio si7020.ko=iio si7210.ko=iio smi240.ko=iio
+%global modules_subpackages %{modules_subpackages} smi330_core.ko=iio smi330_i2c.ko=iio smi330_spi.ko=iio srf04.ko=iio srf08.ko=iio ssp_accel_sensor.ko=iio ssp_gyro_sensor.ko=iio ssp_iio.ko=iio st_accel.ko=iio st_accel_i2c.ko=iio st_accel_spi.ko=iio st_gyro.ko=iio
+%global modules_subpackages %{modules_subpackages} st_gyro_i2c.ko=iio st_gyro_spi.ko=iio st_lsm9ds0.ko=iio st_lsm9ds0_i2c.ko=iio st_lsm9ds0_spi.ko=iio st_magn.ko=iio st_magn_i2c.ko=iio st_magn_spi.ko=iio st_pressure.ko=iio st_pressure_i2c.ko=iio st_pressure_spi.ko=iio st_uvis25_core.ko=iio
+%global modules_subpackages %{modules_subpackages} st_uvis25_i2c.ko=iio st_uvis25_spi.ko=iio stk3310.ko=iio stk8312.ko=iio stk8ba50.ko=iio sx9310.ko=iio sx9324.ko=iio sx9360.ko=iio sx9500.ko=iio sx_common.ko=iio t5403.ko=iio tcs3414.ko=iio
+%global modules_subpackages %{modules_subpackages} tcs3472.ko=iio tlv493d.ko=iio tmag5273.ko=iio tmp006.ko=iio tmp007.ko=iio tmp117.ko=iio tsl2563.ko=iio tsl2583.ko=iio tsl2591.ko=iio tsl2772.ko=iio tsl4531.ko=iio tsys01.ko=iio
+%global modules_subpackages %{modules_subpackages} tsys02d.ko=iio us5182d.ko=iio vcnl3020.ko=iio vcnl4000.ko=iio vcnl4035.ko=iio veml3235.ko=iio veml3328.ko=iio veml6030.ko=iio veml6040.ko=iio veml6046x00.ko=iio veml6070.ko=iio veml6075.ko=iio
+%global modules_subpackages %{modules_subpackages} vl53l0x-i2c.ko=iio vl53l1x-i2c.ko=iio vl6180.ko=iio yamaha-yas530.ko=iio zopt2201.ko=iio zpa2326.ko=iio zpa2326_i2c.ko=iio zpa2326_spi.ko=iio
+%global modules_subpackages %{modules_subpackages} inv-icm42607-i2c.ko=iio inv-icm42607-spi.ko=iio qmc5883l.ko=iio qmc6308.ko=iio ltc2378.ko=iio adf41513.ko=iio mcp47a1.ko=iio ti-ads112c14.ko=iio slf3s.ko=iio
+
+# Industrial / PMBus / eval-board hwmon. Desktop Super-I/O, CPU, vendor
+# (ASUS/Gigabyte/Corsair/NZXT), Mac, Chromebook and common I2C temps stay in main.
+%global modules_subpackages %{modules_subpackages} acbel-fsg032.ko=hwmon-extra ad7314.ko=hwmon-extra ad7414.ko=hwmon-extra ad7418.ko=hwmon-extra adc128d818.ko=hwmon-extra adcxx.ko=hwmon-extra adm1025.ko=hwmon-extra adm1026.ko=hwmon-extra adm1029.ko=hwmon-extra adm1031.ko=hwmon-extra adm1177.ko=hwmon-extra adm1266.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} adm1275.ko=hwmon-extra adm9240.ko=hwmon-extra adp1050.ko=hwmon-extra ads7828.ko=hwmon-extra ads7871.ko=hwmon-extra adt7310.ko=hwmon-extra adt7410.ko=hwmon-extra adt7411.ko=hwmon-extra adt7462.ko=hwmon-extra adt7470.ko=hwmon-extra adt7475.ko=hwmon-extra adt7x10.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} aht10.ko=hwmon-extra amc6821.ko=hwmon-extra aps-379.ko=hwmon-extra arctic_fan_controller.ko=hwmon-extra as370-hwmon.ko=hwmon-extra asb100.ko=hwmon-extra asc7621.ko=hwmon-extra aspeed-g6-pwm-tach.ko=hwmon-extra aspeed-pwm-tacho.ko=hwmon-extra atxp1.ko=hwmon-extra axi-fan-control.ko=hwmon-extra bel-pfe.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} bpa-rs600.ko=hwmon-extra cgbc-hwmon.ko=hwmon-extra chipcap2.ko=hwmon-extra crps.ko=hwmon-extra d1u74t.ko=hwmon-extra da9052-hwmon.ko=hwmon-extra da9055-hwmon.ko=hwmon-extra delta-ahe50dc-fan.ko=hwmon-extra dps920ab.ko=hwmon-extra ds1621.ko=hwmon-extra ds620.ko=hwmon-extra e50sn12051.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} emc1403.ko=hwmon-extra emc1812.ko=hwmon-extra emc2103.ko=hwmon-extra emc2305.ko=hwmon-extra emc6w201.ko=hwmon-extra fsp-3y.ko=hwmon-extra ftsteutates.ko=hwmon-extra g760a.ko=hwmon-extra g762.ko=hwmon-extra gl518sm.ko=hwmon-extra gl520sm.ko=hwmon-extra gsc-hwmon.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} gxp-fan-ctrl.ko=hwmon-extra hac300s.ko=hwmon-extra hih6130.ko=hwmon-extra hs3001.ko=hwmon-extra htu31.ko=hwmon-extra ibm-cffps.ko=hwmon-extra ibmaem.ko=hwmon-extra ibmpex.ko=hwmon-extra ibmpowernv.ko=hwmon-extra iio_hwmon.ko=hwmon-extra ina209.ko=hwmon-extra ina233.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} ina238.ko=hwmon-extra ina2xx.ko=hwmon-extra ina3221.ko=hwmon-extra inspur-ipsps.ko=hwmon-extra intel-m10-bmc-hwmon.ko=hwmon-extra ir35221.ko=hwmon-extra ir36021.ko=hwmon-extra ir38064.ko=hwmon-extra irps5401.ko=hwmon-extra isl28022.ko=hwmon-extra isl68137.ko=hwmon-extra kbatt.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} kfan.ko=hwmon-extra lan966x-hwmon.ko=hwmon-extra lattepanda-sigma-ec.ko=hwmon-extra lineage-pem.ko=hwmon-extra lm25066.ko=hwmon-extra lm70.ko=hwmon-extra lm73.ko=hwmon-extra lm77.ko=hwmon-extra lm78.ko=hwmon-extra lm80.ko=hwmon-extra lm83.ko=hwmon-extra lm93.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} lm95234.ko=hwmon-extra lm95241.ko=hwmon-extra lm95245.ko=hwmon-extra lochnagar-hwmon.ko=hwmon-extra lt3074.ko=hwmon-extra lt7182s.ko=hwmon-extra ltc2945.ko=hwmon-extra ltc2947-core.ko=hwmon-extra ltc2947-i2c.ko=hwmon-extra ltc2947-spi.ko=hwmon-extra ltc2978.ko=hwmon-extra ltc2990.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} ltc2991.ko=hwmon-extra ltc2992.ko=hwmon-extra ltc3815.ko=hwmon-extra ltc4151.ko=hwmon-extra ltc4215.ko=hwmon-extra ltc4222.ko=hwmon-extra ltc4245.ko=hwmon-extra ltc4260.ko=hwmon-extra ltc4261.ko=hwmon-extra ltc4282.ko=hwmon-extra ltc4283.ko=hwmon-extra ltc4286.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} ltq-cputemp.ko=hwmon-extra lx1308.ko=hwmon-extra max1111.ko=hwmon-extra max127.ko=hwmon-extra max15301.ko=hwmon-extra max16064.ko=hwmon-extra max16065.ko=hwmon-extra max1619.ko=hwmon-extra max16601.ko=hwmon-extra max1668.ko=hwmon-extra max17616.ko=hwmon-extra max197.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} max20730.ko=hwmon-extra max20751.ko=hwmon-extra max20830.ko=hwmon-extra max20860a.ko=hwmon-extra max31722.ko=hwmon-extra max31730.ko=hwmon-extra max31760.ko=hwmon-extra max31785.ko=hwmon-extra max31790.ko=hwmon-extra max31827.ko=hwmon-extra max34440.ko=hwmon-extra max6620.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} max6621.ko=hwmon-extra max6639.ko=hwmon-extra max6650.ko=hwmon-extra max6697.ko=hwmon-extra max77705-hwmon.ko=hwmon-extra max8688.ko=hwmon-extra mc13783-adc.ko=hwmon-extra mc33xs2410_hwmon.ko=hwmon-extra mc34vr500.ko=hwmon-extra mcp3021.ko=hwmon-extra mcp9982.ko=hwmon-extra menf21bmc_hwmon.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} mlxreg-fan.ko=hwmon-extra mp2856.ko=hwmon-extra mp2869.ko=hwmon-extra mp2888.ko=hwmon-extra mp2891.ko=hwmon-extra mp2925.ko=hwmon-extra mp29502.ko=hwmon-extra mp2975.ko=hwmon-extra mp2985.ko=hwmon-extra mp2993.ko=hwmon-extra mp5023.ko=hwmon-extra mp5920.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} mp5926.ko=hwmon-extra mp5990.ko=hwmon-extra mp9941.ko=hwmon-extra mp9945.ko=hwmon-extra mpq7932.ko=hwmon-extra mpq8785.ko=hwmon-extra mr75203.ko=hwmon-extra npcm750-pwm-fan.ko=hwmon-extra nsa320-hwmon.ko=hwmon-extra occ-hwmon-common.ko=hwmon-extra occ-p8-hwmon.ko=hwmon-extra occ-p9-hwmon.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} pcf8591.ko=hwmon-extra peci-cputemp.ko=hwmon-extra peci-dimmtemp.ko=hwmon-extra pim4328.ko=hwmon-extra pli1209bc.ko=hwmon-extra pm6764tr.ko=hwmon-extra pmbus.ko=hwmon-extra powerz.ko=hwmon-extra powr1220.ko=hwmon-extra prom21-xhci.ko=hwmon-extra pt5161l.ko=hwmon-extra pxe1610.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} q54sj108a2.ko=hwmon-extra qnap-mcu-hwmon.ko=hwmon-extra raspberrypi-hwmon.ko=hwmon-extra sbtsi_temp.ko=hwmon-extra scmi-hwmon.ko=hwmon-extra scpi-hwmon.ko=hwmon-extra sfctemp.ko=hwmon-extra sg2042-mcu.ko=hwmon-extra sht15.ko=hwmon-extra sht21.ko=hwmon-extra sht3x.ko=hwmon-extra sht4x.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} shtc1.ko=hwmon-extra sl28cpld-hwmon.ko=hwmon-extra smpro-hwmon.ko=hwmon-extra sparx5-temp.ko=hwmon-extra stef48h28.ko=hwmon-extra stpddc60.ko=hwmon-extra sy7636a-hwmon.ko=hwmon-extra tc654.ko=hwmon-extra tc74.ko=hwmon-extra tda38640.ko=hwmon-extra thmc50.ko=hwmon-extra tmp513.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} tps23861.ko=hwmon-extra tps25990.ko=hwmon-extra tps40422.ko=hwmon-extra tps53679.ko=hwmon-extra tps546d24.ko=hwmon-extra tsc1641.ko=hwmon-extra ucd9000.ko=hwmon-extra ucd9200.ko=hwmon-extra ultra45_env.ko=hwmon-extra vexpress-hwmon.ko=hwmon-extra wm831x-hwmon.ko=hwmon-extra wm8350-hwmon.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} xdp710.ko=hwmon-extra xdp720.ko=hwmon-extra xdpe12284.ko=hwmon-extra xdpe152c4.ko=hwmon-extra xdpe1a2g7b.ko=hwmon-extra xgene-hwmon.ko=hwmon-extra yogafan.ko=hwmon-extra zl6100.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} kb9002.ko=hwmon-extra mpq82d00.ko=hwmon-extra mpq8646.ko=hwmon-extra sq24860.ko=hwmon-extra vt7505.ko=hwmon-extra altera-socfpga-hwmon.ko=hwmon-extra eic7700-pvt.ko=hwmon-extra polarfire-soc-tvs.ko=hwmon-extra versal-sysmon.ko=hwmon-extra versal-sysmon-i2c.ko=hwmon-extra
 
 # Modules with obscure firmware dependencies (not covered by the kernel-firmware packages)
 %global modules_subpackages %{modules_subpackages} p54spi.ko snd-asihpi.ko snd-usb-6fire.ko bcm203x.ko adf7242.ko ast ath10k_pci.ko ath6kl_sdio.ko at76c50x-usb.ko smsmdtv.ko b43 b43legacy bfusb.ko hci_bcm4377.ko moxa.ko
@@ -89,9 +184,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 7
-%define patchlevel 2
+%define patchlevel 3
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -176,7 +271,7 @@ Source0:	https://git.kernel.org/torvalds/t/linux-%{kernelversion}.%{patchlevel}-
 Source0:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.xz
 Source1:	http://www.kernel.org/pub/linux/kernel/v%{kernelversion}.x/linux-%{kernelversion}.%{patchlevel}.tar.sign
 %endif
-Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20260310.tar.gz
+Source2:	https://github.com/Kimplul/hid-tmff2/archive/refs/heads/master.tar.gz#/hid-tmff2-20260825.tar.gz
 ### This is for stripped SRC RPM
 %if %{with build_nosrc}
 NoSource:	0
@@ -274,7 +369,7 @@ Patch37:	socket.h-include-bitsperlong.h.patch
 #Patch38:	kernel-5.8-nouveau-write-combining-only-on-x86.patch
 Patch40:	kernel-5.8-aarch64-gcc-10.2-workaround.patch
 #Patch41:	tp_smapi-clang.patch
-# strncpy() was removed from <linux/string.h> in 7.2
+# 7.2 dropped strncpy() and no longer pulls string.h in transitively
 Patch41:	tp_smapi-string.h.patch
 # (tpg) https://github.com/ClangBuiltLinux/linux/issues/1341
 Patch42:	linux-5.11-disable-ICF-for-CONFIG_UNWINDER_ORC.patch
@@ -294,11 +389,10 @@ Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.pa
 Patch55:	linux-5.16-clang-no-attribute-symver.patch
 Patch60:	linux-6.18-clang.patch
 Patch61:	linux-6.19-acpi-clang.patch
-# Clang 23: compressed boot PIE link fails with "Unexpected run-time relocations (.rela)"
-# because this subdir resets KBUILD_CFLAGS and loses main x86 -fno-jump-tables.
-Patch62:	linux-7.1-x86-boot-compressed-no-jump-tables.patch
-# GCC: rtw89 delay ofld used SRC_OTHER=4 in a 2-bit H2C SRC field (clang did not diagnose)
-Patch63:	rtw89-gcc-ofld-src-overflow.patch
+# Landed in 7.2 (arch/x86/boot/compressed/Makefile already has -fno-jump-tables).
+#Patch62:	linux-7.1-x86-boot-compressed-no-jump-tables.patch
+# 7.3 dropped RTW89_FW_CMD_OFLD_SRC_OTHER (H2C src is 2 bits).
+#Patch63:	rtw89-ofld-src-other-fits-h2c.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -344,7 +438,7 @@ Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_versio
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260807.tar.gz
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260829.tar.gz
 Patch1021:	nexus-compile.patch
 
 # Nvidia GPU driver
@@ -355,6 +449,8 @@ Source1031:	install-to-kernel-tree.sh
 # Documentation of the above
 Source1032:	CHANGES.md
 Source1033:	nvidia-symvers-location.patch
+# 610.57.04 of_gpio compat: gpio_device_get_chip() is not const
+Source1034:	nvidia-gpio-const.patch
 
 # Assorted fixes
 
@@ -380,8 +476,8 @@ Patch219:	https://raw.githubusercontent.com/Nobara-Project/rpm-sources/main/base
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
 Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/revert-parts-of-a00ec3874e7d326ab2dffbed92faddf6a77a84e9-no-Intel-NO.patch
 
-# Fix perf
-Patch230:	linux-5.11-perf-compile.patch
+# Fix perf — 7.2 rewrote tools/perf libunwind/JVMTI bits; needs rebasing
+#Patch230:	linux-5.11-perf-compile.patch
 #Patch231:	ce71038e673ee8291c64631359e56c48c8616dc7.patch
 
 # (tpg) Armbian ARM Patches
@@ -438,17 +534,18 @@ Patch913:	0117-migrate-some-systemd-defaults-to-the-kernel-defaults.patch
 # rk3588-hdmi-dsi-upstream-linux-6.13-rc1-2024-12-05 branch
 # Patches of the series that are commented out don't apply anymore and
 # need rebasing.
-Patch950:	https://github.com/torvalds/linux/commit/e0c5c98b4558d336ecb6b5a3c174816b4ed41db2.patch
-Patch951:	https://github.com/torvalds/linux/commit/cd6e4f6d8babdb5e65525c6dd2d1e373558b38ab.patch
-Patch952:	https://github.com/torvalds/linux/commit/4071b7a0642a41773d61b16ae1d02218bc25345e.patch
-Patch953:	https://github.com/torvalds/linux/commit/6da0ae6e419442449ffa7778de518ca37292352b.patch
-Patch954:	https://github.com/torvalds/linux/commit/d6aa52f8a15e56737de5e73f4f2acbb2632f43c0.patch
-Patch955:	https://github.com/torvalds/linux/commit/250083364dc2764b6ae61a124dfb8afc575e565a.patch
-Patch956:	https://github.com/torvalds/linux/commit/146008b9d4241d4e14e5b173038aa78262c2bbcd.patch
-Patch957:	https://github.com/torvalds/linux/commit/dad4c5aac3a74cf3593fad9f7c7d0e83ae96bfa5.patch
-Patch958:	https://github.com/torvalds/linux/commit/6d478d25de6b7550769b77edcbf8d330238542a8.patch
-Patch959:	https://github.com/torvalds/linux/commit/cc17a3358bece56c8932b6a62da242f841feb2e2.patch
-Patch960:	https://github.com/torvalds/linux/commit/bc1d59cd423b4a327af19bcd726f108f0f5a5da5.patch
+# 7.2 dropped arch/{arm,arm64}/configs/rockchip_defconfig and rpi_defconfig
+#Patch950:	https://github.com/torvalds/linux/commit/e0c5c98b4558d336ecb6b5a3c174816b4ed41db2.patch
+#Patch951:	https://github.com/torvalds/linux/commit/cd6e4f6d8babdb5e65525c6dd2d1e373558b38ab.patch
+#Patch952:	https://github.com/torvalds/linux/commit/4071b7a0642a41773d61b16ae1d02218bc25345e.patch
+#Patch953:	https://github.com/torvalds/linux/commit/6da0ae6e419442449ffa7778de518ca37292352b.patch
+#Patch954:	https://github.com/torvalds/linux/commit/d6aa52f8a15e56737de5e73f4f2acbb2632f43c0.patch
+#Patch955:	https://github.com/torvalds/linux/commit/250083364dc2764b6ae61a124dfb8afc575e565a.patch
+#Patch956:	https://github.com/torvalds/linux/commit/146008b9d4241d4e14e5b173038aa78262c2bbcd.patch
+#Patch957:	https://github.com/torvalds/linux/commit/dad4c5aac3a74cf3593fad9f7c7d0e83ae96bfa5.patch
+#Patch958:	https://github.com/torvalds/linux/commit/6d478d25de6b7550769b77edcbf8d330238542a8.patch
+#Patch959:	https://github.com/torvalds/linux/commit/cc17a3358bece56c8932b6a62da242f841feb2e2.patch
+#Patch960:	https://github.com/torvalds/linux/commit/bc1d59cd423b4a327af19bcd726f108f0f5a5da5.patch
 Patch961:	https://github.com/torvalds/linux/commit/00e0ee4050216dc768704c503860ac4ec82e7e41.patch
 #Patch962:	https://github.com/torvalds/linux/commit/839301464ba91c64483923c9a2a344b1c28e56ed.patch
 Patch963:	https://github.com/torvalds/linux/commit/0b7853f3fa5807bfcc193af0ebe4174fb7df21f3.patch
@@ -495,7 +592,8 @@ Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c2
 #Patch1015:	https://github.com/torvalds/linux/commit/ec744b5548e79d18670651113a5855fd31e7472e.patch
 #Patch1016:	https://github.com/torvalds/linux/commit/05a7eca409973abbc3d97a726b88b07d256859ae.patch
 # 406e4c9... has landed
-Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
+# 7.2 dropped arch/arm64/configs/rockchip_defconfig
+#Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
 Source2000:	7.0-rc1-compile.patch
 Source2001:	7.0-rc1-compile-x86.patch
 
@@ -620,6 +718,13 @@ Provides:	kernel-release-${flavour}-clang%_isa = %{version}-%{release}
 %endif
 Requires(posttrans):	kmod >= 27-3
 Recommends:	kernel-firmware
+%ifarch %{ix86} %{x86_64} %{aarch64}
+# TEMPORARY requirement — drop this Requires after one released upgrade
+# cycle. It only exists so existing nouveau users keep the driver on
+# update. After it is gone, NVIDIA-proprietary users can uninstall
+# %{name}-${flavour}-modules-nouveau without removing the kernel.
+Requires:	%{name}-${flavour}-modules-nouveau = %{EVRD}
+%endif
 Provides:	kernel = %{kernelversion}.%{patchlevel}
 Provides:	%{name} = %{version}-%{release}
 Provides:	%{name}-${flavour}-%{version}-%{release}%{disttag}
@@ -981,6 +1086,7 @@ rm -rf .git
 tar xf %{S:1030}
 cd open-gpu-kernel-modules-%{nvidia_version}
 patch -p1 -b -z .1033~ <%{S:1033}
+patch -p1 -b -z .1034~ <%{S:1034}
 cp %{S:1031} .
 chmod +x install-to-kernel-tree.sh
 ./install-to-kernel-tree.sh ${TOPDIR}
@@ -1227,6 +1333,22 @@ patch -p1 -z .2001~ -b <%{S:2001}
 
 %build
 %set_build_flags
+
+%if %{cross_compiling}
+# Host helpers (scripts/sign-file, kconfig, mrproper) must use native
+# headers and flags. Cross rpm flags leak target CFLAGS (-mabi=...)
+# and PKG_CONFIG_SYSROOT_DIR (target stdio.h) into HOSTCC/HOSTPKG_CONFIG.
+unset PKG_CONFIG_SYSROOT_DIR
+unset PKG_CONFIG_LIBDIR
+export HOSTCFLAGS="-O2 -std=gnu11"
+export HOSTCXXFLAGS="-O2"
+export HOSTLDFLAGS=""
+export CFLAGS=""
+export CXXFLAGS=""
+export LDFLAGS=""
+export CC=clang
+export CXX=clang++
+%endif
 
 ###
 ### Functions definitions needed to build kernel
@@ -1579,6 +1701,19 @@ SaveDevel() {
 	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} clean
 	cd - >/dev/null
 
+%if %{cross_compiling}
+	# make clean keeps hostprogs so out-of-tree modules can build.
+	# Those were compiled with HOSTCC and must not ship in a target
+	# kernel-devel RPM. Sources stay; rebuild on the target with
+	# "make scripts". find+read exits 1 at EOF; keep set -e happy.
+	find $TempDevelRoot -type f -exec sh -c '
+		for r do
+			[ "$(od -An -N4 -tx1 "$r" 2>/dev/null | tr -d " ")" = "7f454c46" ] && rm -f "$r"
+		done
+		exit 0
+	' sh {} +
+%endif
+
 	rm -f $TempDevelRoot/.config.old
 
 # fix permissions
@@ -1639,7 +1774,9 @@ $DevelRoot/include/ufs
 $DevelRoot/include/vdso
 $DevelRoot/include/video
 $DevelRoot/include/xen
+%if %{with bpftool}
 $DevelRoot/include/vmlinux.h
+%endif
 $DevelRoot/init
 $DevelRoot/io_uring
 $DevelRoot/ipc
@@ -2077,27 +2214,94 @@ description() {
 	echo $D
 }
 PERCENT='%%'
-DONE=""
+# Membership lookup — avoid grep -q in the per-module loop.
+# The old nested "for d in $DONE; echo | grep" is O(modules × dirs) and
+# with rpm xtrace it filled a 640MB log and timed out aarch64 ABF.
+declare -A MODPKG_DIR MODPKG_KO MODPKG_PATH
+for _m in %{modules_subpackages}; do
+	_pkg=""
+	if [[ "$_m" == *=* ]]; then
+		_pkg="${_m#*=}"
+		_m="${_m%%=*}"
+	fi
+	if [[ "$_m" == *.ko ]]; then
+		MODPKG_KO["$_m"]="${_pkg:-${_m%.ko}}"
+	elif [[ "$_m" == */* ]]; then
+		if [[ -z "$_pkg" ]]; then
+			_base="${_m##*/}"
+			if [[ "$_m" == sound/soc/* ]]; then
+				_pkg="snd-soc-${_base}"
+			else
+				_pkg="${_m//\//-}"
+			fi
+		fi
+		MODPKG_PATH["$_m"]="$_pkg"
+	else
+		MODPKG_DIR["$_m"]="${_pkg:-$_m}"
+	fi
+done
+# Recreate flavour file lists and module specparts so a re-run of
+# %install does not duplicate %dir / module paths.
 for flavour in %{kernel_flavours}; do
+	kf=${TOP}/kernel_files.${flavour}
+	[ -f "$kf" ] || continue
+	grep -vE '^(%dir /lib/modules/|/lib/modules/.*/kernel)' "$kf" > "${kf}.tmp" && mv "${kf}.tmp" "$kf"
+done
+rm -f %{specpartsdir}/%{name}-*-modules-*.specpart
+modpkg_for_dir() {
+	local DN="$1" M suf
+	M="${DN##*/}"
+	if [[ -n "${MODPKG_DIR[$M]}" ]]; then
+		printf '%s\n' "${MODPKG_DIR[$M]}"
+		return
+	fi
+	for suf in "${!MODPKG_PATH[@]}"; do
+		if [[ "$DN" == */"$suf" ]]; then
+			printf '%s\n' "${MODPKG_PATH[$suf]}"
+			return
+		fi
+	done
+}
+for flavour in %{kernel_flavours}; do
+	unset DONE_PREFIX
+	declare -A DONE_PREFIX
 	while read d; do
 		M="$(basename $d)"
-		DN="$(echo $d |cut -b2-)"
-		# FIXME we need to skip subdirectories of already handled directories here
-		# No handling of kernel/drivers/comedi/drivers if kernel/drivers/comedi has already
-		# been taken care of
-		if echo " %{modules_subpackages} " |grep -q " ${M} "; then
+		DN="${d#.}"
+		# DTBs are already listed as a tree in CreateFiles(). Walking
+		# them here re-adds %dir entries (File listed twice) and
+		# basename-matches vendor dirs such as dtb/nvidia into
+		# kernel-*-modules-nvidia.
+		if [[ "$DN" == */dtb || "$DN" == */dtb/* ]]; then
+			continue
+		fi
+		# Skip subdirectories of a directory already claimed by a split
+		# (e.g. kernel/drivers/comedi/drivers after kernel/drivers/comedi).
+		p="$DN"
+		IS_DONE=false
+		while [[ "$p" == */* ]]; do
+			p="${p%/*}"
+			[[ -n "$p" ]] || break
+			if [[ -n "${DONE_PREFIX[$p]}" ]]; then
+				IS_DONE=true
+				break
+			fi
+		done
+		$IS_DONE && continue
+		PKG="$(modpkg_for_dir "$DN")"
+		if [[ -n "$PKG" ]]; then
 			# Let's see if it's a group of modules (e.g. "all ISDN drivers") or
 			# an individual module that has its own directory (e.g. most filesystems,
 			# with paths like fs/jfs/jfs.ko)
 			if [[ $(ls -1 $d |wc -l) -eq 1 ]]; then
 				D="$(description $d/*.ko*) for the ${flavour} kernel"
 			else
-				D="$M modules for the ${flavour} kernel"
+				D="$PKG modules for the ${flavour} kernel"
 			fi
-			SP="%{specpartsdir}/%{name}-${flavour}-modules-${M}.specpart"
+			SP="%{specpartsdir}/%{name}-${flavour}-modules-${PKG}.specpart"
 			if ! [ -e "$SP" ]; then
 				cat >"$SP" <<EOF
-${PERCENT}package -n %{name}-${flavour}-modules-${M}
+${PERCENT}package -n %{name}-${flavour}-modules-${PKG}
 Summary:	${D}
 Group:		System/Kernel and hardware
 Requires:	%{name}-${flavour} = %{EVRD}
@@ -2108,39 +2312,48 @@ EOF
 					echo "Obsoletes: hfsutils < 3.2.6-42" >>$SP
 				fi
 				cat >>"$SP" <<EOF
-${PERCENT}description -n %{name}-${flavour}-modules-${M}
+${PERCENT}description -n %{name}-${flavour}-modules-${PKG}
 ${D}
 
-${PERCENT}postun -n %{name}-${flavour}-modules-${M}
+${PERCENT}postun -n %{name}-${flavour}-modules-${PKG}
 [ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
 
-${PERCENT}files -n %{name}-${flavour}-modules-${M}
+${PERCENT}files -n %{name}-${flavour}-modules-${PKG}
 EOF
 			fi
 			echo "${DN}" >>"$SP"
-			DONE="$DONE ${DN}"
+			DONE_PREFIX["$DN"]=1
 		else
 			echo "%%dir ${DN}" >>${TOP}/kernel_files.${flavour}
 		fi
-	done < <(find .%{_modulesdir}/%{version}-${flavour}-%{release}%{disttag} -type d)
+	done < <(find .%{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel -type d)
 	while read f; do
 		M="$(basename $f)"
 		BN="$(echo $M |sed -e 's,\.ko.*,,')"
-		FN="$(echo $f |cut -b2-)"
+		FN="${f#.}"
+		# O(depth) parent walk instead of grepping every DONE prefix
+		p="$FN"
 		IS_DONE=false
-		for d in $DONE; do
-			if echo $FN |grep -q "^$d/"; then
+		while [[ "$p" == */* ]]; do
+			p="${p%/*}"
+			[[ -n "$p" ]] || break
+			if [[ -n "${DONE_PREFIX[$p]}" ]]; then
 				IS_DONE=true
 				break
 			fi
 		done
 		$IS_DONE && continue
-		if echo " %{modules_subpackages} " |grep -q " ${BN}.ko "; then
-			D="$(description $f) for the ${flavour} kernel"
-			SP="%{specpartsdir}/%{name}-${flavour}-modules-${BN}.specpart"
+		if [[ -n "${MODPKG_KO[${BN}.ko]}" ]]; then
+			PKG="${MODPKG_KO[${BN}.ko]}"
+			if [[ "$PKG" != "$BN" ]]; then
+				D="$PKG modules for the ${flavour} kernel"
+			else
+				D="$(description $f) for the ${flavour} kernel"
+			fi
+			SP="%{specpartsdir}/%{name}-${flavour}-modules-${PKG}.specpart"
 			if ! [ -e "$SP" ]; then # Deal with e.g. net/can and drivers/can going together
 				cat >"$SP" <<EOF
-${PERCENT}package -n %{name}-${flavour}-modules-${BN}
+${PERCENT}package -n %{name}-${flavour}-modules-${PKG}
 Summary:	${D}
 Group:		System/Kernel and hardware
 Requires:	%{name}-${flavour} = %{EVRD}
@@ -2148,13 +2361,13 @@ Provides:	installonlypkg(kernel-module)
 Requires(posttrans,postun):	kmod
 EOF
 				cat >>"$SP" <<EOF
-${PERCENT}description -n %{name}-${flavour}-modules-${BN}
+${PERCENT}description -n %{name}-${flavour}-modules-${PKG}
 ${D}
 
-${PERCENT}postun -n %{name}-${flavour}-modules-${BN}
+${PERCENT}postun -n %{name}-${flavour}-modules-${PKG}
 [ -x %{_bindir}/depmod ] && %{_bindir}/depmod -A %{version}-$flavour-%{release}%{disttag}
 
-${PERCENT}files -n %{name}-${flavour}-modules-${BN}
+${PERCENT}files -n %{name}-${flavour}-modules-${PKG}
 EOF
 			fi
 			echo "${FN}" >>"$SP"

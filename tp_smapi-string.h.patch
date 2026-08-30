@@ -1,6 +1,14 @@
---- a/drivers/platform/x86/tp_smapi.c
-+++ b/drivers/platform/x86/tp_smapi.c
-@@ -670,10 +670,7 @@ static ssize_t show_tp_ec_bat_str(u8 arg
+--- a/drivers/platform/x86/tp_smapi.c	2026-08-17 18:03:30.115275643 +0200
++++ b/drivers/platform/x86/tp_smapi.c	2026-08-17 18:03:30.134285498 +0200
+@@ -37,6 +37,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/proc_fs.h>
+ #include <linux/mc146818rtc.h>	/* CMOS defines */
+@@ -669,10 +670,14 @@ static ssize_t show_tp_ec_bat_str(u8 arg
  	ret = read_tp_ec_row(arg0, bat, 0, row);
  	if (ret)
  		return ret;
@@ -8,7 +16,14 @@
 -	buf[maxlen] = 0;
 -	strcat(buf, "\n");
 -	return strlen(buf);
-+	return sysfs_emit(buf, "%.*s\n", maxlen, (char *)row + offset);
++	/* EC rows are not C strings; strncpy() is gone in 7.2 */
++	{
++		size_t len = strnlen((char *)row + offset, maxlen);
++
++		memcpy(buf, (char *)row + offset, len);
++		buf[len] = '\n';
++		return len + 1;
++	}
  }
  
  /**
