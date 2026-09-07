@@ -1,0 +1,31 @@
+7.3-rc2 kmalloc_obj conversion left a void * buffer. Clang ThinLTO
+FORTIFY then treats memcpy(desc, buf, sizeof(*desc)) as a read past
+the end of the source object and ld.lld errors with __read_overflow
+when linking gud.ko (seen on znver1).
+
+Use a typed allocation and a struct copy, which is how kmalloc_obj()
+is meant to be used.
+
+--- linux/drivers/gpu/drm/gud/gud_drv.c
++++ linux/drivers/gpu/drm/gud/gud_drv.c
+@@ -79,16 +79,16 @@ static int gud_usb_control_msg(struct usb_interface *intf, bool in,
+ static int gud_get_display_descriptor(struct usb_interface *intf,
+ 				      struct gud_display_descriptor_req *desc)
+ {
+-	void *buf;
++	struct gud_display_descriptor_req *buf;
+ 	int ret;
+ 
+-	buf = kmalloc_obj(*desc);
++	buf = kmalloc_obj(*buf);
+ 	if (!buf)
+ 		return -ENOMEM;
+ 
+-	ret = gud_usb_control_msg(intf, true, GUD_REQ_GET_DESCRIPTOR, 0, buf, sizeof(*desc));
+-	memcpy(desc, buf, sizeof(*desc));
++	ret = gud_usb_control_msg(intf, true, GUD_REQ_GET_DESCRIPTOR, 0, buf, sizeof(*buf));
++	*desc = *buf;
+ 	kfree(buf);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret != sizeof(*desc))

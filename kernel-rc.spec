@@ -391,6 +391,8 @@ Patch61:	linux-6.19-acpi-clang.patch
 #Patch62:	linux-7.1-x86-boot-compressed-no-jump-tables.patch
 # 7.3 dropped RTW89_FW_CMD_OFLD_SRC_OTHER (H2C src is 2 bits).
 #Patch63:	rtw89-ofld-src-other-fits-h2c.patch
+# 7.3-rc2 kmalloc_obj() conversion: void * + memcpy trips Clang ThinLTO FORTIFY
+Patch64:	gud-kmalloc_obj-typed-ptr.patch
 
 ### Additional hardware support
 ### TV tuners:
