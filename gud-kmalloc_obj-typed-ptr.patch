@@ -1,11 +1,21 @@
-7.3-rc2 kmalloc_obj conversion left a void * buffer. Clang ThinLTO
-FORTIFY then treats memcpy(desc, buf, sizeof(*desc)) as a read past
-the end of the source object and ld.lld errors with __read_overflow
-when linking gud.ko (seen on znver1).
+7.3-rc2 kmalloc_obj conversion plus Clang ThinLTO FORTIFY:
+ld.lld errors with __read_overflow when linking gud.ko.
 
-Use a typed allocation and a struct copy, which is how kmalloc_obj()
-is meant to be used.
+- Use a typed allocation and a struct copy in gud_get_display_descriptor().
+- Compile the GUD objects without LTO so remaining memcpy/drm_fb_memcpy
+  sites are not mis-analysed across the module LTO link.
 
+--- linux/drivers/gpu/drm/gud/Makefile
++++ linux/drivers/gpu/drm/gud/Makefile
+@@ -1,4 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
++# Clang ThinLTO + FORTIFY false-positive __read_overflow at LD gud.o
++CFLAGS_REMOVE_gud_drv.o += $(CC_FLAGS_LTO)
++CFLAGS_REMOVE_gud_pipe.o += $(CC_FLAGS_LTO)
++CFLAGS_REMOVE_gud_connector.o += $(CC_FLAGS_LTO)
+ gud-y				:= gud_drv.o gud_pipe.o gud_connector.o
+ obj-$(CONFIG_DRM_GUD)		+= gud.o
 --- linux/drivers/gpu/drm/gud/gud_drv.c
 +++ linux/drivers/gpu/drm/gud/gud_drv.c
 @@ -79,16 +79,16 @@ static int gud_usb_control_msg(struct usb_interface *intf, bool in,
