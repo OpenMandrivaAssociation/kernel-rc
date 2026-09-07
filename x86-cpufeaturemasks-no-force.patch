@@ -1,0 +1,17 @@
+Do not FORCE-rebuild cpufeaturemasks.h on every make.
+
+A second -jN `make modules` after `make bzImage` re-runs filechk because
+of FORCE. Two recipes then share .tmp_cpufeaturemasks.h and mv fails.
+
+filechk already skips the write when contents are unchanged.
+
+--- linux/arch/x86/Makefile
++++ linux/arch/x86/Makefile
+@@ -265,7 +265,7 @@ targets += $(cpufeaturemasks.hdr)
+       filechk_gen_featuremasks = $(AWK) -f $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG)
+ 
+-$(cpufeaturemasks.hdr): $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG) FORCE
++$(cpufeaturemasks.hdr): $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG)
+ 	$(shell mkdir -p $(dir $@))
+ 	$(call filechk,gen_featuremasks)
+ archprepare: $(cpufeaturemasks.hdr)

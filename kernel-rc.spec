@@ -393,6 +393,8 @@ Patch61:	linux-6.19-acpi-clang.patch
 #Patch63:	rtw89-ofld-src-other-fits-h2c.patch
 # 7.3-rc2 kmalloc_obj() conversion: void * + memcpy trips Clang ThinLTO FORTIFY
 Patch64:	gud-kmalloc_obj-typed-ptr.patch
+# Second -jN make raced filechk on cpufeaturemasks.h because of FORCE
+Patch65:	x86-cpufeaturemasks-no-force.patch
 
 ### Additional hardware support
 ### TV tuners:
@@ -1555,9 +1557,11 @@ BuildKernel() {
 %endif
 %endif
 
-	# One invocation: a second -jN make re-runs filechk on
-	# cpufeaturemasks.h (FORCE) and races on .tmp_cpufeaturemasks.h
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS modules
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS
+	# Image first so vmlinux.symvers exists before NVIDIA conftest.
+	# cpufeaturemasks.h is generated without FORCE (see Patch65) so
+	# this second -jN make does not race filechk on .tmp_*.
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules
 
 # Start installing stuff
 	install -d %{temp_boot}
