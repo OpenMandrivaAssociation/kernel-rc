@@ -186,7 +186,7 @@
 %define kernelversion 7
 %define patchlevel 3
 %define sublevel 0
-%define relc 1
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -218,9 +218,7 @@
 %bcond_without evdi
 %bcond_without vbox_orig_mods
 %bcond_without clr
-# FIXME re-enable by default when the patches have been adapted to 5.8
-%bcond_with saa716x
-%bcond_with rtl8821ce
+%bcond_without saa716x
 # build perf and cpupower tools
 %if %{cross_compiling}
 %bcond_with bpftool
@@ -396,30 +394,13 @@ Patch61:	linux-6.19-acpi-clang.patch
 
 ### Additional hardware support
 ### TV tuners:
-# SAA716x DVB driver
-# git clone git@github.com:crazycat69/linux_media
-# cd linux_media
-# tar cJf saa716x-driver.tar.xz drivers/media/pci/saa716x drivers/media/dvb-frontends/tas2101* drivers/media/dvb-frontends/isl6422* drivers/media/dvb-frontends/stv091x.h drivers/media/tuners/av201x* drivers/media/tuners/stv6120*
-# Patches 141 to 145 are a minimal set of patches to the DVB stack to make
-# the added driver work.
-Source1003:	saa716x-driver.tar.xz
-Patch200:	0023-tda18212-Added-2-extra-options.-Based-on-CrazyCat-re.patch
-Patch201:	0075-cx24117-Use-a-pointer-to-config-instead-of-storing-i.patch
-Patch202:	0076-cx24117-Add-LNB-power-down-callback.-TBS6984-uses-pc.patch
-#Patch203:	0124-Extend-FEC-enum.patch
-Patch204:	saa716x-driver-integration.patch
-Patch205:	saa716x-4.15.patch
-Patch206:	saa716x-linux-4.19.patch
-Patch207:	saa716x-5.4.patch
-
-# Additional WiFi drivers taken from the Endless kernel
-# git clone https://github.com/endlessm/linux.git
-# cd linux
-# tar cf extra-wifi-drivers-`date +%Y%m%d`.tar drivers/net/wireless/rtl8*
-# zstd -19 extra-wifi-drivers*.tar
-Source1004:	extra-wifi-drivers-20200301.tar.zst
-Patch208:	extra-wifi-drivers-compile.patch
-Patch209:	extra-wifi-drivers-port-to-5.6.patch
+# SAA716x DVB driver (Soeren Moch tree, already ported to 7.2)
+# git clone --depth=1 -b saa716x-7.2 https://github.com/s-moch/linux-saa716x.git
+# tar cJf saa716x-driver-YYYYMMDD.tar.xz -C linux-saa716x drivers/media/pci/saa716x
+# Uses only in-tree frontends (stv090x/stv6110x/si2168/si2157/tda1004x/tda827x/isl6423).
+# OSD_RAW_* / AUDIO_GET_PTS ioctls used by saa716x_ff (Technotrend S2-6400).
+Source1003:	saa716x-driver-20260817.tar.xz
+Patch210:	saa716x-uapi.patch
 
 # VirtualBox patches -- added as Source: rather than Patch:
 # because they need to be applied after stuff from the
@@ -438,7 +419,7 @@ Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_versio
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260829.tar.gz
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260831.tar.gz
 Patch1021:	nexus-compile.patch
 
 # Nvidia GPU driver
@@ -1070,7 +1051,7 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1004 -a 1020
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1020
 TOPDIR="$(pwd)"
 
 %if %{with evdi}
@@ -1154,10 +1135,9 @@ fi
 sed -i -e 's,vm_clean ,,' tools/Makefile
 
 %if %{with saa716x}
-# merge SAA716x DVB driver from extra tarball
+# Wire s-moch saa716x into the in-tree media PCI build (same as upstream saa716x-7.2)
 sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
-sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_CORE) += saa716x/' drivers/media/pci/Makefile
-find drivers/media/tuners drivers/media/dvb-frontends -name "*.c" -o -name "*.h" -type f | xargs sed -i -e 's,"dvb_frontend.h",<media/dvb_frontend.h>,g'
+sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_SUPPORT) += saa716x/' drivers/media/pci/Makefile
 %endif
 
 %if %{with evdi}
@@ -1206,16 +1186,6 @@ EOF
 cat >>drivers/hid/Makefile <<'EOF'
 obj-$(CONFIG_HID_TMFF_NEW) += tmff-new/
 EOF
-
-%if %{with rtl8821ce}
-# Merge RTL8723DE and RTL8821CE drivers
-cd drivers/net/wireless
-sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8821ce/Kconfig' Kconfig
-sed -i -e '/quantenna\/Kconfig/asource "drivers/net/wireless/rtl8723de/Kconfig' Kconfig
-sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8821CE) += rtl8821ce/' Makefile
-sed -i -e '/QUANTENNA/aobj-$(CONFIG_RTL8723DE) += rtl8723de/' Makefile
-cd -
-%endif
 
 %if 0%{?sublevel:1}
 # make sure the kernel has the sublevel we know it has...
@@ -1311,8 +1281,8 @@ cat >>drivers/media/v4l2-core/Makefile <<'EOF'
 obj-$(CONFIG_V4L2_LOOPBACK) += v4l2loopback.o
 EOF
 
-# Port to 6.15 -- FIXME remove once these drivers have been ported upstream
-sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/media/pci/saa716x/saa716x_ff_ir.c drivers/media/v4l2-core/v4l2loopback.c drivers/platform/x86/hdaps.c drivers/net/wireless/rtl8723de/include/osdep_service.h drivers/net/wireless/rtl8723de/include/osdep_service_linux.h
+# Port leftover out-of-tree copies to 6.15+ timer names
+sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/media/v4l2-core/v4l2loopback.c drivers/platform/x86/hdaps.c
 [ -e drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c ] && sed -i -e 's,del_timer_sync,timer_delete_sync,g' drivers/virt/vboxdrv/r0drv/linux/timer-r0drv-linux.c
 
 # get rid of unwanted files
@@ -1679,11 +1649,6 @@ SaveDevel() {
 	cp -fRu tools/lib/subcmd/* $TempDevelRoot/tools/lib/subcmd
 	cp -fRu tools/objtool/* $TempDevelRoot/tools/objtool
 	cp -fRu tools/scripts/utilities.mak $TempDevelRoot/tools/scripts
-
-# Make clean fails on the include statements in the Makefiles - and the drivers aren't relevant for -devel
-	rm -rf $TempDevelRoot/drivers/net/wireless/rtl8*
-	sed -i -e '/rtl8.*/d' $TempDevelRoot/drivers/net/wireless/{Makefile,Kconfig}
-	sed -i -e '/rtl8723cs.*/d' $TempDevelRoot/drivers/staging/{Makefile,Kconfig}
 
 	for i in alpha arc avr32 blackfin c6x cris csky frv h8300 hexagon ia64 m32r m68k m68knommu metag microblaze \
 		 mips mn10300 nds32 nios2 openrisc parisc s390 score sh sparc tile unicore32 xtensa; do
