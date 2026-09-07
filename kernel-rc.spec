@@ -436,6 +436,8 @@ Source1032:	CHANGES.md
 Source1033:	nvidia-symvers-location.patch
 # 610.57.04 of_gpio compat: gpio_device_get_chip() is not const
 Source1034:	nvidia-gpio-const.patch
+# 7.3 dmem_cgroup_register_region(struct dmem_cgroup_init *, fmt, ...)
+Source1035:	nvidia-dmem-cgroup-init.patch
 
 # Assorted fixes
 
@@ -1072,6 +1074,7 @@ tar xf %{S:1030}
 cd open-gpu-kernel-modules-%{nvidia_version}
 patch -p1 -b -z .1033~ <%{S:1033}
 patch -p1 -b -z .1034~ <%{S:1034}
+patch -p1 -b -z .1035~ <%{S:1035}
 cp %{S:1031} .
 chmod +x install-to-kernel-tree.sh
 ./install-to-kernel-tree.sh ${TOPDIR}

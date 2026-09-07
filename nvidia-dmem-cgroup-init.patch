@@ -1,0 +1,16 @@
+7.3 dmem_cgroup_register_region() now takes struct dmem_cgroup_init *
+plus a printf-style name, not (size, name). NVIDIA 610.57.04 still
+uses the old two-arg form, which fails -Wint-conversion on aarch64.
+
+--- a/kernel-open/nvidia/os-interface.c
++++ b/kernel-open/nvidia/os-interface.c
+@@ -2817,8 +2817,9 @@ NvU32 NV_API_CALL os_cgroup_implementation(void)
+ 
+ void* NV_API_CALL os_dmem_cgroup_register_region(NvU64 size, const char *name)
+ {
+-    void *region = dmem_cgroup_register_region(size, name);
++    struct dmem_cgroup_init init = { .size = size };
++    void *region = dmem_cgroup_register_region(&init, "%s", name);
+     if (IS_ERR(region))
+     {
+         return NULL;
