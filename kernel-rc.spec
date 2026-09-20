@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -458,6 +458,9 @@ Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
 Patch218:	amdgpu-ignore-min-pcap.patch
 # Imported from Nobara. Enable full AMD GPU controls like fan speed etc (needed for corectrl and others)
 Patch219:	https://raw.githubusercontent.com/Nobara-Project/rpm-sources/main/baseos/kernel/6.7.6/0001-Set-amdgpu.ppfeaturemask-0xffffffff-as-default.patch
+# drm/amd#5339: KWin 6.7 picks advertised RA24 (RGBA8888) and amdgpu rejects it
+Patch220:	drm-amd-display-add-RGBA8888-format.patch
+Patch221:	drm-amd-display-fix-DCE-crossbar-for-RGBA8888.patch
 
 # Fix CPU frequency governor mess caused by recent Intel patches
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
