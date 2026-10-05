@@ -1016,12 +1016,23 @@ standard programs, notably the C library.
 
 This package is not suitable for building kernel modules, you
 should use the 'kernel-devel' package instead.
+%if 0%{?relc:1}
+
+The release-candidate kernel does not install those headers.
+kernel-headers owns /usr/include, and the rc copies are not
+byte-identical to it. This package is only here so an upgrade
+removes an older kernel-rc-headers that shipped the same paths.
+%endif
 
 %files headers
+%if 0%{!?relc:1}
 %{_includedir}/*
 # Don't conflict with cpupower-devel
 %if %{with build_cpupower}
 %exclude %{_includedir}/cpufreq.h
+%endif
+%else
+%{_docdir}/%{name}-headers
 %endif
 
 %if %{with cross_headers}
@@ -1585,7 +1596,11 @@ BuildKernel() {
 	%make_build V=0 VERBOSE=0 INSTALL_MOD_PATH=%{temp_root} ARCH=%{target_arch} SRCARCH=%{target_arch} KERNELRELEASE=$KernelVer CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" DEPMOD=/bin/true INSTALL_MOD_STRIP=1 modules_install
 
 # headers
+# rc kernels must not install userspace headers into /usr/include.
+# kernel-headers owns those files, and the copies are not identical.
+%if 0%{!?relc:1}
 	%make_build V=0 VERBOSE=0 INSTALL_HDR_PATH=%{temp_root}%{_prefix} KERNELRELEASE=$KernelVer ARCH=%{target_arch} SRCARCH=%{target_arch} headers_install
+%endif
 
 %ifarch %{armx} %{ppc}
 	%make_build  V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" INSTALL_DTBS_PATH=%{temp_modules}/$KernelVer/dtb dtbs_install
@@ -2076,6 +2091,15 @@ export TOP="$(pwd)"
 # We want to be able to test several times the install part
 rm -rf %{buildroot}
 cp -a %{temp_root} %{buildroot}
+%if 0%{?relc:1}
+mkdir -p %{buildroot}%{_docdir}/%{name}-headers
+cat > %{buildroot}%{_docdir}/%{name}-headers/README << 'EOF'
+Userspace API headers come from the kernel-headers package.
+kernel-rc-headers no longer installs /usr/include, because those
+files collide with kernel-headers whenever the rc and stable
+uapi headers differ.
+EOF
+%endif
 
 # We used to have a copy of PrepareKernel here
 # Now, we make sure that the thing in the linux dir is what we want it to be
