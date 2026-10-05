@@ -1030,6 +1030,8 @@ removes an older kernel-rc-headers that shipped the same paths.
 # Don't conflict with cpupower-devel
 %if %{with build_cpupower}
 %exclude %{_includedir}/cpufreq.h
+%exclude %{_includedir}/cpuidle.h
+%exclude %{_includedir}/powercap.h
 %endif
 %else
 %{_docdir}/%{name}-headers
@@ -2503,6 +2505,8 @@ done
 %files -n cpupower-devel
 %{_libdir}/libcpupower.so
 %{_includedir}/cpufreq.h
+%{_includedir}/cpuidle.h
+%{_includedir}/powercap.h
 %endif
 
 %ifarch %{ix86} %{x86_64}
