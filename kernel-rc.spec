@@ -1107,6 +1107,8 @@ obj-$(CONFIG_NEXUS) += nexus/
 EOF
 sed -i -e '/endmenu/i config NEXUS\n	tristate "BeOS-like IPC etc."\n	help\n	  BeOS like IPC, named semaphores, SHM, thread messaging and FS event notifications' drivers/Kconfig
 sed -i -e 's,obj-m,obj-$(CONFIG_NEXUS),g' drivers/nexus/Makefile
+# The header already uses (void); clang rejects the empty definition.
+sed -i -e 's/^struct nexus_team\* nexus_team_init()$/struct nexus_team* nexus_team_init(void)/' drivers/nexus/nexus_core.c
 rm -rf Nexus-main
 
 # uses --sort=name and other gnutar specific options
