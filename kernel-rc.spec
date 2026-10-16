@@ -186,7 +186,7 @@
 %define kernelversion 7
 %define patchlevel 3
 %define sublevel 0
-%define relc 6
+%define relc 7
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -417,26 +417,28 @@ Source1009:	vbox-modules-6.15.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
-%define evdi_version 1.15.0
+%define evdi_version 1.15.1
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
 
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20260831.tar.gz
-Patch1021:	nexus-compile.patch
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20261013.tar.gz
+# 20261013 (e59081b003) already has the 7.2 lookup_one/vfs_* port and strscpy.
+# nexus-compile.patch was against the 20260831 tree and does not apply.
+#Patch1021:	nexus-compile.patch
 
 # Nvidia GPU driver
-%define nvidia_version 610.57.04
+%define nvidia_version 615.78.08
 Source1030:	https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/%{nvidia_version}.tar.gz
 # Script to internalize nvidia modules
 Source1031:	install-to-kernel-tree.sh
 # Documentation of the above
 Source1032:	CHANGES.md
 Source1033:	nvidia-symvers-location.patch
-# 610.57.04 of_gpio compat: gpio_device_get_chip() is not const
+# 615.78.08 of_gpio compat is already non-const; patch keeps that explicit
 Source1034:	nvidia-gpio-const.patch
-# 7.3 dmem_cgroup_register_region(struct dmem_cgroup_init *, fmt, ...)
+# 615 passes the dmem region name as a printf format. Force "%s".
 Source1035:	nvidia-dmem-cgroup-init.patch
 
 # Assorted fixes
