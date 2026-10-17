@@ -1599,12 +1599,11 @@ BuildKernel() {
 %endif
 
 %ifarch %{x86_64}
-	# One clang job per core was SIGKILL'd compiling drivers on the
-	# 64GB builders once ThinLTO was off. 8GB per job is 7 jobs there.
-	# That parallelism compiled this tree when ThinLTO was still on.
+	# 7 jobs still SIGKILL'd clang on dcn32_resource.c. That file is
+	# huge at -O3. 24GB per job is 2 jobs on the 64GB builders.
 	# The build root is an 80% tmpfs.
 	mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-	max_jobs=$((mem_kb / 8388608))
+	max_jobs=$((mem_kb / 25165824))
 	[ "$max_jobs" -ge 1 ] || max_jobs=1
 	ncpus=$(/usr/bin/getconf _NPROCESSORS_ONLN)
 	[ "$ncpus" -le "$max_jobs" ] || ncpus=$max_jobs
