@@ -1381,18 +1381,6 @@ clangify() {
 		-e '/^CONFIG_LD_IS_BFD=/d' \
 		-e '/^CONFIG_GCC_PLUGINS=/d' \
 		"$1"
-%ifarch %{x86_64}
-	# ThinLTO ld.lld of vmlinux.o is SIGKILL'd on the 64GB builders
-	# even at one job. The 80% tmpfs build root holds the bitcode.
-	sed -i \
-		-e '/^CONFIG_LTO_CLANG_THIN=/d' \
-		-e '/^CONFIG_LTO_CLANG_FULL=/d' \
-		-e '/^CONFIG_LTO_NONE=/d' \
-		-e '/^# CONFIG_LTO_NONE /d' \
-		-e '/^# CONFIG_LTO_CLANG_THIN /d' \
-		-e '/^# CONFIG_LTO_CLANG_FULL /d' \
-		"$1"
-%endif
 	# FIXME: CONFIG_CFI_CLANG and friends are turned off on x86_64
 	# because as of kernel 6.4.3 and VirtualBox 7.0, enabling any
 	# form of CFI breaks starting a VM in VirtualBox.
@@ -1406,15 +1394,9 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_INIT_STACK_ALL_ZERO is not set
 # CONFIG_KCSAN is not set
 # CONFIG_SHADOW_CALL_STACK is not set
-%ifarch %{x86_64}
-CONFIG_LTO_NONE=y
-# CONFIG_LTO_CLANG_THIN is not set
-# CONFIG_LTO_CLANG_FULL is not set
-%else
 # CONFIG_LTO_NONE is not set
 # CONFIG_LTO_CLANG_FULL is not set
 CONFIG_LTO_CLANG_THIN=y
-%endif
 %ifarch %{x86_64}
 # CONFIG_CFI_CLANG is not set
 # CONFIG_CFI_CLANG_SHADOW is not set
@@ -1598,25 +1580,11 @@ BuildKernel() {
 %endif
 %endif
 
-%ifarch %{x86_64}
-	# 7 jobs still SIGKILL'd clang on dcn32_resource.c. That file is
-	# huge at -O3. 24GB per job is 2 jobs on the 64GB builders.
-	# The build root is an 80% tmpfs.
-	mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-	max_jobs=$((mem_kb / 25165824))
-	[ "$max_jobs" -ge 1 ] || max_jobs=1
-	ncpus=$(/usr/bin/getconf _NPROCESSORS_ONLN)
-	[ "$ncpus" -le "$max_jobs" ] || ncpus=$max_jobs
-	echo "Using $ncpus kernel build jobs (MemTotal ${mem_kb} kB)"
-	kjobs="-j$ncpus"
-%else
-	kjobs=
-%endif
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS $kjobs
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS
 	# Image first so vmlinux.symvers exists before NVIDIA conftest.
 	# cpufeaturemasks.h is generated without FORCE (see Patch65) so
 	# this second -jN make does not race filechk on .tmp_*.
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules $kjobs
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules
 
 # Start installing stuff
 	install -d %{temp_boot}
