@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -1580,11 +1580,25 @@ BuildKernel() {
 %endif
 %endif
 
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS
+%ifarch %{x86_64}
+	# ThinLTO link of amdgpu.o was SIGKILL'd (make error 137) at full
+	# parallelism on znver1. 8GB per job leaves room for ld.lld.
+	# x86_64 and znver1. aarch64 already linked at full -j.
+	mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+	max_jobs=$((mem_kb / 8388608))
+	[ "$max_jobs" -ge 1 ] || max_jobs=1
+	ncpus=$(/usr/bin/getconf _NPROCESSORS_ONLN)
+	[ "$ncpus" -le "$max_jobs" ] || ncpus=$max_jobs
+	echo "Using $ncpus kernel build jobs (MemTotal ${mem_kb} kB)"
+	kjobs="-j$ncpus"
+%else
+	kjobs=
+%endif
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" $IMAGE $DTBS $kjobs
 	# Image first so vmlinux.symvers exists before NVIDIA conftest.
 	# cpufeaturemasks.h is generated without FORCE (see Patch65) so
 	# this second -jN make does not race filechk on .tmp_*.
-	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules
+	%make_build V=0 VERBOSE=0 ARCH=%{target_arch} CC="$CC" HOSTCC="$HCC" CXX="$CXX" HOSTCXX="$HCXX" LD="$BUILD_LD" HOSTLD="$BUILD_LD" $BUILD_TOOLS KCFLAGS="$BUILD_OPT_CFLAGS" KBUILD_HOSTLDFLAGS="$BUILD_KBUILD_LDFLAGS" modules $kjobs
 
 # Start installing stuff
 	install -d %{temp_boot}
