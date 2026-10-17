@@ -1581,11 +1581,11 @@ BuildKernel() {
 %endif
 
 %ifarch %{x86_64}
-	# ThinLTO link of amdgpu.o was SIGKILL'd (make error 137) at full
-	# parallelism on znver1. 8GB per job leaves room for ld.lld.
-	# x86_64 and znver1. aarch64 already linked at full -j.
+	# 7 jobs on the 64GB x86_64 builder still SIGKILL'd LD vmlinux.o.
+	# 32GB per job leaves that ThinLTO link alone on that machine.
+	# aarch64 already linked at full parallelism.
 	mem_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-	max_jobs=$((mem_kb / 8388608))
+	max_jobs=$((mem_kb / 33554432))
 	[ "$max_jobs" -ge 1 ] || max_jobs=1
 	ncpus=$(/usr/bin/getconf _NPROCESSORS_ONLN)
 	[ "$ncpus" -le "$max_jobs" ] || ncpus=$max_jobs
