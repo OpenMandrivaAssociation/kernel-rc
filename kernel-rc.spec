@@ -2512,6 +2512,7 @@ done
 %{_kerneldir}/tools
 %{_kerneldir}/usr
 %{_kerneldir}/virt
+%{_kerneldir}/AGENTS.md
 %{_kerneldir}/COPYING
 %{_kerneldir}/CREDITS
 %{_kerneldir}/Kbuild
