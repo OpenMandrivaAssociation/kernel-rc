@@ -451,6 +451,7 @@ Patch100:	security_tirdad.patch
 
 # Bring back ashmem -- anbox and waydroid still need it.
 # 7.4 has no ANDROID kconfig symbol; the staging hook keys off ASHMEM.
+# 7.4: mm_get_unmapped_area, const vm_flags, vma->flags, shrinker_alloc.
 Patch211:	revert-721412ed3d819e767cac2b06646bf03aa158aaec.patch
 # 7.4 removed the C binder driver (fd2bc059ed46) and left the Rust one.
 # Rust cannot be selected together with ThinLTO, modversions and BTF:
