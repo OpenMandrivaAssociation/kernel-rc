@@ -1,0 +1,26 @@
+7.4 removed VM_SPECIAL and is_vm_hugetlb_page().
+migrate_vma_setup() now rejects VMAs that are not mm-backed,
+plus hugetlb and DAX. Match that in uvm_hmm_must_use_sysmem().
+
+--- a/kernel-open/nvidia-uvm/uvm_hmm.c	2026-11-02 20:03:36.662979656 +0100
++++ b/kernel-open/nvidia-uvm/uvm_hmm.c	2026-11-02 20:03:36.781754605 +0100
+@@ -4032,14 +4032,15 @@ bool uvm_hmm_must_use_sysmem(uvm_va_bloc
+     if (vma_has_cow_sharing(vma))
+         return true;
+ 
+-    // migrate_vma_setup() can't migrate VM_SPECIAL so we have to force GPU
+-    // remote mapping.
++    // 7.4: migrate_vma_setup() rejects VMAs that are not mm-backed,
++    // and has no hugetlb support. VM_SPECIAL and is_vm_hugetlb_page()
++    // are gone. Force GPU remote mapping for those VMAs.
+     // TODO: Bug 3660968: add support for file-backed migrations.
+     // TODO: Bug 3368756: add support for transparent huge page migrations.
+     return !vma_is_anonymous(vma) ||
+-           (vma->vm_flags & VM_SPECIAL) ||
++           !vma_is_mm_backed(vma) ||
+            vma_is_dax(vma) ||
+-           is_vm_hugetlb_page(vma);
++           vma_is_hugetlb(vma);
+ }
+ 
+ #endif // UVM_IS_CONFIG_HMM()

@@ -448,6 +448,8 @@ Source1033:	nvidia-symvers-location.patch
 Source1034:	nvidia-gpio-const.patch
 # 615 passes the dmem region name as a printf format. Force "%s".
 Source1035:	nvidia-dmem-cgroup-init.patch
+# 7.4 removed VM_SPECIAL and is_vm_hugetlb_page().
+Source1036:	nvidia-uvm-hmm-7.4.patch
 
 # Assorted fixes
 
@@ -1130,6 +1132,7 @@ cd open-gpu-kernel-modules-%{nvidia_version}
 patch -p1 -b -z .1033~ <%{S:1033}
 patch -p1 -b -z .1034~ <%{S:1034}
 patch -p1 -b -z .1035~ <%{S:1035}
+patch -p1 -b -z .1036~ <%{S:1036}
 cp %{S:1031} .
 chmod +x install-to-kernel-tree.sh
 ./install-to-kernel-tree.sh ${TOPDIR}
