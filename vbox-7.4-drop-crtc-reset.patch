@@ -1,0 +1,21 @@
+--- linux-7.4-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c	2026-10-21 20:21:15.000000000 +0200
++++ linux-7.4-rc1/drivers/gpu/drm/vboxvideo/vbox_mode.c	2026-11-02 19:16:07.359989212 +0100
+@@ -348,9 +348,7 @@ static const struct drm_crtc_helper_func
+ 	.commit = vbox_crtc_commit,
+ };
+ 
+-static void vbox_crtc_reset(struct drm_crtc *crtc)
+-{
+-}
++/* 7.4 removed drm_crtc_funcs.reset. This callback was empty. */
+ 
+ #if RTLNX_VER_MIN(4,12,0)
+ static int vbox_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
+@@ -383,7 +381,6 @@ static void vbox_crtc_destroy(struct drm
+ static const struct drm_crtc_funcs vbox_crtc_funcs = {
+ 	.cursor_move = vbox_cursor_move,
+ 	.cursor_set2 = vbox_cursor_set2,
+-	.reset = vbox_crtc_reset,
+ 	.set_config = drm_crtc_helper_set_config,
+ #if RTLNX_VER_MIN(2,6,29)
+ 	.gamma_set = vbox_crtc_gamma_set,

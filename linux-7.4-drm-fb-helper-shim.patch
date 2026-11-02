@@ -1,0 +1,13 @@
+diff -up /dev/null linux-7.4-rc1/include/drm/drm_fb_helper.h
+--- /dev/null
++++ linux-7.4-rc1/include/drm/drm_fb_helper.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * 7.4 moved the fbdev helper to drm/clients/drm_fbdev_helper.h.
++ * VirtualBox, NVIDIA and EVDI still include the old path.
++ */
++#ifndef DRM_FB_HELPER_H
++#define DRM_FB_HELPER_H
++#include <drm/clients/drm_fbdev_helper.h>
++#endif

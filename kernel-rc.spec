@@ -415,11 +415,16 @@ Source1005:	vbox-kernel-7.0.patch
 Source1007:	vboxnet-clang.patch
 Source1008:	vbox-modules-7.1.6-compile.patch
 Source1009:	vbox-modules-6.15.patch
+# 7.4 removed drm_crtc_funcs.reset. vbox_crtc_reset() was empty.
+Source1012:	vbox-7.4-drop-crtc-reset.patch
 
 # EVDI Extensible Virtual Display Interface
 # Needed by DisplayLink cruft
 %define evdi_version 1.15.1
 Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_version}.tar.gz
+# 7.4 removed drm_crtc_funcs.reset and drm_plane_funcs.reset.
+# Initial state comes from atomic_create_state. Connector reset is unchanged.
+Source1011:	linux-7.4-evdi-atomic-create-state.patch
 
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
@@ -475,6 +480,9 @@ Patch219:	https://raw.githubusercontent.com/Nobara-Project/rpm-sources/main/base
 # drm/amd#5339: KWin 6.7 picks advertised RA24 (RGBA8888) and amdgpu rejects it
 Patch220:	drm-amd-display-add-RGBA8888-format.patch
 Patch221:	drm-amd-display-fix-DCE-crossbar-for-RGBA8888.patch
+# 7.4 moved include/drm/drm_fb_helper.h. VirtualBox, NVIDIA and EVDI
+# still include that path. The declarations themselves did not change.
+Patch222:	linux-7.4-drm-fb-helper-shim.patch
 
 # Fix CPU frequency governor mess caused by recent Intel patches
 Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
@@ -1214,6 +1222,7 @@ $(obj)/evdi_detect.h: $(src)/conftest.sh FORCE
 	$(Q)cmp -s $@.tmp $@ 2>/dev/null && rm -f $@.tmp || mv $@.tmp $@
 EOF
 echo 'obj-$(CONFIG_DRM_EVDI) += evdi/' >>drivers/gpu/drm/Makefile
+patch -p1 -z .1011~ -b <%{S:1011}
 %endif
 
 # Merge TMFF2
@@ -1270,6 +1279,7 @@ EOF
 sed -i -e 's,\$(KBUILD_EXTMOD),drivers/gpu/drm/vboxvideo,g' drivers/gpu/drm/vboxvideo/Makefile*
 sed -i -e "s,^KERN_DIR.*,KERN_DIR := $(pwd)," drivers/gpu/drm/vboxvideo/Makefile*
 patch -p1 -z .1008~ -b <%{S:1008}
+patch -p1 -z .1012~ -b <%{S:1012}
 %endif
 
 # 800x600 is too small to be useful -- even calamares doesn't
