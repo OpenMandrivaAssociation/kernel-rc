@@ -214,6 +214,39 @@ resolves to the wrong directory.
 **Fix:** Wrapped the `cd` in a subshell: `(cd $(dir $<) && objcopy ...)`.
 After the subshell exits, the parent shell's working directory is unchanged.
 
+### 9. `memcpy` / `memset` Tail-Call Cycle in `nvidia.ko`
+
+**Problem:** `gcc_helper.c` defines `memcpy` and `memset` as tails into
+`os_mem_copy` and `os_mem_set`. On the non-size, non-aarch64-vmalloc path,
+`os-interface.c` defines those as tails back into `memcpy` and `memset`.
+The out-of-tree build partial-links the RM objects and runs
+`objcopy --localize-symbol=memcpy --localize-symbol=memset`, so
+`os-interface.c`'s undefined `memcpy` binds to the kernel export. The
+in-tree Makefile used to list `$(nvidia-rm-y)` and `$(nvidia-if-y)` in one
+`nvidia-y` link, so both relocations bound to `gcc_helper`. Module init
+then spins in that cycle on the first copy in `nv_cap_init` and never
+creates `/proc/driver/nvidia/capabilities`.
+
+**Fix:** The generated Makefile partial-links `$(nvidia-rm-y)` into
+`nv-kernel.o` with `src/nvidia/nv-kernel.ld`, then localizes `memcpy` and
+`memset` and drops `.note.gnu.property`. `nvidia-y` is the interface
+objects, `nv-kernel.o`, and `g_nvrm_nvid_string.o`. The blob is not named
+`nvidia-rm.o`, because kbuild would treat that as the composite of
+`$(nvidia-rm-y)` and link it again. `--gc-sections` is not passed:
+`exports_link_command.txt` is not in the source tree, and without it the
+link drops symbols that only the interface layer references. Replacing
+`os_mem_copy` with `memcpy` is the wrong fix: `gcc_helper`'s `memcpy`
+would call itself, and the aarch64 device-memory path inside
+`os_mem_copy` would not run for RM copies.
+
+The partial-link recipe does not put those paths on the `ld` command
+line. `if_changed` runs the recipe and stores it in the `.cmd` file, and
+two copies of the ~1100 paths exceed `MAX_ARG_STRLEN` (`/bin/sh:
+Argument list too long`). Make's `$(file)` writes `nv-kernel.o.objs`
+while the recipe is expanded, and the linker reads `@nv-kernel.o.objs`.
+Each path is on its own line. `$(foreach)` would insert a space between
+items, so the next line would not be the real path.
+
 ## Updating to Future Versions
 
 The install script is designed to accommodate changes in the upstream

@@ -85,8 +85,8 @@
 # buses, DVB/TV, staging, embedded-SoC audio, and odd firmware-bound drivers.
 
 # Rare / legacy filesystems
-# 7.3 removed appletalk, efs and freevxfs
-%global modules_subpackages can adfs affs afs befs bfs coda cramfs gfs2 hfs hfsplus hpfs jffs2 jfs minix nilfs2 ocfs2 omfs orangefs qnx4 qnx6 romfs ubifs ufs zonefs zd1211rw
+# 7.3 removed appletalk, efs and freevxfs. 7.4 removed bfs.
+%global modules_subpackages can adfs affs afs befs coda cramfs gfs2 hfs hfsplus hpfs jffs2 jfs minix nilfs2 ocfs2 omfs orangefs qnx4 qnx6 romfs ubifs ufs zonefs zd1211rw
 
 # Rare networking (ATM kept available for legacy PPPoA/ADSL; not needed for PPPoE)
 %global modules_subpackages %{modules_subpackages} atm sctp rds tipc hsr batman-adv x25 phonet caif nfc 6lowpan ieee802154 mac802154 openvswitch fddi arcnet isdn
@@ -150,7 +150,7 @@
 %global modules_subpackages %{modules_subpackages} st_uvis25_i2c.ko=iio st_uvis25_spi.ko=iio stk3310.ko=iio stk8312.ko=iio stk8ba50.ko=iio sx9310.ko=iio sx9324.ko=iio sx9360.ko=iio sx9500.ko=iio sx_common.ko=iio t5403.ko=iio tcs3414.ko=iio
 %global modules_subpackages %{modules_subpackages} tcs3472.ko=iio tlv493d.ko=iio tmag5273.ko=iio tmp006.ko=iio tmp007.ko=iio tmp117.ko=iio tsl2563.ko=iio tsl2583.ko=iio tsl2591.ko=iio tsl2772.ko=iio tsl4531.ko=iio tsys01.ko=iio
 %global modules_subpackages %{modules_subpackages} tsys02d.ko=iio us5182d.ko=iio vcnl3020.ko=iio vcnl4000.ko=iio vcnl4035.ko=iio veml3235.ko=iio veml3328.ko=iio veml6030.ko=iio veml6040.ko=iio veml6046x00.ko=iio veml6070.ko=iio veml6075.ko=iio
-%global modules_subpackages %{modules_subpackages} vl53l0x-i2c.ko=iio vl53l1x-i2c.ko=iio vl6180.ko=iio yamaha-yas530.ko=iio zopt2201.ko=iio zpa2326.ko=iio zpa2326_i2c.ko=iio zpa2326_spi.ko=iio
+%global modules_subpackages %{modules_subpackages} vl53l0x-i2c.ko=iio vl53l1x-i2c.ko=iio vl6180.ko=iio yamaha-yas530.ko=iio zopt2201.ko=iio zpa2326.ko=iio zpa2326_i2c.ko=iio zpa2326_spi.ko=iio veml6031x00.ko=iio
 %global modules_subpackages %{modules_subpackages} inv-icm42607-i2c.ko=iio inv-icm42607-spi.ko=iio qmc5883l.ko=iio qmc6308.ko=iio ltc2378.ko=iio adf41513.ko=iio mcp47a1.ko=iio ti-ads112c14.ko=iio slf3s.ko=iio
 
 # Industrial / PMBus / eval-board hwmon. Desktop Super-I/O, CPU, vendor
@@ -176,6 +176,7 @@
 %global modules_subpackages %{modules_subpackages} tps23861.ko=hwmon-extra tps25990.ko=hwmon-extra tps40422.ko=hwmon-extra tps53679.ko=hwmon-extra tps546d24.ko=hwmon-extra tsc1641.ko=hwmon-extra ucd9000.ko=hwmon-extra ucd9200.ko=hwmon-extra ultra45_env.ko=hwmon-extra vexpress-hwmon.ko=hwmon-extra wm831x-hwmon.ko=hwmon-extra wm8350-hwmon.ko=hwmon-extra
 %global modules_subpackages %{modules_subpackages} xdp710.ko=hwmon-extra xdp720.ko=hwmon-extra xdpe12284.ko=hwmon-extra xdpe152c4.ko=hwmon-extra xdpe1a2g7b.ko=hwmon-extra xgene-hwmon.ko=hwmon-extra yogafan.ko=hwmon-extra zl6100.ko=hwmon-extra
 %global modules_subpackages %{modules_subpackages} kb9002.ko=hwmon-extra mpq82d00.ko=hwmon-extra mpq8646.ko=hwmon-extra sq24860.ko=hwmon-extra vt7505.ko=hwmon-extra altera-socfpga-hwmon.ko=hwmon-extra eic7700-pvt.ko=hwmon-extra polarfire-soc-tvs.ko=hwmon-extra versal-sysmon.ko=hwmon-extra versal-sysmon-i2c.ko=hwmon-extra
+%global modules_subpackages %{modules_subpackages} axiado-pwm-fan.ko=hwmon-extra axiado-tsadc.ko=hwmon-extra honor-fmi.ko=hwmon-extra max20826.ko=hwmon-extra minisforum-um780xtx.ko=hwmon-extra tda38740.ko=hwmon-extra
 
 # Modules with obscure firmware dependencies (not covered by the kernel-firmware packages)
 %global modules_subpackages %{modules_subpackages} p54spi.ko snd-asihpi.ko snd-usb-6fire.ko bcm203x.ko adf7242.ko ast ath10k_pci.ko ath6kl_sdio.ko at76c50x-usb.ko smsmdtv.ko b43 b43legacy bfusb.ko hci_bcm4377.ko moxa.ko
@@ -184,9 +185,9 @@
 # This is the place where you set kernel version i.e 4.5.0
 # compose tar.xz name and release
 %define kernelversion 7
-%define patchlevel 3
+%define patchlevel 4
 %define sublevel 0
-%define relc 7
+%define relc 1
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -218,7 +219,6 @@
 %bcond_without evdi
 %bcond_without vbox_orig_mods
 %bcond_without clr
-%bcond_without saa716x
 # build perf and cpupower tools
 %if %{cross_compiling}
 %bcond_with bpftool
@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}1
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -383,7 +383,8 @@ Patch45:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
 Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
 Patch47:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
-Patch52:	http://crazy.dev.frugalware.org/smpboot-no-stack-protector-for-gcc10.patch
+# crazy.dev.frugalware.org now returns an HTML lander. Keep the copy we ship.
+Patch52:	smpboot-no-stack-protector-for-gcc10.patch
 Patch55:	linux-5.16-clang-no-attribute-symver.patch
 Patch60:	linux-6.18-clang.patch
 Patch61:	linux-6.19-acpi-clang.patch
@@ -398,13 +399,13 @@ Patch65:	x86-cpufeaturemasks-no-force.patch
 
 ### Additional hardware support
 ### TV tuners:
-# SAA716x DVB driver (Soeren Moch tree, already ported to 7.2)
-# git clone --depth=1 -b saa716x-7.2 https://github.com/s-moch/linux-saa716x.git
-# tar cJf saa716x-driver-YYYYMMDD.tar.xz -C linux-saa716x drivers/media/pci/saa716x
+# SAA716x DVB driver (Soeren Moch tree). No saa716x-7.4 branch yet;
+# saa716x-7.3 (9532b6b406) still applies on 7.4-rc1.
+# git clone --depth=1 -b saa716x-7.3 https://github.com/s-moch/linux-saa716x.git
+# git diff v7.3 >linux-7.3-saa716x.patch
 # Uses only in-tree frontends (stv090x/stv6110x/si2168/si2157/tda1004x/tda827x/isl6423).
 # OSD_RAW_* / AUDIO_GET_PTS ioctls used by saa716x_ff (Technotrend S2-6400).
-Source1003:	saa716x-driver-20260817.tar.xz
-Patch210:	saa716x-uapi.patch
+Patch210:	linux-7.4-saa716x.patch
 
 # VirtualBox patches -- added as Source: rather than Patch:
 # because they need to be applied after stuff from the
@@ -423,8 +424,10 @@ Source1010:	https://github.com/DisplayLink/evdi/archive/refs/tags/v%{evdi_versio
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20261013.tar.gz
-# 20261013 (e59081b003) already has the 7.2 lookup_one/vfs_* port and strscpy.
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20261027.tar.gz
+# 20261027 (b21eb2ea, "nexus: trim comments"). Same Nexus-main/nexus layout,
+# obj-m line, and nexus_team_init() empty definition, so the %prep seds apply.
+# Previous snapshot was 20261013 (e59081b003).
 # nexus-compile.patch was against the 20260831 tree and does not apply.
 #Patch1021:	nexus-compile.patch
 
@@ -446,12 +449,20 @@ Source1035:	nvidia-dmem-cgroup-init.patch
 # https://github.com/Kicksecure/tirdad
 Patch100:	security_tirdad.patch
 
-# Bring back ashmem -- anbox and waydroid still need it
+# Bring back ashmem -- anbox and waydroid still need it.
+# 7.4 has no ANDROID kconfig symbol; the staging hook keys off ASHMEM.
 Patch211:	revert-721412ed3d819e767cac2b06646bf03aa158aaec.patch
-# Modular binder and ashmem -- let's try to make anbox happy
-Patch212:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/android-enable-building-ashmem-and-binder-as-modules.patch
-Patch213:	https://salsa.debian.org/kernel-team/linux/raw/master/debian/patches/debian/export-symbols-needed-by-android-drivers.patch
-Patch216:	restore-exporting-symbols-needed-by-binder.patch
+# 7.4 removed the C binder driver (fd2bc059ed46) and left the Rust one.
+# Rust cannot be selected together with ThinLTO, modversions and BTF:
+# GENDWARFKSYMS depends on !LTO, and BTF with LTO also blocks Rust.
+# Put the C driver back as binder_linux, the module 7.3 shipped and the
+# name Waydroid expects. Binderfs is linked into that module. The patch
+# also exports the unexported symbols a modular binder needs.
+Patch209:	restore-c-binder.patch
+# Debian's modular binder patches are folded into Patch209.
+#Patch212:	https://salsa.debian.org/kernel-team/linux/-/raw/debian/latest/debian/patches/debian/android-enable-building-binder-as-module.patch
+#Patch213:	https://salsa.debian.org/kernel-team/linux/-/raw/debian/latest/debian/patches/debian/export-symbols-needed-by-binder.patch
+#Patch216:	restore-exporting-symbols-needed-by-binder.patch
 
 Patch214:	ras-fix-build-without-debugfs.patch
 Patch217:	acpi-chipset-workarounds-shouldnt-be-necessary-on-non-x86.patch
@@ -474,21 +485,27 @@ Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871
 
 # (tpg) Armbian ARM Patches
 # https://github.com/armbian/build/tree/main/patch/kernel/archive/
-Patch240:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-fix-emmc.patch
-Patch242:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/board-rockpro64-work-led-heartbeat.patch
+# Refreshed for the 7.4 rockpro64 dtsi (chosen node moved, led renamed work_led).
+Patch240:	board-rockpro64-fix-emmc.patch
+Patch242:	board-rockpro64-work-led-heartbeat.patch
 Patch243:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-fix-mmc-signal-voltage-before-reboot.patch
-Patch245:	https://github.com/armbian/build/raw/refs/heads/main/patch/kernel/archive/rockchip64-6.11/rk3399-unlock-temperature.patch
-Patch246:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/general-increasing_DMA_block_memory_allocation_to_2048.patch
-Patch247:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.5/general-rk808-configurable-switch-voltage-steps.patch
-Patch248:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-sd-drive-level-8ma.patch
-Patch250:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-enable-dwc3-xhci-usb-trb-quirk.patch
-Patch254:	https://raw.githubusercontent.com/armbian/build/master/patch/kernel/archive/rockchip64-6.0/rk3399-rp64-rng.patch
+Patch245:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.18/rk3399-unlock-temperature.patch
+# Minimum coherent pool 2MiB; the armbian flat-2MiB version no longer matches pool.c.
+Patch246:	general-increasing_DMA_block_memory_allocation_to_2048.patch
+Patch247:	https://raw.githubusercontent.com/armbian/build/main/patch/kernel/archive/rockchip64-6.18/general-rk808-configurable-switch-voltage-steps.patch
+# 7.4 moved the rk3399 pinctrl groups into rk3399-base.dtsi.
+Patch248:	rk3399-sd-drive-level-8ma.patch
+# snps,xhci-trb-ent-quirk is not parsed by 7.4 dwc3.
+#Patch250:	rk3399-enable-dwc3-xhci-usb-trb-quirk.patch
+# rockchip,cryptov1-rng is gone; ff8b8000 is the rk3399-crypto node.
+#Patch254:	rk3399-rp64-rng.patch
 
 # (tpg) Manjaro ARM Patches
 #Patch260:	https://gitlab.manjaro.org/manjaro-arm/packages/core/linux/-/raw/master/1005-panfrost-Silence-Panfrost-gem-shrinker-loggin.patch
 
 # Other ARM64 patches
-Patch261:	https://raw.githubusercontent.com/immortalwrt/immortalwrt/master/target/linux/rockchip/patches-5.15/992-rockchip-rk3399-overclock-to-2.2-1.8-GHz.patch
+# Upstream path under patches-5.15 is gone; keep the last copy we shipped.
+Patch261:	992-rockchip-rk3399-overclock-to-2.2-1.8-GHz.patch
 
 # (tpg) patches taken from https://github.com/OpenMandrivaSoftware/os-image-builder/tree/master/device/rockchip/generic/kernel-patches
 Patch300:	add-board-orangepi-4.patch
@@ -756,6 +773,14 @@ Suggests:	microcode-intel
 
 %posttrans -n %{name}-${flavour} -f kernel_files.${flavour}-posttrans
 %postun -n %{name}-${flavour} -f kernel_files.${flavour}-postun
+# Once per transaction, after every payload that dropped files under this
+# kernel's module tree (the flavour package itself and kernel-*-modules-*).
+# dracut resolves a .ko.zst it found on disk through modules.dep; split
+# modules such as nvidia are invisible to it until depmod has run, and
+# running dracut from each module %%posttrans would rebuild the initrd
+# once per subpackage.
+%transfiletriggerin -n %{name}-${flavour} -f kernel_files.${flavour}-modtrigger -- %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel
+%transfiletriggerpostun -n %{name}-${flavour} -f kernel_files.${flavour}-modtrigger -- %{_modulesdir}/%{version}-${flavour}-%{release}%{disttag}/kernel
 
 %files -n %{name}-${flavour} -f kernel_files.${flavour}
 EOF
@@ -1075,7 +1100,7 @@ done
 #
 %prep
 
-%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1003 -a 1020
+%setup -q -n linux-%{kernelversion}.%{patchlevel}%{?relc:-rc%{relc}} -a 2 -a 5 -a 1020
 TOPDIR="$(pwd)"
 
 %if %{with evdi}
@@ -1160,12 +1185,6 @@ if [ -d tools/vm ]; then
 	exit 1
 fi
 sed -i -e 's,vm_clean ,,' tools/Makefile
-
-%if %{with saa716x}
-# Wire s-moch saa716x into the in-tree media PCI build (same as upstream saa716x-7.2)
-sed -i -e '/saa7164/isource "drivers/media/pci/saa716x/Kconfig"' drivers/media/pci/Kconfig
-sed -i -e '/saa7164/iobj-$(CONFIG_SAA716X_SUPPORT) += saa716x/' drivers/media/pci/Makefile
-%endif
 
 %if %{with evdi}
 # Merge EVDI
@@ -1381,10 +1400,11 @@ clangify() {
 		-e '/^CONFIG_LD_IS_BFD=/d' \
 		-e '/^CONFIG_GCC_PLUGINS=/d' \
 		"$1"
-	# FIXME: CONFIG_CFI_CLANG and friends are turned off on x86_64
-	# because as of kernel 6.4.3 and VirtualBox 7.0, enabling any
-	# form of CFI breaks starting a VM in VirtualBox.
-	# If this ever gets fixed, CFI should be reenabled.
+	# FIXME: CFI is turned off on x86_64 because as of kernel 6.4.3 and
+	# VirtualBox 7.0, enabling any form of CFI breaks starting a VM
+	# in VirtualBox. If this ever gets fixed, CFI should be reenabled.
+	# 7.4 renamed CONFIG_CFI_CLANG to CONFIG_CFI. CFI_CLANG remains as a
+	# transitional alias. CFI_CLANG_SHADOW is gone.
 	cat >>"$1" <<'EOF'
 CONFIG_CC_IS_CLANG=y
 CONFIG_CC_HAS_ASM_GOTO_OUTPUT=y
@@ -1398,14 +1418,14 @@ CONFIG_INIT_STACK_NONE=y
 # CONFIG_LTO_CLANG_FULL is not set
 CONFIG_LTO_CLANG_THIN=y
 %ifarch %{x86_64}
+# CONFIG_CFI is not set
 # CONFIG_CFI_CLANG is not set
-# CONFIG_CFI_CLANG_SHADOW is not set
 # CONFIG_CFI_PERMISSIVE is not set
 %else
+CONFIG_CFI=y
 CONFIG_CFI_CLANG=y
 CONFIG_CFI_ICALL_NORMALIZE_INTEGERS=y
 CONFIG_CFI_AUTO_DEFAULT=y
-CONFIG_CFI_CLANG_SHADOW=y
 CONFIG_CFI_PERMISSIVE=y
 %endif
 CONFIG_RELR=y
@@ -1861,21 +1881,27 @@ EOF
 cat ../kernel_exclude_debug_files.$kernel_flavour >> $kernel_files
 %endif
 
-### Create kernel Posttrans script
-cat > $kernel_files-posttrans <<EOF
+### depmod + initrd. Not in %posttrans: that runs before we know every
+### kernel-*-modules-* package in this transaction is unpacked, and it
+### runs before DKMS below. The transfiletrigger at the end of the
+### transaction sees both.
+cat > $kernel_files-modtrigger <<EOF
+if [ -e /boot/vmlinuz-%{version}-$kernel_flavour-%{release}%{disttag} ]; then
 [ -x %{_bindir}/depmod ] && %{_bindir}/depmod -a %{version}-$kernel_flavour-%{release}%{disttag}
-
 %ifnarch %{armx} %{riscv}
 [ -x %{_bindir}/dracut ] && %{_bindir}/dracut -f --kver %{version}-$kernel_flavour-%{release}%{disttag}
 [ -x %{_bindir}/update-grub2 ] && %{_bindir}/update-grub2 ||:
 %endif
-
 %ifarch %{aarch64}
 if [ -d /boot/efi ] && [ -x %{_bindir}/kernel-install ]; then
 	%{_bindir}/kernel-install add %{version}-$kernel_flavour-%{release}%{disttag} %{_modulesdir}/%{version}-$kernel_flavour-%{release}%{disttag}/vmlinuz
 fi
 %endif
+fi
+EOF
 
+### Create kernel Posttrans script
+cat > $kernel_files-posttrans <<EOF
 ## cleanup some werid symlinks we never used anyway
 rm -rf vmlinuz-{server,desktop} initrd0.img initrd-{server,desktop} || :
 
@@ -2319,6 +2345,11 @@ EOF
 				if [ "$M" = "hfs" -a "${flavour}" = "desktop" ]; then
 					echo "Obsoletes: hfsutils < 3.2.6-42" >>$SP
 				fi
+				# nvidia userspace Requires: nvidia-kmod. This package
+				# satisfies that so dnf does not pull the DKMS module.
+				if [ "$PKG" = "nvidia" ]; then
+					echo "Provides:	nvidia-kmod = %{nvidia_version}" >>$SP
+				fi
 				cat >>"$SP" <<EOF
 ${PERCENT}description -n %{name}-${flavour}-modules-${PKG}
 ${D}
@@ -2368,6 +2399,9 @@ Requires:	%{name}-${flavour} = %{EVRD}
 Provides:	installonlypkg(kernel-module)
 Requires(posttrans,postun):	kmod
 EOF
+				if [ "$PKG" = "nvidia" ]; then
+					echo "Provides:	nvidia-kmod = %{nvidia_version}" >>$SP
+				fi
 				cat >>"$SP" <<EOF
 ${PERCENT}description -n %{name}-${flavour}-modules-${PKG}
 ${D}

@@ -67,3 +67,6 @@ CONFIG_BT_VIRTIO=m
 CONFIG_BT_NXPUART=m
 CONFIG_BT_INTEL_PCIE=m
 # end of Bluetooth device drivers
+
+# Linux 7.4
+CONFIG_BT_HCIBTUSB_QCOM=y

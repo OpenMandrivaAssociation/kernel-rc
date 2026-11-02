@@ -854,7 +854,37 @@ write_obj_var "nvidia-if-y" "$nvidia_if_objs"
 # RM core objects
 write_obj_var "nvidia-rm-y" "$nvidia_rm_objs"
 
-echo "nvidia-y := \$(nvidia-if-y) \$(nvidia-rm-y) g_nvrm_nvid_string.o"
+# gcc_helper.c defines memcpy/memset as tails into os_mem_copy/os_mem_set.
+# os-interface.c (interface layer, not in this blob) defines those as tails
+# back into memcpy/memset. A flat nvidia.o link binds both sides to each
+# other, and nv_cap_init's first copy of "driver/nvidia" never returns.
+# Upstream partial-links the RM objects, then localizes memcpy and memset
+# so the interface object's undefined memcpy binds to the kernel export.
+# The localized wrapper still calls os_mem_copy, which keeps the aarch64
+# vmalloc/MMIO path. Do not rewrite os_mem_copy to memcpy: gcc_helper
+# would recurse. Do not pass --gc-sections: exports_link_command.txt is
+# not shipped, and gc would drop symbols only referenced from kernel-open.
+# The blob is nv-kernel.o, not nvidia-rm.o: kbuild treats foo.o as the
+# composite of $(foo-y) and would link nvidia-rm.o itself.
+cat << 'NV_RM_PARTIAL_EOF'
+# Partial link of the RM core. See install-to-kernel-tree.sh.
+# ~1100 object paths. if_changed runs this recipe and stores it in the
+# .cmd file, so the list would appear twice in one /bin/sh -c and exceed
+# MAX_ARG_STRLEN. $(file) writes the list as make expands the recipe.
+# One path per line: $(foreach) inserts a space between items, which
+# would sit at the start of the next line and ld would miss the file.
+quiet_cmd_nv_rm_partial = LD [RM] $@
+      cmd_nv_rm_partial = $(file >$@.objs,$(subst $(space),$(newline),$(strip $(filter %.o,$^)))$(newline))$(LD) $(ld_flags) -r -T $(src)/src/nvidia/nv-kernel.ld -o $@ @$@.objs && $(OBJCOPY) --localize-symbol=memcpy --localize-symbol=memset --remove-section=.note.gnu.property $@
+
+$(obj)/nv-kernel.o: $(addprefix $(obj)/,$(nvidia-rm-y)) $(src)/src/nvidia/nv-kernel.ld FORCE
+	$(call if_changed,nv_rm_partial)
+
+targets += nv-kernel.o $(nvidia-rm-y)
+clean-files += nv-kernel.o nv-kernel.o.objs
+
+nvidia-y := $(nvidia-if-y) nv-kernel.o g_nvrm_nvid_string.o
+
+NV_RM_PARTIAL_EOF
 echo
 
 # NVRM ID string generation

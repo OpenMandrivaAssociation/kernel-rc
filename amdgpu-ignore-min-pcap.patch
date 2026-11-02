@@ -1,8 +1,8 @@
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-08-31 00:33:08.337033106 +0200
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h	2026-08-31 00:33:08.363971569 +0200
-@@ -157,6 +157,7 @@ struct amdgpu_watchdog_timer {
-  */
+@@ -159,6 +159,7 @@
  extern int amdgpu_modeset;
+ extern int amdgpu_iommu_perfopt;
  extern unsigned int amdgpu_vram_limit;
 +extern int amdgpu_ignore_min_pcap;
  extern int amdgpu_vis_vram_limit;

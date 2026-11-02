@@ -55,12 +55,12 @@ diff -up linux-6.18-rc7/drivers/platform/x86/acer-wmi.c.2~ linux-6.18-rc7/driver
  static bool cycle_gaming_thermal_profile = true;
  static bool predator_v4;
  static u64 supported_sensors;
-@@ -2377,12 +2401,30 @@ static void acer_wmi_notify(union acpi_o
+@@ -2572,17 +2596,35 @@ static void acer_wmi_notify(union acpi_o
  		acer_gsensor_event();
  		acer_kbd_dock_event(&return_value);
  		break;
 -	case WMID_GAMING_TURBO_KEY_EVENT:
--		if (return_value.key_num == 0x4)
+-		if (return_value.key_num == 0x4) {
 +	case WMID_GAMING_KEY_EVENT:
 +		if (return_value.key_num == 0x1) {
 +			/*
@@ -80,13 +80,17 @@ diff -up linux-6.18-rc7/drivers/platform/x86/acer-wmi.c.2~ linux-6.18-rc7/driver
 +			else
 +				pr_warn("macro key %d pressed (only 1 to 5 are known)\n", return_value.device_state);
 +			break;
-+		} else if (return_value.key_num == 0x4)
- 			acer_toggle_turbo();
++		} else if (return_value.key_num == 0x4) {
+ 			/* Models without a turbo button report their mode key as 0x4 */
+ 			if (has_cap(ACER_CAP_TURBO_LED))
+ 				acer_toggle_turbo();
+ 			else if (has_cap(ACER_CAP_PLATFORM_PROFILE))
+ 				acer_thermal_profile_change();
+ 		}
 -		if (return_value.key_num == 0x5 && has_cap(ACER_CAP_PLATFORM_PROFILE))
 +		else if (return_value.key_num == 0x5 && has_cap(ACER_CAP_PLATFORM_PROFILE))
  			acer_thermal_profile_change();
--		break;
-+ 		break;
+ 		break;
  	case WMID_AC_EVENT:
  		/* We ignore AC events here */
  		break;
