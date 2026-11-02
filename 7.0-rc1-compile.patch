@@ -1,11 +1,9 @@
-diff -up linux-7.0-rc1/kernel/signal.c.omv~ linux-7.0-rc1/kernel/signal.c
---- linux-7.0-rc1/kernel/signal.c.omv~	2026-02-24 19:31:01.754478945 +0100
-+++ linux-7.0-rc1/kernel/signal.c	2026-02-24 19:31:18.136613520 +0100
-@@ -1386,7 +1386,7 @@ struct sighand_struct *lock_task_sighand
+--- linux-7.4-rc1/kernel/signal.c.omv~	2026-11-02 18:18:04.730272633 +0100
++++ linux-7.4-rc1/kernel/signal.c	2026-11-02 18:18:04.750481451 +0100
+@@ -1430,6 +1430,7 @@ struct sighand_struct *lock_task_sighand
  
  	return sighand;
  }
--EXPORT_SYMBOL_GPL(__lock_task_sighand);
 +EXPORT_SYMBOL_GPL(lock_task_sighand);
  
  #ifdef CONFIG_LOCKDEP

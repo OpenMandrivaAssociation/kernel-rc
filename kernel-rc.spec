@@ -603,6 +603,9 @@ Patch998:	https://github.com/torvalds/linux/commit/899558f6782528d5324322ae6e4c2
 # 406e4c9... has landed
 # 7.2 dropped arch/arm64/configs/rockchip_defconfig
 #Patch1019:	https://github.com/torvalds/linux/commit/dfb6b6ac7b8403a37c94e5afb0b990643409cbed.patch
+# 7.4 has no EXPORT of lock_task_sighand. 7.3 shipped the export
+# (the Debian android patch added __lock_task_sighand, and this file
+# renamed it). That Debian patch is not applied; export the real name.
 Source2000:	7.0-rc1-compile.patch
 Source2001:	7.0-rc1-compile-x86.patch
 
