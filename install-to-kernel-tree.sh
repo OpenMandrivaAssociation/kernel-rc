@@ -670,6 +670,26 @@ NV_CONFTEST_CMD := /bin/sh \$(NV_CONFTEST_SCRIPT) \\
 # older toolchains used -fms-extensions. Without these, conftest compile
 # tests fail inside linux/fs.h (sizeof(struct filename) static_assert) and
 # feature detection produces inverted/wrong results.
+#
+# 7.4 wraps most of the arm64 system-register headers in
+# '#if ARM64_S390_COMMON == 1'. Kbuild sets that macro from KBUILD_CPPFLAGS
+# (arch/arm64/Makefile), not from the KBUILD_CFLAGS slice above. Without it
+# every arm64 probe fails to compile. conftest.sh treats a failed function
+# probe as "present", so the module then builds removed fallbacks
+# (typedef int vm_fault_t, mmap_sem, phys_to_dma(), set_memory_uc(),
+# follow_pfn(), jiffies_to_timespec(), ...).
+ifeq (\$(ARCH),arm64)
+NV_CONFTEST_ARCH_FLAGS := \$(KBUILD_CPPFLAGS)
+# Do not pass -DARM64_ASM_ARCH here. Its value contains single quotes, and
+# the conftest recipe hands NV_CONFTEST_CFLAGS to the shell as one
+# single-quoted word. An embedded quote truncates that word and every
+# probe fails. -Wa,% is written with a variable so the comma is not parsed
+# as another \$(filter) argument; a bare -Wa% pattern also matches -Wall.
+nv_comma := ,
+NV_CONFTEST_ARCH_FLAGS += \$(filter -mgeneral-regs-only -mbranch-protection=% -msign-return-address=% -ffixed-x18 -mabi=% -mstrict-align -march=% -DCONFIG_CC_HAS_K_CONSTRAINT% -mno-outline-atomics -mstack-protector-guard=% -mstack-protector-guard-reg=% -mstack-protector-guard-offset=% -Wa\$(nv_comma)%,\$(KBUILD_CFLAGS))
+else
+NV_CONFTEST_ARCH_FLAGS :=
+endif
 NV_CONFTEST_CFLAGS_ABS_SRCTREE := \$(abspath \$(srctree))
 NV_CONFTEST_LINUXINCLUDE := \$(subst ./,\$(NV_CONFTEST_CFLAGS_ABS_SRCTREE)/,\$(LINUXINCLUDE))
 NV_CONFTEST_CFLAGS = -O2 -D__KERNEL__ \\
@@ -677,6 +697,7 @@ NV_CONFTEST_CFLAGS = -O2 -D__KERNEL__ \\
   \$(NOSTDINC_FLAGS) \$(NV_CONFTEST_LINUXINCLUDE) \\
   -include \$(NV_CONFTEST_CFLAGS_ABS_SRCTREE)/include/linux/compiler_types.h \\
   \$(filter -std=% -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-pie -fms-extensions -fms-anonymous-structs -mfentry -fcf-protection=% -DCC_USING_FENTRY,\$(KBUILD_CFLAGS)) \\
+  \$(NV_CONFTEST_ARCH_FLAGS) \\
   -I\$(abspath \$(obj)) \\
   -I\$(abspath \$(src)/kernel-open) \\
   -Wno-implicit-function-declaration -Wno-strict-prototypes \\
