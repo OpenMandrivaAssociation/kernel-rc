@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}1
+Release:	%{?relc:0.rc%{relc}.}2
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -437,7 +437,7 @@ Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nex
 #Patch1021:	nexus-compile.patch
 
 # Nvidia GPU driver
-%define nvidia_version 615.78.08
+%define nvidia_version 620.70.06
 Source1030:	https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/%{nvidia_version}.tar.gz
 # Script to internalize nvidia modules
 Source1031:	install-to-kernel-tree.sh
