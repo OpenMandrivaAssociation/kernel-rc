@@ -187,7 +187,7 @@
 %define kernelversion 7
 %define patchlevel 4
 %define sublevel 0
-%define relc 1
+%define relc 2
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -400,7 +400,7 @@ Patch65:	x86-cpufeaturemasks-no-force.patch
 ### Additional hardware support
 ### TV tuners:
 # SAA716x DVB driver (Soeren Moch tree). No saa716x-7.4 branch yet;
-# saa716x-7.3 (9532b6b406) still applies on 7.4-rc1.
+# saa716x-7.3 (9532b6b406) still applies on 7.4-rc2.
 # git clone --depth=1 -b saa716x-7.3 https://github.com/s-moch/linux-saa716x.git
 # git diff v7.3 >linux-7.3-saa716x.patch
 # Uses only in-tree frontends (stv090x/stv6110x/si2168/si2157/tda1004x/tda827x/isl6423).
