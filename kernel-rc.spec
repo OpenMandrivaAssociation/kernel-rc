@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}2
+Release:	%{?relc:0.rc%{relc}.}3
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -430,10 +430,10 @@ Source1011:	linux-7.4-evdi-atomic-create-state.patch
 # Nexus -- BeOS like IPC, named semaphores, SHM, thread messaging, filesystem event notifications
 # https://github.com/Numerio/Nexus
 # https://v-os.dev/
-Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20261027.tar.gz
-# 20261027 (b21eb2ea, "nexus: trim comments"). Same Nexus-main/nexus layout,
-# obj-m line, and nexus_team_init() empty definition, so the %prep seds apply.
-# Previous snapshot was 20261013 (e59081b003).
+Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nexus-20261107.tar.gz
+# 20261107 (0730b1cbed, "nexus: let a port's creator take it back after a move").
+# Same Nexus-main/nexus layout and obj-m line. nexus_team_init() already
+# takes (void). Previous snapshot was 20261027 (b21eb2ea). Drops sem.c.
 # nexus-compile.patch was against the 20260831 tree and does not apply.
 #Patch1021:	nexus-compile.patch
 
@@ -529,6 +529,7 @@ Patch305:	kernel-6.0-rc2-perf-x86-compile.patch
 
 # V4L2 loopback
 # https://github.com/umlaeute/v4l2loopback
+# 442d720262 (2026-10-29) emits a uevent when capture or output becomes ready.
 Source400:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.c
 Source401:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback.h
 Source402:	https://raw.githubusercontent.com/umlaeute/v4l2loopback/main/v4l2loopback_formats.h
