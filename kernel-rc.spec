@@ -187,7 +187,7 @@
 %define kernelversion 7
 %define patchlevel 4
 %define sublevel 0
-%define relc 2
+%define relc 3
 
 # Having different top level names for packges means that you have to remove
 # them by hard :(
@@ -379,9 +379,10 @@ Patch43:	dont-disable-rdseed.patch
 
 # (crazy) see: https://forum.openmandriva.org/t/nvme-ssd-m2-not-seen-by-omlx-4-0/2407
 Patch45:	Unknow-SSD-HFM128GDHTNG-8310B-QUIRK_NO_APST.patch
-# Restore ACPI loglevels to sane values
-Patch46:	https://gitweb.frugalware.org/wip_kernel/raw/86234abea5e625043153f6b8295642fd9f42bff0/source/base/kernel/acpi-use-kern_warning_even_when_error.patch
-Patch47:	https://gitweb.frugalware.org/wip_kernel/raw/23f5e50042768b823e18613151cc81b4c0cf6e22/source/base/kernel/fix-acpi_dbg_level.patch
+# Restore ACPI loglevels to sane values.
+# gitweb.frugalware.org no longer resolves. Keep the copies we ship.
+Patch46:	acpi-use-kern_warning_even_when_error.patch
+Patch47:	fix-acpi_dbg_level.patch
 Patch51:	linux-5.5-corsair-strafe-quirks.patch
 # crazy.dev.frugalware.org now returns an HTML lander. Keep the copy we ship.
 Patch52:	smpboot-no-stack-protector-for-gcc10.patch
@@ -400,7 +401,7 @@ Patch65:	x86-cpufeaturemasks-no-force.patch
 ### Additional hardware support
 ### TV tuners:
 # SAA716x DVB driver (Soeren Moch tree). No saa716x-7.4 branch yet;
-# saa716x-7.3 (9532b6b406) still applies on 7.4-rc2.
+# saa716x-7.3 (9532b6b406) still applies on 7.4-rc3.
 # git clone --depth=1 -b saa716x-7.3 https://github.com/s-moch/linux-saa716x.git
 # git diff v7.3 >linux-7.3-saa716x.patch
 # Uses only in-tree frontends (stv090x/stv6110x/si2168/si2157/tda1004x/tda827x/isl6423).
@@ -486,9 +487,10 @@ Patch221:	drm-amd-display-fix-DCE-crossbar-for-RGBA8888.patch
 # still include that path. The declarations themselves did not change.
 Patch222:	linux-7.4-drm-fb-helper-shim.patch
 
-# Fix CPU frequency governor mess caused by recent Intel patches
-Patch225:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
-Patch226:	https://gitweb.frugalware.org/frugalware-current/raw/50690405717979871bb17b8e6b553799a203c6ae/source/base/kernel/revert-parts-of-a00ec3874e7d326ab2dffbed92faddf6a77a84e9-no-Intel-NO.patch
+# Fix CPU frequency governor mess caused by recent Intel patches.
+# gitweb.frugalware.org no longer resolves. Keep the copies we ship.
+Patch225:	0001-Revert-cpufreq-Avoid-configuring-old-governors-as-de.patch
+Patch226:	revert-parts-of-a00ec3874e7d326ab2dffbed92faddf6a77a84e9-no-Intel-NO.patch
 
 # Fix perf — 7.2 rewrote tools/perf libunwind/JVMTI bits; needs rebasing
 #Patch230:	linux-5.11-perf-compile.patch
