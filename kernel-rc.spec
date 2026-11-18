@@ -251,7 +251,7 @@
 Summary:	Linux kernel built for %{distribution}
 Name:		kernel%{?relc:-rc}
 Version:	%{kernelversion}.%{patchlevel}%{?sublevel:.%{sublevel}}
-Release:	%{?relc:0.rc%{relc}.}3
+Release:	%{?relc:0.rc%{relc}.}4
 License:	GPL-2.0
 Group:		System/Kernel and hardware
 ExclusiveArch:	%{ix86} %{x86_64} %{armx} %{riscv} %{loongarch64}
@@ -438,7 +438,7 @@ Source1020:	https://github.com/Numerio/Nexus/archive/refs/heads/main.tar.gz#/nex
 #Patch1021:	nexus-compile.patch
 
 # Nvidia GPU driver
-%define nvidia_version 620.70.06
+%define nvidia_version 620.73.04
 Source1030:	https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/%{nvidia_version}.tar.gz
 # Script to internalize nvidia modules
 Source1031:	install-to-kernel-tree.sh
@@ -449,8 +449,8 @@ Source1033:	nvidia-symvers-location.patch
 Source1034:	nvidia-gpio-const.patch
 # 615 passes the dmem region name as a printf format. Force "%s".
 Source1035:	nvidia-dmem-cgroup-init.patch
-# 7.4 removed VM_SPECIAL and is_vm_hugetlb_page().
-Source1036:	nvidia-uvm-hmm-7.4.patch
+# 620.73.04 tests VM_IO|VM_DONTEXPAND|VM_PFNMAP|VM_MIXEDMAP and
+# nv_vma_is_hugetlb(). nvidia-uvm-hmm-7.4.patch no longer applies.
 
 # Assorted fixes
 
@@ -1135,7 +1135,6 @@ cd open-gpu-kernel-modules-%{nvidia_version}
 patch -p1 -b -z .1033~ <%{S:1033}
 patch -p1 -b -z .1034~ <%{S:1034}
 patch -p1 -b -z .1035~ <%{S:1035}
-patch -p1 -b -z .1036~ <%{S:1036}
 cp %{S:1031} .
 chmod +x install-to-kernel-tree.sh
 ./install-to-kernel-tree.sh ${TOPDIR}
